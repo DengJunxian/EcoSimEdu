@@ -12,12 +12,13 @@
       "seed": 1962,
       "engine_version": "double-auction/1",
       "engine_path": "services/simulation/auction.py",
-      "engine_sha256": "e4b734b35416759a9c7817191d0abcd3161e25e4c7f369bcf7b24dd4027105d6",
+      "engine_sha256": "b26de2bd8f52670ecd6d8d17a40fcc3154df70fba7b39ddf326d4a74f3552716",
       "historical_dataset": null,
       "records": [
         "cases/catalog.json",
         "cases/boundaries.json",
         "cases/double_auction/case.json",
+        "cases/double_auction/lesson-v2.json",
         "cases/double_auction/presets.json.gz",
         "docs/audit/m2-runs.json",
         "docs/audit/m3-runs.json",
@@ -35,12 +36,13 @@
       "seed": 1971,
       "engine_version": "schelling/1",
       "engine_path": "services/simulation/schelling.py",
-      "engine_sha256": "819ca71a388e7ffd0f8f130ed21f29b1c094648733d00843be68dc24905aeb46",
+      "engine_sha256": "69dcaf09c6ad6e967a95989c9ef1c70a1ce4d8bf3ebcdc30da445b5fe792acb0",
       "historical_dataset": null,
       "records": [
         "cases/catalog.json",
         "cases/boundaries.json",
         "cases/schelling_segregation/case.json",
+        "cases/schelling_segregation/lesson-v2.json",
         "docs/audit/m2-runs.json",
         "docs/audit/m3-runs.json",
         "docs/release/seed-matrix.json",
@@ -58,12 +60,13 @@
       "seed": 20230309,
       "engine_version": "svb/1",
       "engine_path": "services/simulation/svb.py",
-      "engine_sha256": "81d463826a85919942a25be163f867dd902837e003fa141d927389f60d449dd7",
+      "engine_sha256": "be9eeadc9782baf1877e7c4b371203611e68f9e6ebc104ed645d6e2630b1b705",
       "historical_dataset": null,
       "records": [
         "cases/catalog.json",
         "cases/boundaries.json",
         "cases/svb_run/case.json",
+        "cases/svb_run/lesson-v2.json",
         "docs/audit/m2-runs.json",
         "docs/audit/m3-runs.json",
         "docs/release/seed-matrix.json",
@@ -84,12 +87,13 @@
       "seed": 3,
       "engine_version": "information-cascade/1",
       "engine_path": "services/simulation/cascade.py",
-      "engine_sha256": "697719f3b8cb3f5359a8a65189c52bc1e40e2c19b22fb0c179042ec52e781821",
+      "engine_sha256": "f8e9186980b40d68a4d99591097058fe1c16be456c1322fbb4cda2f188f40c8e",
       "historical_dataset": null,
       "records": [
         "cases/catalog.json",
         "cases/boundaries.json",
         "cases/information_cascade/case.json",
+        "cases/information_cascade/lesson-v2.json",
         "docs/audit/m2-runs.json",
         "docs/audit/m3-runs.json",
         "docs/release/seed-matrix.json",
@@ -109,12 +113,13 @@
       "seed": 2000,
       "engine_version": "public-goods/1",
       "engine_path": "services/simulation/public_goods.py",
-      "engine_sha256": "b7d64aa97c8290bfc1168b3b041d2d4105faf94cffb50c5a387b430a38e5cbff",
+      "engine_sha256": "5719c3b5bf5a34fc4970893e405de1183c5f490ae6f37f4f59b577c20af54a4d",
       "historical_dataset": null,
       "records": [
         "cases/catalog.json",
         "cases/boundaries.json",
         "cases/public_goods/case.json",
+        "cases/public_goods/lesson-v2.json",
         "cases/public_goods/replicates.json",
         "docs/audit/m2-runs.json",
         "docs/audit/m3-runs.json",
@@ -141,6 +146,7 @@
         "cases/catalog.json",
         "cases/boundaries.json",
         "cases/commons_governance/case.json",
+        "cases/commons_governance/lesson-v2.json",
         "cases/commons_governance/replicates.json",
         "docs/audit/m2-runs.json",
         "docs/audit/m3-runs.json",
@@ -163,6 +169,7 @@
         "cases/catalog.json",
         "cases/boundaries.json",
         "cases/lemons_market/case.json",
+        "cases/lemons_market/lesson-v2.json",
         "docs/audit/m3-runs.json",
         "docs/release/seed-matrix.json",
         "docs/release/rc9-boundaries.json"
@@ -184,6 +191,7 @@
         "cases/catalog.json",
         "cases/boundaries.json",
         "cases/school_matching/case.json",
+        "cases/school_matching/lesson-v2.json",
         "docs/audit/m3-runs.json",
         "docs/release/seed-matrix.json",
         "docs/release/rc9-boundaries.json"
@@ -199,12 +207,13 @@
       "seed": 1989,
       "engine_version": "beer/1",
       "engine_path": "services/simulation/beer.py",
-      "engine_sha256": "32a986d6ab96acb93043dd6ef728d6876adcab9b639effbe128fef6452cbd0b7",
+      "engine_sha256": "fcdfb9e344c1cf43a3320728ec2e84fbf83acbe6fe31b6282e807238d0b30893",
       "historical_dataset": null,
       "records": [
         "cases/catalog.json",
         "cases/boundaries.json",
         "cases/beer_game/case.json",
+        "cases/beer_game/lesson-v2.json",
         "docs/audit/m3-runs.json",
         "docs/release/seed-matrix.json",
         "docs/release/rc9-boundaries.json"
@@ -226,6 +235,7 @@
         "cases/catalog.json",
         "cases/boundaries.json",
         "cases/carbon_market/case.json",
+        "cases/carbon_market/lesson-v2.json",
         "docs/audit/m3-runs.json",
         "docs/release/seed-matrix.json",
         "docs/release/rc9-boundaries.json"
@@ -246,6 +256,7 @@
         "cases/catalog.json",
         "cases/boundaries.json",
         "cases/flash_crash/case.json",
+        "cases/flash_crash/lesson-v2.json",
         "docs/audit/m3-runs.json",
         "docs/release/seed-matrix.json",
         "docs/release/rc9-boundaries.json"
@@ -260,12 +271,13 @@
       "seed": 202101,
       "engine_version": "gamestop/1",
       "engine_path": "services/simulation/gamestop.py",
-      "engine_sha256": "569c823debb7fd666e7af23090691b040b252950990f0837b34a74eac197d846",
+      "engine_sha256": "f7ad3df7ece09ff84a870455f613d342dcc940e574a3d540b39b1f591889c26c",
       "historical_dataset": null,
       "records": [
         "cases/catalog.json",
         "cases/boundaries.json",
         "cases/gamestop/case.json",
+        "cases/gamestop/lesson-v2.json",
         "docs/audit/m3-runs.json",
         "docs/release/seed-matrix.json",
         "docs/release/rc9-boundaries.json",
@@ -345,6 +357,21 @@
       "license_status": "project_public_license_unconfirmed"
     },
     {
+      "path": "cases/double_auction/lesson-v2.json",
+      "kind": "teaching_input",
+      "version": "2.0.0",
+      "cases": [
+        "double_auction"
+      ],
+      "grain": "每课一份场景定义",
+      "method": "项目编写的教学任务、反馈与证据选择器（已发布）",
+      "verify": "python -m services.simulation.lesson_scenes",
+      "bytes": 14319,
+      "sha256": "fca1a22d98464954efb6af770d598e8a223259932863c4303104d17a3f69803e",
+      "distribution": "included_in_local_teaching_package",
+      "license_status": "project_public_license_unconfirmed"
+    },
+    {
       "path": "cases/schelling_segregation/case.json",
       "kind": "teaching_input",
       "version": "1.0.0",
@@ -356,6 +383,21 @@
       "verify": "python -m scripts.check_lesson_catalog --milestone m3",
       "bytes": 4893,
       "sha256": "52b0bd6f21f14465fc7055c41db5a232601a043d7c850028e0d707019bd5738e",
+      "distribution": "included_in_local_teaching_package",
+      "license_status": "project_public_license_unconfirmed"
+    },
+    {
+      "path": "cases/schelling_segregation/lesson-v2.json",
+      "kind": "teaching_input",
+      "version": "2.0.0",
+      "cases": [
+        "schelling_segregation"
+      ],
+      "grain": "每课一份场景定义",
+      "method": "项目编写的教学任务、反馈与证据选择器（已发布）",
+      "verify": "python -m services.simulation.lesson_scenes",
+      "bytes": 12608,
+      "sha256": "704ccb39046cc5c3fa6e7d3946a1f355143df87f5192fb96f73ed7f41be6d6d9",
       "distribution": "included_in_local_teaching_package",
       "license_status": "project_public_license_unconfirmed"
     },
@@ -375,6 +417,21 @@
       "license_status": "project_public_license_unconfirmed"
     },
     {
+      "path": "cases/svb_run/lesson-v2.json",
+      "kind": "teaching_input",
+      "version": "2.0.0",
+      "cases": [
+        "svb_run"
+      ],
+      "grain": "每课一份场景定义",
+      "method": "项目编写的教学任务、反馈与证据选择器（已发布）",
+      "verify": "python -m services.simulation.lesson_scenes",
+      "bytes": 14252,
+      "sha256": "bc2b5320796d905213953ca7501af102c8fe88ac1d1f6095ce176477ff95aa7d",
+      "distribution": "included_in_local_teaching_package",
+      "license_status": "project_public_license_unconfirmed"
+    },
+    {
       "path": "cases/information_cascade/case.json",
       "kind": "teaching_input",
       "version": "1.0.0",
@@ -386,6 +443,21 @@
       "verify": "python -m scripts.check_lesson_catalog --milestone m3",
       "bytes": 6354,
       "sha256": "8abe341c01635ebacaf48cbdb50d889726d7ca77ca950fcb656de9f122debd22",
+      "distribution": "included_in_local_teaching_package",
+      "license_status": "project_public_license_unconfirmed"
+    },
+    {
+      "path": "cases/information_cascade/lesson-v2.json",
+      "kind": "teaching_input",
+      "version": "2.0.0",
+      "cases": [
+        "information_cascade"
+      ],
+      "grain": "每课一份场景定义",
+      "method": "项目编写的教学任务、反馈与证据选择器（已发布）",
+      "verify": "python -m services.simulation.lesson_scenes",
+      "bytes": 11200,
+      "sha256": "085e1ae1473ae4da41ba904205c872e1c701de978d569ce45aab2492252e4258",
       "distribution": "included_in_local_teaching_package",
       "license_status": "project_public_license_unconfirmed"
     },
@@ -405,6 +477,21 @@
       "license_status": "project_public_license_unconfirmed"
     },
     {
+      "path": "cases/public_goods/lesson-v2.json",
+      "kind": "teaching_input",
+      "version": "2.0.0",
+      "cases": [
+        "public_goods"
+      ],
+      "grain": "每课一份场景定义",
+      "method": "项目编写的教学任务、反馈与证据选择器（已发布）",
+      "verify": "python -m services.simulation.lesson_scenes",
+      "bytes": 9779,
+      "sha256": "a5ecae4657dc037cee804c78dca4e58b4c62e14d837f79432473af9da682271b",
+      "distribution": "included_in_local_teaching_package",
+      "license_status": "project_public_license_unconfirmed"
+    },
+    {
       "path": "cases/commons_governance/case.json",
       "kind": "teaching_input",
       "version": "1.0.0",
@@ -416,6 +503,21 @@
       "verify": "python -m scripts.check_lesson_catalog --milestone m3",
       "bytes": 4398,
       "sha256": "28d7ac757699f6fde07fc83f980e63703d248032f6c431ab8589df9969a41fb6",
+      "distribution": "included_in_local_teaching_package",
+      "license_status": "project_public_license_unconfirmed"
+    },
+    {
+      "path": "cases/commons_governance/lesson-v2.json",
+      "kind": "teaching_input",
+      "version": "2.0.0",
+      "cases": [
+        "commons_governance"
+      ],
+      "grain": "每课一份场景定义",
+      "method": "项目编写的教学任务、反馈与证据选择器（已发布）",
+      "verify": "python -m services.simulation.lesson_scenes",
+      "bytes": 10250,
+      "sha256": "def97cd54cee2d4dce2c0e557953505be3b3b9605734d6b0b92d08df332f7d0e",
       "distribution": "included_in_local_teaching_package",
       "license_status": "project_public_license_unconfirmed"
     },
@@ -435,6 +537,21 @@
       "license_status": "project_public_license_unconfirmed"
     },
     {
+      "path": "cases/lemons_market/lesson-v2.json",
+      "kind": "teaching_input",
+      "version": "2.0.0",
+      "cases": [
+        "lemons_market"
+      ],
+      "grain": "每课一份场景定义",
+      "method": "项目编写的教学任务、反馈与证据选择器（已发布）",
+      "verify": "python -m services.simulation.lesson_scenes",
+      "bytes": 10935,
+      "sha256": "60c0aadc7eda749789f4bc13e035a0f7f6d9b13fb33293d65b9032f32cd90813",
+      "distribution": "included_in_local_teaching_package",
+      "license_status": "project_public_license_unconfirmed"
+    },
+    {
       "path": "cases/school_matching/case.json",
       "kind": "teaching_input",
       "version": "1.0.0",
@@ -446,6 +563,21 @@
       "verify": "python -m scripts.check_lesson_catalog --milestone m3",
       "bytes": 5825,
       "sha256": "063d681b81c163728c401670d6ce92b38c33c2f231a18fc6d28d3237c066c442",
+      "distribution": "included_in_local_teaching_package",
+      "license_status": "project_public_license_unconfirmed"
+    },
+    {
+      "path": "cases/school_matching/lesson-v2.json",
+      "kind": "teaching_input",
+      "version": "2.0.0",
+      "cases": [
+        "school_matching"
+      ],
+      "grain": "每课一份场景定义",
+      "method": "项目编写的教学任务、反馈与证据选择器（已发布）",
+      "verify": "python -m services.simulation.lesson_scenes",
+      "bytes": 11128,
+      "sha256": "f1bf485b74a3549c7555dd1f94412ef630a9598324e630a48e112b89ca96e614",
       "distribution": "included_in_local_teaching_package",
       "license_status": "project_public_license_unconfirmed"
     },
@@ -465,6 +597,21 @@
       "license_status": "project_public_license_unconfirmed"
     },
     {
+      "path": "cases/beer_game/lesson-v2.json",
+      "kind": "teaching_input",
+      "version": "2.0.0",
+      "cases": [
+        "beer_game"
+      ],
+      "grain": "每课一份场景定义",
+      "method": "项目编写的教学任务、反馈与证据选择器（已发布）",
+      "verify": "python -m services.simulation.lesson_scenes",
+      "bytes": 11112,
+      "sha256": "5759e7641594bdc5f36faef8f9289f411421b2bd586db1b989b38a12f30a1b43",
+      "distribution": "included_in_local_teaching_package",
+      "license_status": "project_public_license_unconfirmed"
+    },
+    {
       "path": "cases/carbon_market/case.json",
       "kind": "teaching_input",
       "version": "1.0.0",
@@ -476,6 +623,21 @@
       "verify": "python -m scripts.check_lesson_catalog --milestone m3",
       "bytes": 5795,
       "sha256": "b4675383b2f6e05ae848405e8c74a2bc1bdc29b3f4efe532414887f0f2d3fb7b",
+      "distribution": "included_in_local_teaching_package",
+      "license_status": "project_public_license_unconfirmed"
+    },
+    {
+      "path": "cases/carbon_market/lesson-v2.json",
+      "kind": "teaching_input",
+      "version": "2.0.0",
+      "cases": [
+        "carbon_market"
+      ],
+      "grain": "每课一份场景定义",
+      "method": "项目编写的教学任务、反馈与证据选择器（已发布）",
+      "verify": "python -m services.simulation.lesson_scenes",
+      "bytes": 8350,
+      "sha256": "914295f0e332845eb659c6d05b3e95d94236885bb61aea1aa2c634c0c4e41a29",
       "distribution": "included_in_local_teaching_package",
       "license_status": "project_public_license_unconfirmed"
     },
@@ -495,6 +657,21 @@
       "license_status": "project_public_license_unconfirmed"
     },
     {
+      "path": "cases/flash_crash/lesson-v2.json",
+      "kind": "teaching_input",
+      "version": "2.0.0",
+      "cases": [
+        "flash_crash"
+      ],
+      "grain": "每课一份场景定义",
+      "method": "项目编写的教学任务、反馈与证据选择器（已发布）",
+      "verify": "python -m services.simulation.lesson_scenes",
+      "bytes": 8411,
+      "sha256": "fb8fc6f95a8de0661677ff624db7c2fa8cdc235a4dfdabf03efd7f2c000e36a9",
+      "distribution": "included_in_local_teaching_package",
+      "license_status": "project_public_license_unconfirmed"
+    },
+    {
       "path": "cases/gamestop/case.json",
       "kind": "teaching_input",
       "version": "1.0.0",
@@ -506,6 +683,21 @@
       "verify": "python -m scripts.check_lesson_catalog --milestone m3",
       "bytes": 6293,
       "sha256": "fea1d49f3fe369f030e5ac87c73ce7ec3608e20dddab8b065c2f90a6a055fe53",
+      "distribution": "included_in_local_teaching_package",
+      "license_status": "project_public_license_unconfirmed"
+    },
+    {
+      "path": "cases/gamestop/lesson-v2.json",
+      "kind": "teaching_input",
+      "version": "2.0.0",
+      "cases": [
+        "gamestop"
+      ],
+      "grain": "每课一份场景定义",
+      "method": "项目编写的教学任务、反馈与证据选择器（已发布）",
+      "verify": "python -m services.simulation.lesson_scenes",
+      "bytes": 8542,
+      "sha256": "6094d21bec7a78a805f5a6c8c0e965d2c29324614edaf0322558c9fc46e9f75f",
       "distribution": "included_in_local_teaching_package",
       "license_status": "project_public_license_unconfirmed"
     },

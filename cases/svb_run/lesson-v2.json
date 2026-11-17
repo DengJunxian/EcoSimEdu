@@ -1,0 +1,408 @@
+{
+  "schema_version": 2,
+  "case_id": "svb_run",
+  "content_version": "2.0.0",
+  "engine_version": "svb/1",
+  "source_ids": [
+    "S01",
+    "SVB-RESOLUTION",
+    "S29"
+  ],
+  "scenes": [
+    {
+      "id": "intro",
+      "legacy_stage": "intro",
+      "title": "看一张银行账表",
+      "question": "银行为什么会有资产却付不出钱？",
+      "objective": "区分现金与净资产。",
+      "information": [
+        "2023 年 3 月 10 日，加州监管机构关闭硅谷银行。美联储复盘指出，利率上升、未保险存款集中和风险管理问题加剧了脆弱性。",
+        "2023 年 3 月 12 日，美国财政部、美联储和 FDIC 公布处置安排，保障该行全部储户。",
+        "接下来用合成储户和教学账表研究支付与信息传导。金额用模拟资金单位，时间用教学轮次。"
+      ],
+      "action": "intro",
+      "observables": [
+        "cash",
+        "equity"
+      ],
+      "questions": [
+        {
+          "id": "data-identity",
+          "prompt": "如果教学账表显示权益为 155，能把它写入硅谷银行真实历史账表吗？",
+          "kind": "concept",
+          "options": [
+            {
+              "id": "a",
+              "label": "应引用真实历史资料来回答",
+              "criterion": "correct",
+              "feedback": "分别保留课内运行证据和监管史料。教学数字用于复算机制。"
+            },
+            {
+              "id": "b",
+              "label": "可以直接填入真实账表",
+              "criterion": "incorrect",
+              "feedback": "在来源中核对历史事实。155 来自一条教学运行，单位是模拟资金单位。"
+            }
+          ]
+        }
+      ],
+      "next_scene": "predict"
+    },
+    {
+      "id": "predict",
+      "legacy_stage": "predict",
+      "title": "接到工资任务",
+      "question": "所有储户是否都能及时到账？",
+      "objective": "留下何时会出现待付的预测。",
+      "information": [
+        "你是 D01 的财务负责人。工资款是本轮个人资金需求，银行还要处理同一时段其他储户的申请。"
+      ],
+      "action": "predict",
+      "observables": [
+        "requested",
+        "paid",
+        "queued"
+      ],
+      "questions": [
+        {
+          "id": "svb-queue-prediction",
+          "prompt": "结算后的轮末，会出现尚未支付的申请吗？",
+          "kind": "prediction",
+          "selector": {
+            "event_type": "queue",
+            "fields": [
+              "pending"
+            ]
+          },
+          "options": [
+            {
+              "id": "yes",
+              "label": "会出现",
+              "feedback": "回放时定位第一条轮末待付记录，核对等待金额。"
+            },
+            {
+              "id": "no",
+              "label": "不会出现",
+              "feedback": "推进到收盘再检查是否有轮末待付。开局现金不能决定整条路径。"
+            },
+            {
+              "id": "unknown",
+              "label": "不确定",
+              "criterion": "uncertain",
+              "feedback": "可以先记录工资款提交的时间，再观察可用现金与申请量如何变化。"
+            }
+          ]
+        }
+      ],
+      "role": {
+        "actor_id": "D01",
+        "label": "企业 D01",
+        "goal": "选择何时提交工资款申请并追踪实际到账。"
+      },
+      "next_scene": "bid"
+    },
+    {
+      "id": "bid",
+      "legacy_stage": "bid",
+      "title": "提交提款申请",
+      "question": "第一轮提交还是第二轮提交？",
+      "objective": "固定工资款的申请时间。",
+      "information": [
+        "你的选择只改变工资款的申请时点。申请先进入队列，实际到账取决于银行可用现金和队列顺序。"
+      ],
+      "action": "bid",
+      "observables": [
+        "requests"
+      ],
+      "questions": [],
+      "evidence": {
+        "selector": {
+          "event_type": "requests",
+          "fields": [
+            "round",
+            "requests"
+          ],
+          "actor_id": "D01"
+        },
+        "missing": "本次可见范围尚无 D01 申请。"
+      },
+      "next_scene": "observe"
+    },
+    {
+      "id": "observe",
+      "legacy_stage": "observe",
+      "title": "沿消息与资金追踪储户",
+      "question": "一笔工资款什么时候入队，又什么时候进入储户的账户？",
+      "objective": "按 request_id 将申请、部分付款和未付余额连接起来。",
+      "information": [
+        "沿实付事件的申请编号回查原申请。沿消息边打开真实来源事件，检查观察者当时看到了谁。",
+        "工资到期、邻居消息、公开冲击和上一轮队列都可能影响行为。模型同时记录申请中的工资款与防御性提款。"
+      ],
+      "action": "observe",
+      "observables": [
+        "requests",
+        "payments",
+        "queue",
+        "messages"
+      ],
+      "questions": [
+        {
+          "id": "request-vs-payment",
+          "prompt": "累计申请 357 时，存款负债已经减少 357 吗？",
+          "kind": "concept",
+          "options": [
+            {
+              "id": "a",
+              "label": "需先查累计实付",
+              "criterion": "correct",
+              "feedback": "比较请求帧和付款帧。付款使银行现金与存款负债等额减少。"
+            },
+            {
+              "id": "b",
+              "label": "申请一入队，余额就全部减少",
+              "criterion": "incorrect",
+              "feedback": "申请先增加待付。若累计实付 250，余下 107 仍是存款负债的一部分。"
+            }
+          ],
+          "selector": {
+            "event_type": "payments",
+            "fields": [
+              "payments"
+            ]
+          }
+        },
+        {
+          "id": "message-attribution",
+          "prompt": "D01 提早申请可以解释后来所有请求吗？",
+          "kind": "concept",
+          "options": [
+            {
+              "id": "a",
+              "label": "要逐笔查消息来源和申请构成",
+              "criterion": "correct",
+              "feedback": "打开观察边的源事件，再看目标申请的 observation_seqs、工资款和防御性金额。"
+            },
+            {
+              "id": "b",
+              "label": "可以，后面发生的申请都由 D01 引起",
+              "criterion": "incorrect",
+              "feedback": "先检查接收者的消息来源，再对照其工资时点、阈值和上一轮银行事件。"
+            }
+          ],
+          "selector": {
+            "event_type": "messages",
+            "fields": [
+              "messages"
+            ]
+          }
+        }
+      ],
+      "evidence": {
+        "selector": {
+          "event_type": "payments",
+          "fields": [
+            "round",
+            "payments"
+          ],
+          "actor_id": "D01"
+        },
+        "missing": "当前还未看到 D01 到账。可先引用其真实申请。"
+      },
+      "next_scene": "explain"
+    },
+    {
+      "id": "explain",
+      "legacy_stage": "explain",
+      "title": "对照流动性与权益",
+      "question": "轮末待付和正权益会同时出现吗？",
+      "objective": "重算一帧现金和权益，再核对待付队列。",
+      "information": [
+        "在结算后的轮末寻找待付大于零、净资产为正的一帧。若本次没有同时出现，继续按实际结果对账。",
+        "权益等于现金、证券市值与贷款之和，减去存款负债与支持借款负债。"
+      ],
+      "action": "explain",
+      "observables": [
+        "cash",
+        "queued",
+        "equity",
+        "pending",
+        "support",
+        "sale",
+        "revaluation"
+      ],
+      "questions": [
+        {
+          "id": "liquidity-equity",
+          "prompt": "轮末权益为正足以确保全部申请已支付吗？",
+          "kind": "concept",
+          "options": [
+            {
+              "id": "no",
+              "label": "还要核对可用现金和待付队列",
+              "criterion": "correct",
+              "feedback": "把账表中的非现金资产纳入权益，把已付与待付分别核对。"
+            },
+            {
+              "id": "yes",
+              "label": "权益为正就一定全部到账",
+              "criterion": "incorrect",
+              "feedback": "先查轮末现金，再把待付清单加总。权益也包含贷款和证券。"
+            }
+          ]
+        },
+        {
+          "id": "support-equity",
+          "prompt": "支持机构借入资金后，银行权益会等额增加吗？",
+          "kind": "concept",
+          "options": [
+            {
+              "id": "a",
+              "label": "现金和借款负债同额增加，权益当时相同",
+              "criterion": "correct",
+              "feedback": "把借款新增额分别记在现金和支持借款负债，再计算一次。"
+            },
+            {
+              "id": "b",
+              "label": "增加的现金全部计入权益",
+              "criterion": "incorrect",
+              "feedback": "把同额新增借款记入负债。借款提高当期可支付现金，权益取资产与负债的差。"
+            }
+          ],
+          "selector": {
+            "event_type": "support",
+            "fields": [
+              "draw"
+            ]
+          }
+        },
+        {
+          "id": "sale-revaluation",
+          "prompt": "证券估值只在出售时才影响本课的权益吗？",
+          "kind": "concept",
+          "options": [
+            {
+              "id": "a",
+              "label": "重估和急售会分别影响权益",
+              "criterion": "correct",
+              "feedback": "重估改变存量证券的标价；急售低于当前标价的部分形成额外折价损失。"
+            },
+            {
+              "id": "b",
+              "label": "只有卖出才有账面影响",
+              "criterion": "incorrect",
+              "feedback": "打开共同冲击的重估事件。证券市值变了，即使银行还没卖出一单位证券。"
+            }
+          ],
+          "selector": {
+            "event_type": "revaluation",
+            "fields": [
+              "mark_loss"
+            ]
+          }
+        }
+      ],
+      "evidence": {
+        "selector": {
+          "event_type": "queue",
+          "fields": [
+            "round",
+            "pending"
+          ]
+        },
+        "missing": "运行没有轮末待付事件时，检查付款后的真实现金和累计实付。"
+      },
+      "next_scene": "compare"
+    },
+    {
+      "id": "compare",
+      "legacy_stage": "compare",
+      "title": "改变一种处置条件",
+      "question": "更多现金或分散的信息来源如何改变待付？",
+      "objective": "用相同轮次比较两组单独干预。",
+      "information": [
+        "缓冲组在冲击前用证券换入现金，初始资产总额和权益相同，后续利率冲击暴露随证券持仓变化。",
+        "网络组保持每人观察三位邻居，改变观察对象。两组都沿用同一工资时点与种子；沿同轮末核对。"
+      ],
+      "action": "compare",
+      "observables": [
+        "cash",
+        "paid",
+        "queued",
+        "equity"
+      ],
+      "questions": [
+        {
+          "id": "buffer-guarantee",
+          "prompt": "更多初始现金能保证每个轮末都没有待付吗？",
+          "kind": "concept",
+          "options": [
+            {
+              "id": "a",
+              "label": "要核对逐轮结果",
+              "criterion": "correct",
+              "feedback": "从开局到收盘检查等待金额。终局改善与全程无队列是两个条件。"
+            },
+            {
+              "id": "b",
+              "label": "初始缓冲越多，所有轮末都不会排队",
+              "criterion": "incorrect",
+              "feedback": "比较相同清结算轮次。由当轮申请规模、放款和急售收益共同决定到什么程度能付清。"
+            }
+          ],
+          "selector": {
+            "event_type": "queue",
+            "fields": [
+              "pending"
+            ]
+          }
+        },
+        {
+          "id": "network-universality",
+          "prompt": "分散信息来源一定降低期末风险吗？",
+          "kind": "concept",
+          "options": [
+            {
+              "id": "a",
+              "label": "结论取决于实际传播、规则和所选指标",
+              "criterion": "correct",
+              "feedback": "同时选待付与净资产，并追踪同一储户观测。若期末相同，可比较中间轮次和分配差异。"
+            },
+            {
+              "id": "b",
+              "label": "可以推广到任何银行",
+              "criterion": "incorrect",
+              "feedback": "先检查网络只改变观察对象，公开风险、工资需求与阈值仍参与决策。"
+            }
+          ],
+          "selector": {
+            "event_type": "messages",
+            "fields": [
+              "messages"
+            ]
+          }
+        }
+      ],
+      "next_scene": "notebook"
+    },
+    {
+      "id": "notebook",
+      "legacy_stage": "notebook",
+      "title": "写一条资金风险判断",
+      "question": "哪些记录能支持你的判断？",
+      "objective": "引用一条申请或结算事件和一组轮末对照。",
+      "information": [
+        "给银行委员会写一个可复核的判断，引用一条待付或申请记录、一条信息来源与一次制度比较。缺少所需事件时，说明本次发生了什么。",
+        "应用到另一家银行前，核对资产变现条件、储户构成和流动性支持。"
+      ],
+      "action": "notebook",
+      "observables": [
+        "requests",
+        "payments",
+        "pending"
+      ],
+      "questions": [],
+      "rubric": "读者应能回查申请编号与轮次，复算待付与权益，并识别哪项处置条件实际变化。",
+      "next_scene": null
+    }
+  ]
+}

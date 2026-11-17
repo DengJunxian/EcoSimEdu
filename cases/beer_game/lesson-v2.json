@@ -1,0 +1,329 @@
+{
+  "schema_version": 2,
+  "case_id": "beer_game",
+  "content_version": "2.0.0",
+  "engine_version": "beer/1",
+  "source_ids": [
+    "S12",
+    "S13"
+  ],
+  "scenes": [
+    {
+      "id": "intro",
+      "legacy_stage": "intro",
+      "title": "接手四级库存",
+      "question": "订单与货物往哪个方向走？",
+      "objective": "识别零售、批发、分销与工厂的两条流。",
+      "information": [
+        "四个环节开局各有 12 件库存。外部需求先进入零售商，向上的订单和向下的货物分别经过实际延迟。"
+      ],
+      "action": "intro",
+      "observables": [
+        "opening",
+        "in_transit"
+      ],
+      "questions": [
+        {
+          "id": "beer-direction",
+          "kind": "concept",
+          "prompt": "零售商的订单和批发商发给零售商的货物方向一样吗？",
+          "options": [
+            {
+              "id": "a",
+              "label": "订单向上游，货物发回下游",
+              "criterion": "correct",
+              "feedback": "需求通过订单传给供货方。发货和随后到货走反方向，进入收货方库存。"
+            },
+            {
+              "id": "b",
+              "label": "两者都从零售流向工厂",
+              "criterion": "incorrect",
+              "feedback": "固定零售商，分别找它的下单对象与发货给它的对象，再标出方向。"
+            }
+          ]
+        }
+      ],
+      "next_scene": "predict"
+    },
+    {
+      "id": "predict",
+      "legacy_stage": "predict",
+      "title": "先为缺货作预测",
+      "question": "一次需求变化会留下积压吗？",
+      "objective": "预测零售商在基准运行中是否出现期末积压。",
+      "information": [
+        "第 5 周终端需求从 4 件升到 8 件。客户需求先由现货与本周到货满足，未能满足部分进入积压。"
+      ],
+      "action": "predict",
+      "observables": [
+        "retail_stock",
+        "retail_backlog"
+      ],
+      "questions": [
+        {
+          "id": "beer-backlog",
+          "kind": "prediction",
+          "prompt": "基准运行中，零售商会有至少一周期末积压大于零吗？",
+          "selector": {
+            "event_type": "week_end",
+            "fields": [
+              "week"
+            ],
+            "metric_positive": "retail_backlog"
+          },
+          "options": [
+            {
+              "id": "yes",
+              "label": "会出现",
+              "feedback": "若有积压，请核对该周期初库存、到货量与需要交付的数量。"
+            },
+            {
+              "id": "no",
+              "label": "不会出现",
+              "feedback": "回看零售商从第 5 周起的周末积压。结束后再确认是否整次都无积压。"
+            },
+            {
+              "id": "unknown",
+              "label": "暂不确定",
+              "criterion": "uncertain",
+              "feedback": "可先在第 5 周对账，再沿时间轴看积压是否变为正值。"
+            }
+          ]
+        }
+      ],
+      "next_scene": "bid",
+      "role": {
+        "actor_id": "零售商",
+        "label": "零售商",
+        "goal": "决定需求上升当周的订货量，并追踪何时到货。"
+      }
+    },
+    {
+      "id": "bid",
+      "legacy_stage": "bid",
+      "title": "给第 5 周下一次订单",
+      "question": "下单 8、12 还是 20 件？",
+      "objective": "提交一次真实订单，并追踪其后自动规则。",
+      "information": [
+        "课程输入覆盖第 5 周零售订单；其余各周由同一已选规则计算。不同订单策略可从开局生成新对照。"
+      ],
+      "action": "bid",
+      "observables": [
+        "orders",
+        "demand_received"
+      ],
+      "questions": [
+        {
+          "id": "beer-not-instant",
+          "kind": "concept",
+          "prompt": "你给批发商下单 20 件，本周库存就增加 20 件吗？",
+          "options": [
+            {
+              "id": "a",
+              "label": "先查实际到货",
+              "criterion": "correct",
+              "feedback": "下单进入已订未到，批发商下一周收到订单后处理，具体到货还要经过运输。"
+            },
+            {
+              "id": "b",
+              "label": "立即记入本周库存",
+              "criterion": "incorrect",
+              "feedback": "找出同一周的下单和实际到货两列。库存只在货物实际抵达或发出时变动。"
+            }
+          ],
+          "selector": {
+            "event_type": "week_end",
+            "fields": [
+              "week",
+              "orders",
+              "arrivals",
+              "dispatches"
+            ]
+          }
+        }
+      ],
+      "next_scene": "observe",
+      "role": {
+        "actor_id": "零售商",
+        "label": "零售商",
+        "goal": "决定需求上升当周的订货量，并追踪何时到货。"
+      }
+    },
+    {
+      "id": "observe",
+      "legacy_stage": "observe",
+      "title": "沿订单追到批发商",
+      "question": "第 5 周的订单什么时候到达上游？",
+      "objective": "把下单、收到订单和实际到货分别对齐到周。",
+      "information": [
+        "先看第 5 周零售下单，再继续第 6 周查批发需求。若本周收到实物，可从到货批次跳回发货事件。"
+      ],
+      "action": "observe",
+      "observables": [
+        "week_end",
+        "week",
+        "orders",
+        "arrivals",
+        "dispatches"
+      ],
+      "questions": [
+        {
+          "id": "beer-receipt",
+          "kind": "concept",
+          "prompt": "批发收到订单时，等量货物同时抵达零售吗？",
+          "options": [
+            {
+              "id": "a",
+              "label": "另查实际发送与到货周",
+              "criterion": "correct",
+              "feedback": "收到订单是信息进入，发货需要库存并产生具有到达周的批次。"
+            },
+            {
+              "id": "b",
+              "label": "收到订单就同时到货",
+              "criterion": "incorrect",
+              "feedback": "从零售到货选一批，查看批次发送周与计划到达周。此前订单消息走独立时钟。"
+            }
+          ],
+          "selector": {
+            "event_type": "week_end",
+            "fields": [
+              "week",
+              "orders",
+              "arrivals",
+              "dispatches"
+            ]
+          }
+        }
+      ],
+      "evidence": {
+        "selector": {
+          "event_type": "week_end",
+          "fields": [
+            "week",
+            "orders",
+            "arrivals",
+            "dispatches"
+          ]
+        },
+        "missing": "开局只有初始批次。下一周结算后可以追踪订单和到货。"
+      },
+      "next_scene": "explain"
+    },
+    {
+      "id": "explain",
+      "legacy_stage": "explain",
+      "title": "复算库存位置",
+      "question": "实物在途为什么只占已订未到的一部分？",
+      "objective": "用当前选中的环节核对库存在手、欠交、在途和未发。",
+      "information": [
+        "库存位置等于期末库存加全部已订未到，再减期末积压。已订未到包含在途以及尚未发货的未结订单。"
+      ],
+      "action": "explain",
+      "observables": [
+        "in_transit",
+        "retail_stock",
+        "retail_backlog"
+      ],
+      "questions": [
+        {
+          "id": "beer-outstanding",
+          "kind": "concept",
+          "prompt": "供应商还没发出的订单计入库存位置吗？",
+          "options": [
+            {
+              "id": "a",
+              "label": "它仍属于全部已订未到",
+              "criterion": "correct",
+              "feedback": "选零售商核对：全部已订未到减实物在途，就是尚未进入运输的数量。"
+            },
+            {
+              "id": "b",
+              "label": "只有在途实物计入",
+              "criterion": "incorrect",
+              "feedback": "先查已下订单和当前运输批次。供应商还未发出的订单影响未来供给，应计进库存位置。"
+            }
+          ],
+          "selector": {
+            "event_type": "week_end",
+            "fields": [
+              "week",
+              "orders",
+              "arrivals",
+              "dispatches"
+            ]
+          }
+        }
+      ],
+      "evidence": {
+        "selector": {
+          "event_type": "week_end",
+          "fields": [
+            "week"
+          ],
+          "metric_positive": "retail_backlog"
+        },
+        "missing": "当前已揭示周次没有零售期末积压。可用库存和到货解释这条路径。"
+      },
+      "next_scene": "compare"
+    },
+    {
+      "id": "compare",
+      "legacy_stage": "compare",
+      "title": "同一需求下比较四种条件",
+      "question": "缩短时间、分享信息或改规则，哪项改变最大？",
+      "objective": "按同一周比较库存、运输与投产波动。",
+      "information": [
+        "对照维持终端需求、种子和第 5 周学生订单。缩短时滞也重配合法的开局在途批次；需求零方差时，方差比保持缺失。"
+      ],
+      "action": "compare",
+      "observables": [
+        "factory_variance_ratio",
+        "in_transit",
+        "total_cost"
+      ],
+      "questions": [
+        {
+          "id": "beer-variance",
+          "kind": "concept",
+          "prompt": "终端需求每周相同时，投产与需求方差比应显示为 0 吗？",
+          "options": [
+            {
+              "id": "a",
+              "label": "分母为 0，方差比缺失",
+              "criterion": "correct",
+              "feedback": "零方差不能作分母。改看实际投产、库存或成本判断是否出现波动。"
+            },
+            {
+              "id": "b",
+              "label": "方差比为 0",
+              "criterion": "incorrect",
+              "feedback": "检查方差比的单位和分母。数值 0 代表有效比值，缺失表示这次无法用该比值比较。"
+            }
+          ]
+        }
+      ],
+      "next_scene": "notebook"
+    },
+    {
+      "id": "notebook",
+      "legacy_stage": "notebook",
+      "title": "解释一次延迟的影响",
+      "question": "面对囤货与工厂停产，应该分别追查哪条流？",
+      "objective": "引用一次周末记录和一组对照来解释延迟。",
+      "information": [
+        "写下你观察到的订单先后和实际到货，说明要区分终端需求跳变与上游生产限制，还需查什么外部记录。"
+      ],
+      "action": "notebook",
+      "observables": [
+        "week_end",
+        "orders",
+        "arrivals",
+        "production"
+      ],
+      "questions": [],
+      "rubric": "能用事件周和批次来源核对下单、发货和到货，说明库存位置为何影响订货，并指出可以检验解释的条件。",
+      "next_scene": null
+    }
+  ]
+}

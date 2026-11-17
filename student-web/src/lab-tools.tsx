@@ -1,6 +1,6 @@
 import { useId, useState } from "react";
 import curriculum from "../../docs/curriculum/knowledge-map.json";
-import { catalog } from "./catalog";
+import { catalog, legacyCourseHref } from "./catalog";
 import { api, downloadJson, traceHref } from "./contracts";
 import { checkStudy, storageKey, type Course } from "./lesson-types";
 import { validateStudy } from "./study";
@@ -17,10 +17,6 @@ type PresetExport = {
   presets: { id: string; label: string }[];
 };
 
-function courseHref(courseId: string) {
-  return courseId === courses[0].case_id ? "/" : `/?case=${encodeURIComponent(courseId)}`;
-}
-
 function readFavorites(): string[] {
   const raw: unknown = JSON.parse(localStorage.getItem(favoriteKey) ?? "[]");
   return Array.isArray(raw)
@@ -36,7 +32,7 @@ export function teacherEnabled() {
   }
 }
 
-function readExperiments() {
+export function readExperiments() {
   const entries = [];
   let invalid = 0;
   for (const course of courses) {
@@ -148,7 +144,7 @@ export function LabTools({ caseId }: { caseId: string }) {
   function courseRow(course: Course) {
     const saved = favorites.includes(course.case_id);
     return <li key={course.case_id} className="lab-course-row">
-      <a href={courseHref(course.case_id)} aria-current={course.case_id === caseId ? "page" : undefined}>
+      <a href={legacyCourseHref(course.case_id)} aria-current={course.case_id === caseId ? "page" : undefined}>
         {course.title}
       </a>
       <button type="button" className="lab-favorite" aria-label={`收藏${course.title}`}
@@ -191,7 +187,7 @@ export function LabTools({ caseId }: { caseId: string }) {
         {experiments.invalid} 门课程的本机记录无法读取。可回到课程导入已导出的笔记。
       </p>}
       {experiments.entries.map(({ course, study }) => <section key={course.case_id}>
-        <h2><a href={courseHref(course.case_id)}>{course.title}</a></h2>
+        <h2><a href={legacyCourseHref(course.case_id)}>{course.title}</a></h2>
         <p>{study.complete ? "已完成" : `进行中 · ${course.lessons[study.stage || study.unlocked].title}`}</p>
         {Object.keys(study.runs).length > 0 && <ul aria-label={`${course.title}的本机运行`}>
           {course.scenarios.map(scenario => {
@@ -216,7 +212,7 @@ export function LabTools({ caseId }: { caseId: string }) {
       </div>
       <div className="lab-concepts">
         {concepts.map(({ course, items }) => <section key={course.case_id}>
-          <h2><a href={courseHref(course.case_id)}>{course.title}</a></h2>
+          <h2><a href={legacyCourseHref(course.case_id)}>{course.title}</a></h2>
           <dl>{items.map(item => <div key={item.term}><dt>{item.term}</dt><dd>{item.definition}</dd></div>)}</dl>
         </section>)}
         {!concepts.length && <p className="lab-message" role="status">没有找到匹配的概念。</p>}

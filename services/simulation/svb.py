@@ -3,6 +3,7 @@ from collections import deque
 from random import Random
 
 from .auction import digest
+from .classroom_policy import choose_actions
 
 
 def _depositors(seed):
@@ -45,7 +46,9 @@ def _neighbors(people, seed, layout):
     }
 
 
-def simulate(case, scenario_id, seed, action, *, decide=None):
+def simulate(case, scenario_id, seed, action, *, decide=None, classroom_policy=None):
+    if decide is not None and classroom_policy is not None:
+        raise ValueError("Only one model policy may own a round")
     options = {option["id"] for option in case["action"]["options"]}
     if action not in options:
         raise ValueError(f"Unknown SVB action: {action}")
@@ -171,30 +174,50 @@ def simulate(case, scenario_id, seed, action, *, decide=None):
                 [edge["to"] for edge in deliveries], deliveries, messages=deliveries,
             )
 
-        live_actor = None
-        if decide is not None and step == 1:
-            live_actor = next(person for person in people if person != player)
-            state = people[live_actor]
-            free = state["deposit"] - state["queued"]
-            payroll_due = min(state["payroll"], free) if state["payroll_round"] == step else 0
-            cap = max(0, free - payroll_due - state["protected"])
-            default = "withdraw_unprotected" if cap and risk_scores[live_actor] >= state["threshold"] else "hold"
-            allowed = {"hold": "本轮不追加防御性提款"}
-            if cap:
-                allowed["withdraw_unprotected"] = f"本轮追加 {cap} 资金单位的防御性提款申请"
-            stage = "protective_withdrawal"
-            choice = decide(live_actor, stage, {
-                "round": step, "deposit": state["deposit"], "pending": state["queued"],
-                "payroll_due": payroll_due, "protected": state["protected"],
-                "observed_requests": sorted(seen[live_actor]), "risk_score": risk_scores[live_actor],
-                "public_security_price": price,
-            }, allowed, default)
-            if choice not in allowed:
-                raise ValueError("Withdrawal decision is outside the offered actions")
-            live_amount = cap if choice == "withdraw_unprotected" else 0
-            decision_seq = len(events)
-            record("agent_action_selected", f"{live_actor}：{allowed[choice]}。", [live_actor],
-                   actor_id=live_actor, stage=stage, action=choice, protective=live_amount)
+        model_choices = {}
+        model_actors = ()
+        if classroom_policy is not None and step <= 5:
+            model_actors = tuple(person for person in people if person != player)[:6]
+        elif decide is not None and step == 1:
+            model_actors = (next(person for person in people if person != player),)
+        if model_actors:
+            requests = []
+            capacities = {}
+            for actor in model_actors:
+                state = people[actor]
+                free = state["deposit"] - state["queued"]
+                payroll_due = min(state["payroll"], free) if state["payroll_round"] == step else 0
+                cap = 0 if state["protective_requested"] else max(0, free - payroll_due - state["protected"])
+                capacities[actor] = cap
+                default = "withdraw_unprotected" if cap and risk_scores[actor] >= state["threshold"] else "hold"
+                allowed = {"hold": "本轮不追加防御性提款"}
+                if cap:
+                    allowed["withdraw_unprotected"] = f"本轮追加 {cap} 资金单位的防御性提款申请"
+                requests.append({
+                    "actor": actor, "stage": "protective_withdrawal", "allowed": allowed, "default": default,
+                    "observation": {
+                        "round": step, "deposit": state["deposit"], "pending": state["queued"],
+                        "payroll_due": payroll_due, "protected": state["protected"],
+                        "observed_requests": sorted(seen[actor]), "risk_score": risk_scores[actor],
+                        "public_security_price": price,
+                    },
+                })
+            if classroom_policy is not None:
+                choices = choose_actions(classroom_policy, step, requests)
+            else:
+                request = requests[0]
+                actor = request["actor"]
+                choices = {actor: decide(actor, request["stage"], request["observation"],
+                                         request["allowed"], request["default"])}
+            for request in requests:
+                actor = request["actor"]
+                choice = choices[actor]
+                if not isinstance(choice, str) or choice not in request["allowed"]:
+                    raise ValueError("Withdrawal decision is outside the offered actions")
+                amount = capacities[actor] if choice == "withdraw_unprotected" else 0
+                model_choices[actor] = amount, len(events)
+                record("agent_action_selected", f"{actor}：{request['allowed'][choice]}。", [actor],
+                       actor_id=actor, stage=request["stage"], action=choice, protective=amount)
 
         new = []
         for person, state in people.items():
@@ -207,8 +230,8 @@ def simulate(case, scenario_id, seed, action, *, decide=None):
                 and not state["protective_requested"] and risk_scores[person] >= state["threshold"]
                 else 0
             )
-            if person == live_actor:
-                protective = live_amount
+            if person in model_choices:
+                protective = model_choices[person][0]
             if protective:
                 state["protective_requested"] = True
             amount = payroll + protective
@@ -219,8 +242,8 @@ def simulate(case, scenario_id, seed, action, *, decide=None):
                     "payroll": payroll, "protective": protective, "risk_score": risk_scores[person],
                     "observation_seqs": sorted({first_requests[neighbor] for neighbor in seen[person]}),
                 }
-                if person == live_actor:
-                    entry["agent_action_seq"] = decision_seq
+                if person in model_choices:
+                    entry["agent_action_seq"] = model_choices[person][1]
                 queue.append(entry)
                 new.append(entry.copy())
                 first_requests.setdefault(person, len(events))
@@ -295,9 +318,14 @@ def simulate(case, scenario_id, seed, action, *, decide=None):
                 ["BANK"], pending=[entry.copy() for entry in queue],
             )
 
+        if classroom_policy is not None and step < rules["steps"]:
+            classroom_policy.commit(step, events, snapshots)
+
     record("closing", "教学时段结束。比较未付款、剩余现金和净资产。", ["BANK"])
+    if classroom_policy is not None:
+        classroom_policy.commit(rules["steps"], events, snapshots)
     return {
-        "engine_version": "svb/1", "initial": initial,
+        "engine_version": "svb/2" if classroom_policy is not None else "svb/1", "initial": initial,
         "events": events,
         "snapshots": snapshots,
         "metrics": snapshots[-1]["metrics"],

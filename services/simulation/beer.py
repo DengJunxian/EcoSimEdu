@@ -45,12 +45,16 @@ def simulate(case, scenario_id, seed, action):
     return run_chain(case, scenario_id, seed, int(action), demand)
 
 
-def run_chain(case, scenario_id, seed, first_order, demand):
+def run_chain(case, scenario_id, seed, first_order, demand, *, order_plan=None):
     parameters = next(s["parameters"] for s in case["scenarios"] if s["id"] == scenario_id)
     delay = parameters["delay"]
     policy = parameters["policy"]
     initial = starting_state(delay, demand)
-    root_hash = digest({"seed": seed, "action": first_order, "initial": starting_state(BASELINE_DELAY, demand)})
+    root = {"seed": seed, "action": first_order, "initial": starting_state(BASELINE_DELAY, demand)}
+    if order_plan:
+        root["weekly_orders"] = order_plan
+        initial["weekly_orders"] = order_plan
+    root_hash = digest(root)
     stock = initial["stock"].copy()
     backlog = initial["backlog"].copy()
     batches = initial["initial_batches"].copy()
@@ -131,7 +135,9 @@ def run_chain(case, scenario_id, seed, first_order, demand):
             lag = delay if role == "工厂" else delay + 1
             outstanding[role] -= arrivals[role]
             units = decide(policy, forecast[role], stock[role], backlog[role], outstanding[role], lag)
-            if week == SHOCK and role == "零售商":
+            if role == "零售商" and order_plan and str(week) in order_plan:
+                units = order_plan[str(week)]
+            elif week == SHOCK and role == "零售商":
                 units = first_order
             if role == "工厂":
                 units = min(units, CAPACITY)
@@ -146,13 +152,13 @@ def run_chain(case, scenario_id, seed, first_order, demand):
         batches.extend(dispatches)
         pending = {role: placed[role] for role in ROLES[:3]}
         costs += sum(stock.values()) + 2 * sum(backlog.values())
-        student = " 本周使用你提交的零售订单。" if week == SHOCK else ""
+        student = " 本周使用你提交的零售订单。" if week == SHOCK or (order_plan and str(week) in order_plan) else ""
         emit(week, f"第 {week} 周终端需求 {consumer_demand} 件，零售商下单 {placed['零售商']} 件，"
             f"工厂启动生产 {product} 件，零售期末积压 {backlog['零售商']} 件。{student}",
             placed=placed, receipts=receipts, dispatches=dispatches, arrivals=arrivals,
             product=product, demand_received=demand_received)
     return {
-        "engine_version": "beer/1", "initial": initial, "root_hash": root_hash,
+        "engine_version": "beer/2" if order_plan else "beer/1", "initial": initial, "root_hash": root_hash,
         "initial_hash": digest(initial), "intervention": parameters, "events": events,
         "snapshots": snapshots, "metrics": snapshots[-1]["metrics"],
     }

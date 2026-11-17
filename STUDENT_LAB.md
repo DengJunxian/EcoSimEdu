@@ -10,7 +10,9 @@
 .venv/bin/python -m uvicorn services.simulation.api:app --host 127.0.0.1 --port 8776
 ```
 
-用浏览器打开 [学生实验室](http://127.0.0.1:8776/)。
+用浏览器打开 [学习首页](http://127.0.0.1:8776/)。可直接进入[新版双向拍卖](http://127.0.0.1:8776/learn/double_auction)、[SVB 挤兑](http://127.0.0.1:8776/learn/svb_run)或[居住隔离](http://127.0.0.1:8776/learn/schelling_segregation)，在[案例库](http://127.0.0.1:8776/cases)选择其他课程，在[实验笔记](http://127.0.0.1:8776/notes)查看新旧记录、导出或恢复新版 JSON。原版双向拍卖仍可通过[旧课堂入口](http://127.0.0.1:8776/?case=double_auction)打开。
+
+升级后如已有服务在运行，请用原服务的环境配置、端口和数据库路径重启。浏览器按来源存储课堂草稿，同一主机名和端口才能读到原有本地进度。
 
 ## 首次安装
 
@@ -28,12 +30,17 @@ npm --prefix student-web ci
 npm --prefix student-web run build
 ```
 
-安装并构建之后，学习仅需浏览器和本地 Python 服务。服务使用 `.civitas-edu/runs.sqlite3` 保存运行，可用 `CIVITAS_EDU_DB` 指定其他路径。浏览器本地保存学习笔记，恢复引用需要原数据库。可在笔记页和实验工作台分别导出学习记录和完整运行。工作台的事件链接可在同一服务恢复观测时点。对照页的同步观察点以课程的期次、轮次或阶段为准。
+安装并构建之后，学习仅需浏览器和本地 Python 服务。服务使用 `.civitas-edu/runs.sqlite3` 保存运行，可用 `CIVITAS_EDU_DB` 指定其他路径。浏览器本地保存学习笔记。跨浏览器恢复需要原始笔记 JSON 和原数据库。可在笔记页和实验工作台分别导出学习记录和完整运行。工作台的事件链接可在同一服务恢复观测时点。对照页的同步观察点以课程的期次、轮次或阶段为准。
+
+## 参数对照
+
+[参数对照](http://127.0.0.1:8776/compare)开放十二门课的有界模型参数，使用同一行动和种子生成配对运行。Schelling 可比较两种初态，啤酒游戏可预提交逐周订单，公共品可预提交逐轮贡献。同步观察点可查看两组主体和原事件。可以追加四个连续种子并导出全部运行。
 
 ## 高级实验与学习助手
 
-四门课的行动步骤提供高级实验。设置服务端环境变量 CIVITAS_LIVE_ENABLED=1 后，只使用服务端配置的 OPENAI_API_KEY 或 DEEPSEEK_API_KEY。OpenAI 可用时优先使用 GPT-6 Luna。实时基准实验预算由本地数据库记录，点击「运行高级实验」才可能产生模型费用。现有进度和普通规则实验可继续本地使用。离线学习助手使用课程、术语和已保存运行作为证据。四门课的真实回执、费用口径与限制见 [WP08 验收](docs/audit/wp08-verification.md)。
+四门课的原版高级实验和[多角色模型实验](http://127.0.0.1:8776/experiments/multi-role)均为可选项。多角色页的「运行规则参考」离线可用。启用供应商分支需要服务端凭证和对应开关。多角色分支同时要求金额限额；用户确认后启动才可能产生费用。环境参数见[开发指南](docs/developer-guide.md)。
 
+离线学习助手从课程和已揭示的运行证据提供分层提示。在线排序是独立的可选功能，未配置或失败时仍给出离线解释。多角色模型的本轮证据来自本地规则与受控供应商。四课原版的单角色真实回执见 [WP08 验收](docs/audit/wp08-verification.md)。
 ## 重跑验收
 
 ```sh
@@ -46,4 +53,4 @@ uv pip sync --python .venv/bin/python requirements-edu-dev.lock
 .venv/bin/python -m pytest -q tests/contracts tests/mechanisms tests/e2e
 ```
 
-来源原文定位、教学资产版本和再分发范围见[来源与数据资产核验](docs/audit/source-asset-verification.md)。E2E 默认使用本机 Google Chrome 和独立数据库。Linux Chromium 的复跑方式见[开发指南](docs/developer-guide.md)。完整仓库可用 `.venv/bin/python -m scripts.audit_education_baseline` 复跑 WP00，旧应用使用自身依赖并通过 `streamlit run app.py` 启动。操作与证据见[用户指南](docs/user-guide.md)、[开发指南](docs/developer-guide.md)和[交付验收](docs/release/acceptance-report.md)。
+来源原文定位、教学资产版本和再分发范围见[来源与数据资产核验](docs/audit/source-asset-verification.md)。E2E 默认使用本机 Google Chrome 和独立数据库。Linux Chromium 的复跑方式见[开发指南](docs/developer-guide.md)。完整仓库可用 `.venv/bin/python -m scripts.audit_education_baseline` 复跑 WP00，旧应用使用自身依赖并通过 `streamlit run app.py` 启动。操作与证据见[用户指南](docs/user-guide.md)、[开发指南](docs/developer-guide.md)和[升级验收](docs/upgrade/acceptance.md)。

@@ -31,7 +31,7 @@ def test_lab_tools_persist_and_open_real_experiment(local_app, width, chromium_o
         page = context.new_page()
         page.set_default_timeout(6500)
         page.on("pageerror", lambda error: errors.append(str(error)))
-        page.goto(local_app)
+        page.goto(local_app + "/?case=double_auction")
         lab = page.get_by_role("region", name="实验室工具")
         directory = lab.get_by_role("navigation", name="课程目录")
         expect(directory.get_by_role("link")).to_have_count(len(CATALOG))

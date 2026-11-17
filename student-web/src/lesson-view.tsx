@@ -1,15 +1,20 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, type CSSProperties } from "react";
 import type { Course, Event, Frame, Grid, LessonRun, Scalar } from "./lesson-types";
 import { downloadJson, traceHref } from "./contracts";
 import { boundaries } from "./boundary";
+import { localCells, occupiedNeighbors } from "./cases/schelling/neighborhood";
 
 const numbers = new Intl.NumberFormat("zh-CN", { maximumFractionDigits: 3 });
 export const showValue = (value: Scalar | undefined) =>
   value == null ? "—" : typeof value === "number" ? numbers.format(value) :
     typeof value === "boolean" ? (value ? "是" : "否") : value;
 
-export function GridView({ grid }: { grid: Grid }) {
-  const [cell, setCell] = useState(grid.marked[0] ?? 0);
+export function GridView({ grid, selection, onSelect, affected = [] }: {
+  grid: Grid; selection?: number; onSelect?: (cell: number) => void; affected?: number[];
+}) {
+  const [localCell, setLocalCell] = useState(grid.marked[0] ?? 0);
+  const cell = selection ?? localCell;
+  const setCell = onSelect ?? setLocalCell;
   const [announcePick, setAnnouncePick] = useState(false);
   const [announcement, setAnnouncement] = useState("");
   const cells = useRef<(HTMLButtonElement | null)[]>([]);
@@ -17,10 +22,10 @@ export function GridView({ grid }: { grid: Grid }) {
   const row = Math.floor(cell / grid.size);
   const col = cell % grid.size;
   const coordinates = Array.from({ length: grid.size }, (_, i) => <option key={i} value={i}>{i + 1}</option>);
-  const isNear = (i: number) => i !== cell && Math.abs(Math.floor(i / grid.size) - row) <= 1
-    && Math.abs(i % grid.size - col) <= 1;
-  const neighbors = grid.cells.filter((occupant, i) => isNear(i) && occupant !== null);
-  const own = neighbors.filter(value => value?.[0] === resident?.[0]).length;
+  const around = localCells(grid, cell);
+  const near = new Set(around.filter(item => !item.center).map(item => item.index));
+  const neighbors = occupiedNeighbors(around);
+  const own = neighbors.filter(value => value[0] === resident?.[0]).length;
   const summary = `${resident ?? "空位"} · 第 ${row + 1} 行第 ${col + 1} 列。${resident
     ? (neighbors.length ? `同组邻居 ${own}/${neighbors.length}。` : "周围没有已占邻居。") : ""}`;
   useEffect(() => {
@@ -36,15 +41,20 @@ export function GridView({ grid }: { grid: Grid }) {
     setAnnouncePick(true);
   };
   return <figure className="lesson-grid">
-    <figcaption>社区地图 <span>A 方块 · B 圆点 · 空格未居住 · 金框标记事件位置</span></figcaption>
-    <div className="grid-map" style={{ gridTemplateColumns: `repeat(${grid.size}, minmax(0, 1fr))` }}
+    <figcaption>社区地图 <span>A 方块 · B 圆点 · 空格未居住 · 金框标记事件位置
+      {affected.length > 0 && " · 虚框标记受影响的居民"}</span>
+      <span className="grid-pan-note"> · 可横向查看全部列</span></figcaption>
+    <div className="grid-map-scroll"><div className="grid-map" style={{
+      "--grid-size": grid.size, gridTemplateColumns: `repeat(${grid.size}, minmax(0, 1fr))`,
+    } as CSSProperties}
       role="group" aria-label="社区地图，用方向键选择相邻位置">
       {grid.cells.map((occupant, i) => <button type="button" key={i}
         ref={el => { cells.current[i] = el; }}
         className={[occupant?.[0] === "A" ? "group-a" : occupant ? "group-b" : "vacancy",
-          i === cell ? "picked" : isNear(i) ? "nearby" : "", grid.marked.includes(i) ? "marked" : ""].join(" ")}
+          i === cell ? "picked" : near.has(i) ? "nearby" : "", grid.marked.includes(i) ? "marked" : "",
+          affected.includes(i) ? "grid-affected" : ""].join(" ")}
         tabIndex={i === cell ? 0 : -1}
-        aria-label={`第 ${Math.floor(i / grid.size) + 1} 行第 ${i % grid.size + 1} 列，${occupant ?? "空位"}`}
+        aria-label={`第 ${Math.floor(i / grid.size) + 1} 行第 ${i % grid.size + 1} 列，${occupant ?? "空位"}${affected.includes(i) ? "，邻域受影响" : ""}`}
         aria-pressed={i === cell} onClick={() => setCell(i)}
         onKeyDown={event => {
           const offsets: Record<string, number> = { ArrowLeft: -1, ArrowRight: 1, ArrowDown: grid.size, ArrowUp: -grid.size };
@@ -58,7 +68,7 @@ export function GridView({ grid }: { grid: Grid }) {
             cells.current[next]?.focus();
           }
         }}><span/></button>)}
-    </div>
+    </div></div>
     <details><summary>按行列选格</summary>
       <div className="toolbar grid-coordinates" role="group" aria-label="按坐标选择社区格子">
         <label>行 <select value={row} onChange={event => pickCoordinate(Number(event.target.value) * grid.size + col)}>{coordinates}</select></label>
@@ -67,14 +77,14 @@ export function GridView({ grid }: { grid: Grid }) {
     </details>
     <p>{summary}</p>
     <span className="screen-reader-only" aria-live="polite" aria-atomic="true">{announcement}</span>
-    <details><summary>查看选中格的邻居列表</summary>
+    <details><summary aria-label={`查看选中格的邻居列表。${summary}`}>查看选中格的邻居列表</summary>
       <p>{neighbors.length ? neighbors.join("、") : "没有已占邻居"}</p>
     </details>
   </figure>;
 }
 
-function MetricChart({ course, frames, tick, change }: {
-  course: Course; frames: Frame[]; tick: number; change: (tick: number) => void;
+export function MetricChart({ course, frames, tick, change }: {
+  course: Course; frames: Pick<Frame, "metrics">[]; tick: number; change: (tick: number) => void;
 }) {
   const [metricId, setMetricId] = useState(course.metrics[0].id);
   const metric = course.metrics.find(m => m.id === metricId)!;
@@ -145,12 +155,14 @@ function RelationshipView({ frame, actor, choose, jump }: {
   </details>;
 }
 
-export function TraceView({ course, run, tick, actor, select, cite, cited }: {
+export function TraceView({ course, run, tick, actor, select, cite, cited, review }: {
   course: Course; run: LessonRun; tick: number; actor: string;
   select: (tick: number, actor: string) => void; cite?: (event: Event) => void; cited?: boolean;
+  review?: { active: boolean; change: (active: boolean) => void };
 }) {
   const [playing, setPlaying] = useState(false);
   const [pausedAtCheckpoint, setCheckpoint] = useState(false);
+  const [pinnedActor, setPinnedActor] = useState("");
   const timeline = useRef<HTMLInputElement>(null);
   const frames = run.result.snapshots;
   const end = frames.length - 1;
@@ -158,7 +170,12 @@ export function TraceView({ course, run, tick, actor, select, cite, cited }: {
   const frame = frames[position];
   const event = run.result.events[position];
   const firstCheckpoint = run.result.events.findIndex(e => e.event_type === course.checkpoint.event_type);
-  const focus = frame.entities[actor];
+  const fullReview = review?.active ?? true;
+  const focusedActor = actor || pinnedActor;
+  const pinCandidate = actor === pinnedActor ? "" : actor;
+  const focus = frame.entities[focusedActor];
+  const actors = Object.keys(frame.entities);
+  if (focusedActor && !Object.hasOwn(frame.entities, focusedActor)) actors.unshift(focusedActor);
   const citedEvent = course.evidence_types.includes(event.event_type);
   const nextEvidence = run.result.events.find(e => e.tick > position && course.evidence_types.includes(e.event_type));
   useEffect(() => {
@@ -181,7 +198,9 @@ export function TraceView({ course, run, tick, actor, select, cite, cited }: {
       : course.scenarios.find(s => s.id === run.scenario_id)?.label}</h3>
       <span className="identity">{run.origin === "live_simulation" ?
       (run.result.live?.selected_by_model ? "保存的模型运行" : "保存的高级运行 · 规则回退") : "本次离线计算"}</span></div>
-    <MetricChart course={course} frames={frames} tick={position} change={jump}/>
+    {review && <div className="toolbar"><button type="button" onClick={() => review.change(!fullReview)}>
+      {fullReview ? "返回引导播放" : "查看全程"}</button></div>}
+    <MetricChart course={course} frames={fullReview ? frames : frames.slice(0, position + 1)} tick={position} change={jump}/>
     <div className="toolbar">
       <button className="primary" onClick={() => {
         if (position === end) select(0, "");
@@ -192,8 +211,8 @@ export function TraceView({ course, run, tick, actor, select, cite, cited }: {
       <button aria-disabled={position === end} onClick={() => { if (position < end) jump(position + 1); }}>下一步</button>
       <button aria-disabled={!nextEvidence} onClick={() => { if (nextEvidence) jump(nextEvidence.tick); }}>跳到下一条证据</button>
     </div>
-    <label className="timeline"><span>事件时间轴 <span aria-hidden="true">{position} / {end}</span></span>
-      <input ref={timeline} type="range" min="0" max={end} aria-valuetext={`事件 ${position}，末条为 ${end}`}
+    <label className="timeline"><span>事件时间轴 <span aria-hidden="true">{fullReview ? `${position} / ${end}` : position}</span></span>
+      <input ref={timeline} type="range" min="0" max={end} aria-valuetext={fullReview ? `事件 ${position}，末条为 ${end}` : `事件 ${position}`}
       value={position} onChange={e => jump(Number(e.target.value))}/></label>
     {pausedAtCheckpoint && <p role="status" className="callout">{course.checkpoint.message}</p>}
     <MetricValues course={course} metrics={frame.metrics}/>
@@ -214,13 +233,23 @@ export function TraceView({ course, run, tick, actor, select, cite, cited }: {
         {citedEvent && cite && <button disabled={cited} onClick={() => cite(event)}>{cited ? "已引用" : "引用此事件"}</button>}
         <a href={traceHref(run.case_id, run.run_id, position)}>事件链接</a>
       </div>
-      {Object.keys(frame.entities).length > 0 && <div><label>观察主体 <select aria-label="观察主体" value={actor}
+      {actors.length > 0 && <div className="toolbar"><label>观察主体 <select aria-label="观察主体" value={focusedActor}
         onChange={e => select(position, e.target.value)}>
         <option value="">选择主体</option>
-        {Object.keys(frame.entities).map(key => <option key={key}>{key}</option>)}
-      </select></label></div>}
+        {actors.map(key => <option key={key}>{key}</option>)}
+      </select></label>
+        {focusedActor && <button type="button" onClick={() => {
+          setPinnedActor(pinCandidate);
+          if (!pinCandidate && !actor) timeline.current?.focus();
+        }}>{pinCandidate ? `固定 ${pinCandidate}` : `取消固定 ${pinnedActor}`}</button>}
+        {pinCandidate && pinnedActor && <button type="button" onClick={() => {
+          setPinnedActor("");
+          timeline.current?.focus();
+        }}>取消固定 {pinnedActor}</button>}
+      </div>}
+      {focusedActor && !focus && <p className="quiet-content">{focusedActor} 在当前事件没有状态记录。</p>}
       {focus && <dl className="entity-facts">{Object.entries(focus).map(([key, value]) => {
-        const before = frames[position - 1]?.entities[actor]?.[key];
+        const before = frames[position - 1]?.entities[focusedActor]?.[key];
         return <div key={key}><dt>{key}</dt><dd>{before !== undefined && before !== value ?
           `${showValue(before)} → ${showValue(value)}` : showValue(value)}</dd></div>;
       })}</dl>}
@@ -239,10 +268,10 @@ export function TraceView({ course, run, tick, actor, select, cite, cited }: {
           <tbody>{event.changed_neighbors.map(change => <tr key={change.actor}><td>{change.actor}</td>
             <td>{change.before.join("/")}</td><td>{change.after.join("/")}</td></tr>)}</tbody></table></div>
       </details>}
-      {frame.relations?.length ? <RelationshipView frame={frame} actor={actor}
+      {frame.relations?.length ? <RelationshipView frame={frame} actor={focusedActor}
         choose={person => select(position, person === actor ? "" : person)} jump={jumpFromEvidence}/> : null}
     </section>
-    <button className="text-button" onClick={() => downloadJson(`run-${run.run_id}.json`, run)}>导出运行记录</button>
+    {fullReview && <button className="text-button" onClick={() => downloadJson(`run-${run.run_id}.json`, run)}>导出运行记录</button>}
   </section>;
 }
 

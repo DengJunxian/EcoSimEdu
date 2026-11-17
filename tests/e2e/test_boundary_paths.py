@@ -30,7 +30,7 @@ def test_auction_boundary_run_replay_and_download(local_app, chromium_options):
 
         context.route("**/*", local)
         page = context.new_page()
-        page.goto(local_app)
+        page.goto(local_app + "/?case=double_auction")
         page.get_by_role("link", name="边界实验：供需无交叠").click()
         saved = []
         for button, origin in (("运行边界实验", "offline_simulation"), ("载入预计算边界回放", "precomputed_simulation")):

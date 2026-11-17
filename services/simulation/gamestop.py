@@ -2,6 +2,7 @@
 from random import Random
 
 from .market_tape import MarketTape
+from .classroom_policy import choose_actions
 
 STUDENT = "学生投资者"
 SHORT = "借券账户"
@@ -11,9 +12,12 @@ VALUE = tuple(f"估值投资者 {i}" for i in range(1, 5))
 MOMENTUM = tuple(f"趋势投资者 {i}" for i in range(1, 5))
 SOCIAL = tuple(f"关注投资者 {i}" for i in range(1, 6))
 BUY_LIMIT = 2_000
+LIVE_ACTORS = dict(zip((1, 4, 8), SOCIAL))
 
 
-def simulate(case, scenario_id, seed, action, *, decide=None):
+def simulate(case, scenario_id, seed, action, *, decide=None, classroom_policy=None):
+    if decide is not None and classroom_policy is not None:
+        raise ValueError("Only one model policy may own an order")
     parameters = next(item["parameters"] for item in case["scenarios"] if item["id"] == scenario_id)
     if action not in {"buy", "observe"}:
         raise ValueError("unknown student choice")
@@ -31,7 +35,7 @@ def simulate(case, scenario_id, seed, action, *, decide=None):
     initial = {**root, "borrow_available": parameters["loan_supply"]}
     cover_count = other_buys = social_buys = 0
     seen = {actor: {} for actor in SOCIAL}
-    tape = MarketTape(root, initial, parameters, "gamestop/1", lambda: {
+    tape = MarketTape(root, initial, parameters, "gamestop/2" if classroom_policy is not None else "gamestop/1", lambda: {
         "short_interest": tape.accounts[SHORT]["debt"], "forced_cover": cover_count,
         "discretionary_buys": other_buys, "social_buys": social_buys,
         "reach": sum(bool(origins) for origins in seen.values()),
@@ -140,10 +144,13 @@ def simulate(case, scenario_id, seed, action, *, decide=None):
         for actor in MOMENTUM:
             if price_change >= 35:
                 buy(actor, 1, BUY_LIMIT, "价格趋势买入")
+        model_actor = LIVE_ACTORS.get(time) if classroom_policy is not None else (
+            stories[0]["actor"] if decide is not None and time == 1 else None
+        )
         for actor in SOCIAL:
             attention = sum(seen[actor].values()) * parameters["social_weight"]
-            if decide is not None and time == 1 and actor == stories[0]["actor"]:
-                stage = "first_attention_order"
+            if actor == model_actor:
+                stage = "round_attention_order" if classroom_policy is not None else "first_attention_order"
                 free_cash = tape.available(actor, "buy")
                 max_lots = min(2, free_cash // BUY_LIMIT)
                 rule_lots = max(0, min(attention, max_lots))
@@ -160,12 +167,20 @@ def simulate(case, scenario_id, seed, action, *, decide=None):
                     "delivered_notices": dict(seen[actor]) if parameters["social_weight"] else {},
                     "max_buy_limit_cents": BUY_LIMIT,
                 }
-                chosen = decide(actor, stage, observation, allowed, f"buy_{rule_lots}" if rule_lots else "hold")
+                default = f"buy_{rule_lots}" if rule_lots else "hold"
+                if classroom_policy is not None:
+                    chosen = choose_actions(classroom_policy, time, [
+                        {"actor": actor, "stage": stage, "observation": observation,
+                         "allowed": allowed, "default": default},
+                    ])[actor]
+                else:
+                    chosen = decide(actor, stage, observation, allowed, default)
                 if not isinstance(chosen, str) or chosen not in allowed:
                     raise ValueError("Unexpected funded buy choice")
                 quantity = 0 if chosen == "hold" else int(chosen.removeprefix("buy_"))
+                order_ref = {"order_id": f"O{len(tape.steps) + 1}"} if classroom_policy is not None and quantity else {}
                 tape.emit("agent_action_selected", f"{actor} 选择{allowed[chosen]}。",
-                          [actor], actor_id=actor, stage=stage, action=chosen, quantity=quantity)
+                          [actor], actor_id=actor, stage=stage, action=chosen, quantity=quantity, **order_ref)
                 if quantity:
                     purpose = "转发关注" if attention > 0 else "关注账户自主买入"
                     buy(actor, quantity, BUY_LIMIT, purpose)
@@ -178,4 +193,6 @@ def simulate(case, scenario_id, seed, action, *, decide=None):
         price_change = close - last_close
         last_close = close
         tape.emit("period_end", f"第 {time} 轮结束。保留本场逐笔成交、关注与借券记录。", [SHORT, LENDER, STUDENT])
+        if classroom_policy is not None:
+            classroom_policy.commit(time, tape.steps, tape.snapshots)
     return tape.result()

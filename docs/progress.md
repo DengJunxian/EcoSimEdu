@@ -1,5 +1,7 @@
 # Civitas Economica 教学实施状态
 
+2026-11-17 新版学习首页、十二课、参数对照、离线导师、多角色实验与本地交付见 [UP00–UP11](upgrade/progress.md)。下方 WP 和 RC 记录为原有实现与历史验收。
+
 2026-11-17 RC10 新增从课程进入的[模型实验台](release/rc10-model-lab.md)，四门课支持期末规则对照和导出。四门课均已用 GPT-6 Luna 从浏览器实际运行、回放并导出。[其余三课实调收据](release/rc10-live-three-courses.md)
 
 2026-11-17 完成十二课[来源和数据资产核验](audit/source-asset-verification.md)，记录 20 条出处、25 项文件和未核实的公开许可。

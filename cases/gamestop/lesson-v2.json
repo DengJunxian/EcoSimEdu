@@ -1,0 +1,250 @@
+{
+  "schema_version": 2,
+  "case_id": "gamestop",
+  "content_version": "2.0.0",
+  "engine_version": "gamestop/1",
+  "source_ids": [
+    "S11"
+  ],
+  "scenes": [
+    {
+      "id": "intro",
+      "legacy_stage": "intro",
+      "title": "消息、订单和借券是三条账",
+      "question": "一次话题传播何时会进入成交？",
+      "objective": "区分消息触达、买单意愿和股票交割。",
+      "information": [
+        "本课角色、动机与订单均由教学模型生成。真实市场背景见案例来源。"
+      ],
+      "action": "intro",
+      "observables": [],
+      "questions": [],
+      "next_scene": "predict"
+    },
+    {
+      "id": "predict",
+      "legacy_stage": "predict",
+      "title": "判断借券账户是否需要补担保",
+      "question": "本次会触发维持担保要求吗？",
+      "objective": "用一个可定位的担保事件检验预测。",
+      "information": [
+        "借券账户有现金、实际借到的股票和待交还义务。担保检验用最近成交价估值。"
+      ],
+      "action": "predict",
+      "observables": [],
+      "questions": [
+        {
+          "id": "gme-margin",
+          "prompt": "本次会出现维持担保要求事件吗？",
+          "kind": "prediction",
+          "selector": {
+            "event_type": "margin_call",
+            "fields": [
+              "mark_cents",
+              "debt",
+              "collateral_cents"
+            ]
+          },
+          "options": [
+            {
+              "id": "yes",
+              "label": "会发生",
+              "feedback": "回放时定位首条记录，再核对债务数量、估值价格和抵押现金。"
+            },
+            {
+              "id": "no",
+              "label": "不会发生",
+              "feedback": "推进至结束，检查事件序列是否支持这个判断。"
+            },
+            {
+              "id": "unknown",
+              "label": "不确定",
+              "criterion": "uncertain",
+              "feedback": "先记录你的判断范围。观察到相应事件后再更新预测。"
+            }
+          ]
+        }
+      ],
+      "next_scene": "bid",
+      "role": {
+        "actor_id": "学生投资者",
+        "label": "学生投资者",
+        "goal": "用自己的现金选择首轮是否下单，然后核实实际交割与账户。"
+      }
+    },
+    {
+      "id": "bid",
+      "legacy_stage": "bid",
+      "title": "选择自己的首轮行动",
+      "question": "提交 2 股限价买单还是保留现金？",
+      "objective": "在价格上限和可用现金内作一次选择。",
+      "information": [
+        "学生首轮可按 12 美元上限购买 2 股，也可观察。实际成交要满足订单匹配和资金约束。"
+      ],
+      "action": "bid",
+      "observables": [],
+      "questions": [],
+      "next_scene": "observe",
+      "role": {
+        "actor_id": "学生投资者",
+        "label": "学生投资者",
+        "goal": "用自己的现金选择首轮是否下单，然后核实实际交割与账户。"
+      }
+    },
+    {
+      "id": "observe",
+      "legacy_stage": "observe",
+      "title": "沿话题找订单",
+      "question": "谁收到过消息，谁真正完成买入？",
+      "objective": "通过原消息与转发编号跟踪触达，再看同一运行的成交目的。",
+      "information": [
+        "同一主体对同一话题只登记首次触达。关注策略在允许时把信息计入买单需求。"
+      ],
+      "action": "observe",
+      "observables": [
+        "forward"
+      ],
+      "questions": [
+        {
+          "id": "gme-reach",
+          "prompt": "收到话题的人数等于关注买入的股数吗？",
+          "kind": "concept",
+          "options": [
+            {
+              "id": "a",
+              "label": "两项要分别查记录",
+              "criterion": "correct",
+              "feedback": "用同一时钟打开话题记录和成交目的，核对单位。"
+            },
+            {
+              "id": "b",
+              "label": "每次触达自动计一股买量",
+              "criterion": "incorrect",
+              "feedback": "触达按人计数。回到带成交目的的交易事件，再按股数加总。"
+            }
+          ],
+          "selector": {
+            "event_type": "forward",
+            "fields": [
+              "message_id",
+              "origin_seq"
+            ]
+          }
+        }
+      ],
+      "next_scene": "explain",
+      "evidence": {
+        "selector": {
+          "event_type": "forward",
+          "fields": [
+            "message_id",
+            "origin_seq"
+          ]
+        },
+        "missing": "现在还没有消息触达记录。推进到首轮话题并查看原消息编号。"
+      }
+    },
+    {
+      "id": "explain",
+      "legacy_stage": "explain",
+      "title": "跟踪一笔借券义务",
+      "question": "成交买到股票后，义务在哪个事件减少？",
+      "objective": "核对借入、担保要求、实际回补成交及还券。",
+      "information": [
+        "借券交付增加义务，成交取得股票，交还出借方才冲减义务。缺资源时可能没有回补或还券。"
+      ],
+      "action": "explain",
+      "observables": [
+        "return"
+      ],
+      "questions": [
+        {
+          "id": "gme-cover",
+          "prompt": "哪类事件减少待交还股票？",
+          "kind": "concept",
+          "options": [
+            {
+              "id": "a",
+              "label": "实际归还给出借方",
+              "criterion": "correct",
+              "feedback": "核对一条 return 的交还量和剩余义务。"
+            },
+            {
+              "id": "b",
+              "label": "触发担保要求时立即减少",
+              "criterion": "incorrect",
+              "feedback": "查看担保事件后的现金及义务。继续找到成交和还券两个不同的事件。"
+            }
+          ],
+          "selector": {
+            "event_type": "return",
+            "fields": [
+              "quantity",
+              "remaining_debt"
+            ]
+          }
+        }
+      ],
+      "next_scene": "compare",
+      "evidence": {
+        "selector": {
+          "event_type": "return",
+          "fields": [
+            "quantity",
+            "remaining_debt"
+          ]
+        },
+        "missing": "本次尚无还券记录。保留真实借券余额并检查是否发生担保要求或回补成交。"
+      }
+    },
+    {
+      "id": "compare",
+      "legacy_stage": "compare",
+      "title": "固定消息，比较三种制度",
+      "question": "传播路径一样时，成交和回补还会变化吗？",
+      "objective": "分别比较关注权重、可借股票和卖方报价深度。",
+      "information": [
+        "沿用同一消息计划、随机种子和学生首轮行动。在相同轮末对照成交目的及借券余额。"
+      ],
+      "action": "compare",
+      "observables": [],
+      "questions": [
+        {
+          "id": "gme-controls",
+          "prompt": "取消关注权重后，转发还会出现吗？",
+          "kind": "concept",
+          "options": [
+            {
+              "id": "a",
+              "label": "同一话题仍按原路径传播",
+              "criterion": "correct",
+              "feedback": "保持同一轮次，对照触达与带关注目的的成交。"
+            },
+            {
+              "id": "b",
+              "label": "社交权重为零会删除消息记录",
+              "criterion": "incorrect",
+              "feedback": "打开取消社交权重情景。该开关进入订单决策，消息时点和传播仍由原生成流程决定。"
+            }
+          ]
+        }
+      ],
+      "next_scene": "notebook"
+    },
+    {
+      "id": "notebook",
+      "legacy_stage": "notebook",
+      "title": "写下哪些记录足以作证",
+      "question": "要判断现实中的回补规模，还需要什么？",
+      "objective": "用一笔真实模型事件和同轮对照支持解释。",
+      "information": [
+        "说明检验需要来源明确的逐笔成交、借券交还记录、利率或担保规则以及可比的时间线。"
+      ],
+      "action": "notebook",
+      "observables": [],
+      "questions": [],
+      "next_scene": null,
+      "rubric": "以话题原事件、成交目的、借券或还券为证据，按模型轮次区分触达与成交。指出检验历史解释需要另行获取的交易和借券记录。"
+    }
+  ]
+}

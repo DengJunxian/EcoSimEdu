@@ -104,7 +104,7 @@ def _observation(case, run, tick, descriptors, *, first_request=False):
                      _event_citation(run, tick))
 
 
-def answer_tutor(case, question, run=None, tick=None):
+def answer_tutor(case, question, run=None, tick=None, *, reveal_until=None):
     """Find a supported explanation, with exact stored evidence for observations."""
     question = _normalize(question)
     if not question or len(question) > 300 or SYSTEM_REQUEST.search(question):
@@ -138,6 +138,10 @@ def answer_tutor(case, question, run=None, tick=None):
                      and any(cue in question for cue in ("谁", "哪些")))
     if matched or selected_events or about_trace or first_request:
         selected_tick = int(selected_events.pop()) if selected_events else tick
+        if reveal_until is not None:
+            selected_tick = reveal_until if selected_tick is None else selected_tick
+            if selected_tick > reveal_until:
+                return _response("insufficient", "引导播放尚未到达所查询的事件。可继续播放或查看全程。")
         return _observation(case, run, selected_tick, matched or registry, first_request=first_request)
 
     if "反事实" in question or "对照" in question or "比较" in question:

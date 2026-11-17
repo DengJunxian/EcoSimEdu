@@ -1,0 +1,357 @@
+{
+  "schema_version": 2,
+  "case_id": "schelling_segregation",
+  "content_version": "2.0.0",
+  "engine_version": "schelling/1",
+  "source_ids": [
+    "S04",
+    "S04-N"
+  ],
+  "scenes": [
+    {
+      "id": "intro",
+      "legacy_stage": "intro",
+      "title": "先看一个九格邻域",
+      "question": "中央 A 的同组邻居占多少？",
+      "objective": "从分母排除空位和中央本人。",
+      "information": [
+        "九格规则练习的中央住一位 A。逐格检查周围哪些位置有人居住。",
+        "整课使用虚构社区检验 Schelling 的局部迁居规则。A、B 表示教学分组。"
+      ],
+      "action": "intro",
+      "observables": [],
+      "questions": [
+        {
+          "id": "occupied-denominator",
+          "prompt": "用哪一个分母计算同组邻居比例？",
+          "kind": "concept",
+          "options": [
+            {
+              "id": "6",
+              "label": "6 个已占邻居",
+              "criterion": "correct",
+              "feedback": "2 位同组除以 6 位已占邻居。"
+            },
+            {
+              "id": "8",
+              "label": "8 个周边格子",
+              "criterion": "incorrect",
+              "feedback": "数一数周边有人的格子，空位仍可作为搬迁目标。"
+            }
+          ]
+        },
+        {
+          "id": "center-excluded",
+          "prompt": "算中央 A 的同组比例时，要把自己数进去吗？",
+          "kind": "concept",
+          "options": [
+            {
+              "id": "yes",
+              "label": "要，中央也有人居住",
+              "feedback": "中央是被观察的人。只从周围取六位已占邻居，得 2/6。",
+              "criterion": "incorrect"
+            },
+            {
+              "id": "no",
+              "label": "只数周边的已占邻居",
+              "feedback": "中央本人划在分母之外。把相邻空位也排除后，分母为 6。",
+              "criterion": "correct"
+            }
+          ]
+        }
+      ],
+      "next_scene": "predict"
+    },
+    {
+      "id": "predict",
+      "legacy_stage": "predict",
+      "title": "判断何时愿意留下",
+      "question": "1/3 同组比例下，哪个阈值允许留下？",
+      "objective": "在 30% 和 50% 两种规则下算出同一个邻域的判断。",
+      "information": [
+        "先用九格练习重算，再观察主地图 A001 周围的真实邻居计数。"
+      ],
+      "action": "predict",
+      "observables": [
+        "satisfied"
+      ],
+      "questions": [
+        {
+          "id": "alone",
+          "prompt": "一个居民周围没有邻居。本模型怎样判断？",
+          "kind": "concept",
+          "options": [
+            {
+              "id": "undefined",
+              "label": "比例无法计算，所以未达标",
+              "feedback": "没有邻居时没有可报告的比例。模型在这种情况下直接视为满意。",
+              "criterion": "incorrect"
+            },
+            {
+              "id": "satisfied",
+              "label": "依本课规则视为满意",
+              "feedback": "对。地图上会显示周围无人。可以对照棋盘边界，看看实际有哪些格可计数。",
+              "criterion": "correct"
+            }
+          ]
+        },
+        {
+          "id": "threshold",
+          "prompt": "要求至少 30% 同组邻居，意味着希望邻居全是同组吗？",
+          "kind": "concept",
+          "options": [
+            {
+              "id": "yes",
+              "label": "意味着所有邻居都必须同组",
+              "feedback": "用九格练习的 2/6 试算。约 33.3% 达到 30% 门槛，四位异组邻居依然计入分母。",
+              "criterion": "incorrect"
+            },
+            {
+              "id": "no",
+              "label": "只要比例达到 30%",
+              "feedback": "同一个邻域可以过 30% 而未过 50%。切换阈值可直接验证。",
+              "criterion": "correct"
+            }
+          ]
+        },
+        {
+          "id": "automatic-move",
+          "prompt": "你预计这个社区在学生选择之后会发生自动迁居吗？",
+          "kind": "prediction",
+          "selector": {
+            "event_type": "move",
+            "fields": [
+              "actor_id",
+              "origin",
+              "destination"
+            ]
+          },
+          "options": [
+            {
+              "id": "yes",
+              "label": "会发生",
+              "feedback": "推进后查找一条实际自动迁居记录。"
+            },
+            {
+              "id": "no",
+              "label": "不会发生",
+              "feedback": "推进到结束后核对有没有自动迁居。"
+            },
+            {
+              "id": "unknown",
+              "label": "暂不确定",
+              "feedback": "先看居民如何按门槛比较邻域和空位。",
+              "criterion": "uncertain"
+            }
+          ]
+        }
+      ],
+      "role": {
+        "actor_id": "A001",
+        "label": "居民 A001",
+        "goal": "比较当前位置与预留空位的邻居，再决定开局行动。"
+      },
+      "next_scene": "bid"
+    },
+    {
+      "id": "bid",
+      "legacy_stage": "bid",
+      "title": "选择是否搬家",
+      "question": "预留空位值得搬过去吗？",
+      "objective": "先比较两个位置，再提交开局选择。",
+      "information": [
+        "先在地图核对 A001 当前位置与预留空位的邻域，再选择留在原地或搬迁。",
+        "开局选择由你作出。随后每位自动居民在轮到自己时查看邻居，未达阈值且找到合格空位时会搬家。"
+      ],
+      "action": "bid",
+      "observables": [
+        "student_move"
+      ],
+      "questions": [],
+      "evidence": {
+        "selector": {
+          "event_type": "student_move",
+          "fields": [
+            "origin",
+            "destination"
+          ],
+          "actor_id": "A001"
+        },
+        "missing": "本次没有学生迁居。检查开局是否选择留在原地。"
+      },
+      "next_scene": "observe"
+    },
+    {
+      "id": "observe",
+      "legacy_stage": "observe",
+      "title": "追踪一位没搬家的邻居",
+      "question": "一次搬迁如何改变另一户的邻域？",
+      "objective": "从真实搬迁定位一名受影响居民并重算前后比例。",
+      "information": [
+        "从首次自动迁居进入记录，展开原址和新址的九格。选择表中的一位居民，固定追踪到下一个事件。",
+        "用邻域变化前后的计算判断是否越过阈值。两次状态落在阈值同侧时，居民的满意状态保持相同。"
+      ],
+      "action": "observe",
+      "observables": [
+        "origin",
+        "destination",
+        "changed_neighbors"
+      ],
+      "questions": [],
+      "evidence": {
+        "selector": {
+          "event_type": "move",
+          "fields": [
+            "origin",
+            "destination",
+            "changed_neighbors"
+          ]
+        },
+        "missing": "当前没有自动迁居。可检查是否已经满意、无可行空位或仍未推进。"
+      },
+      "next_scene": "explain"
+    },
+    {
+      "id": "explain",
+      "legacy_stage": "explain",
+      "title": "从九格回到全图",
+      "question": "居民都满意时，地图会充分混合吗？",
+      "objective": "区别两项比例的统计分母。",
+      "information": [
+        "满意率按居民计数，同类邻接率按相邻关系计数。选一帧比较两个指标，再查收盘原因。"
+      ],
+      "action": "explain",
+      "observables": [
+        "satisfied",
+        "similarity",
+        "terminal"
+      ],
+      "questions": [
+        {
+          "id": "similarity-vs-satisfaction",
+          "prompt": "满意率 100% 能推出地图充分混居吗？",
+          "kind": "concept",
+          "options": [
+            {
+              "id": "no",
+              "label": "还要看地图和同类邻接率",
+              "criterion": "correct",
+              "feedback": "每户可以满足自身阈值，同时处在同组居住区。"
+            },
+            {
+              "id": "yes",
+              "label": "能，两个比例会一起达到理想状态",
+              "criterion": "incorrect",
+              "feedback": "在当前帧对比居民达到阈值的比例和同组邻接边的比例。"
+            }
+          ]
+        },
+        {
+          "id": "termination",
+          "prompt": "运行停止时，所有居民都满意了吗？",
+          "kind": "concept",
+          "options": [
+            {
+              "id": "yes",
+              "label": "是，停止表示人人满意",
+              "feedback": "查看收盘事件。阻塞表示没有可行迁居，达到轮数上限表示模型停止推进；两种条件下都可能有人未达标。",
+              "criterion": "incorrect"
+            },
+            {
+              "id": "depends",
+              "label": "需要读出停止原因",
+              "feedback": "模型分别记录全员达标、无法迁居和轮数上限。可到终局核对剩余未达标人数。",
+              "criterion": "correct"
+            }
+          ]
+        }
+      ],
+      "evidence": {
+        "selector": {
+          "event_type": "market_close",
+          "fields": [
+            "terminal"
+          ]
+        },
+        "missing": "运行尚未结束。停止结论要等到观测到终止事件。"
+      },
+      "next_scene": "compare"
+    },
+    {
+      "id": "compare",
+      "legacy_stage": "compare",
+      "title": "改变最低同组比例",
+      "question": "阈值为 0 时，原有空间分化会自动消失吗？",
+      "objective": "比较相同初始地图和学生动作下的三种阈值结果。",
+      "information": [
+        "分别运行 0%、30%、50%。跟踪自动迁居次数与终止原因；开局由学生作出的迁居仍可能发生。"
+      ],
+      "action": "compare",
+      "observables": [
+        "moves",
+        "similarity",
+        "remaining"
+      ],
+      "questions": [
+        {
+          "id": "zero-threshold",
+          "prompt": "把阈值降到 0%，地图原有的分化会自动消失吗？",
+          "kind": "concept",
+          "options": [
+            {
+              "id": "yes",
+              "label": "会，零阈值会让居民自动混合",
+              "feedback": "用同一初始地图对比开局和收盘。0% 下自动居民均已达标。若你选择开局搬家，那一次仍计入总数。",
+              "criterion": "incorrect"
+            },
+            {
+              "id": "no",
+              "label": "未必，0% 下自动居民无需搬家",
+              "feedback": "核对同类邻接率和搬迁数。学生开局留下时，0% 情景保持原地图。",
+              "criterion": "correct"
+            }
+          ]
+        }
+      ],
+      "next_scene": "notebook"
+    },
+    {
+      "id": "notebook",
+      "legacy_stage": "notebook",
+      "title": "说明地图能支持什么判断",
+      "question": "要解释真实城市，还需要什么资料？",
+      "objective": "用一条局部证据与一项宏观指标写出外推边界。",
+      "information": [
+        "选一条局部迁居证据和一项全图指标，写清它们分别能说明什么，再提出一个可以用真实城市资料检验的问题。"
+      ],
+      "action": "notebook",
+      "observables": [
+        "changed_neighbors",
+        "similarity"
+      ],
+      "questions": [
+        {
+          "id": "transfer-cause",
+          "prompt": "现实城市出现类似格局，哪些资料可以检验形成原因？",
+          "kind": "concept",
+          "options": [
+            {
+              "id": "map-only",
+              "label": "一张分布地图就足够",
+              "feedback": "相似图案可以对应不同机制。写下一个可用住房供给、收入、租金或迁居记录检验的解释。",
+              "criterion": "incorrect"
+            },
+            {
+              "id": "additional-data",
+              "label": "比较可选住房、价格与迁居记录",
+              "feedback": "选一项资料说明它会支持或削弱哪种解释，再写出本课省略的因素。",
+              "criterion": "correct"
+            }
+          ]
+        }
+      ],
+      "rubric": "说明局部分母、空间指标、终止原因及至少一个本模型省略的机制。",
+      "next_scene": null
+    }
+  ]
+}

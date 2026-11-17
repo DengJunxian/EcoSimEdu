@@ -75,6 +75,16 @@ def inventory():
         register(path, "teaching_input", case["version"], [case_id], "每课一份定义",
                  "项目编写的教学文案、动作、规则参数和固定种子",
                  "python -m scripts.check_lesson_catalog --milestone m3")
+        for filename, kind, scope in (
+            ("lesson-v2.json", "teaching_input", "已发布"),
+            ("lesson-v2.draft.json", "teaching_draft", "未发布草稿"),
+        ):
+            scene_path = f"cases/{case_id}/{filename}"
+            if (ROOT / scene_path).is_file():
+                scene = read(ROOT / scene_path)
+                register(scene_path, kind, scene["content_version"], [case_id], "每课一份场景定义",
+                         f"项目编写的教学任务、反馈与证据选择器（{scope}）",
+                         "python -m services.simulation.lesson_scenes")
 
     register("cases/double_auction/presets.json.gz", "precomputed_simulation", "RC9 / double-auction/1",
              ["double_auction"], "每个冻结情景一条含事件、快照与指标的轨迹",

@@ -1,3 +1,4 @@
+import re
 from uuid import uuid4
 
 import pytest
@@ -28,7 +29,8 @@ def test_grid_coordinates_and_arrows_use_same_cell(local_app, chromium_options):
         page = browser.new_page(viewport={"width": 390, "height": 850}, has_touch=True)
         url, result = open_trace(page, local_app, "schelling_segregation")
         page.goto(url + "&tick=0")
-        expect(page).to_have_title("居住隔离 · 实验回放 · Civitas Economica")
+        expect(page).to_have_title(re.compile("实验回放"))
+        expect(page.get_by_role("heading", name="居住隔离", exact=True)).to_be_visible()
         page.get_by_text("按行列选格", exact=True).tap()
         coordinates = page.get_by_role("group", name="按坐标选择社区格子")
         row = coordinates.get_by_role("combobox", name="行", exact=True)
@@ -46,6 +48,19 @@ def test_grid_coordinates_and_arrows_use_same_cell(local_app, chromium_options):
         expect(grid.get_by_role("button", name="第 3 行第 5 列", exact=False)).to_be_focused()
         expect(column).to_have_value("4")
         assert not page.evaluate("document.documentElement.scrollWidth > innerWidth")
+
+        inspector = page.get_by_role("combobox", name="观察主体", exact=True)
+        inspector.select_option("A001")
+        page.get_by_role("button", name="固定 A001", exact=True).press("Enter")
+        missing = next(frame["tick"] for frame in result["snapshots"] if "A001" not in frame["entities"])
+        timeline = page.get_by_role("slider", name="事件时间轴")
+        timeline.fill(str(missing))
+        expect(inspector).to_have_value("A001")
+        expect(page.get_by_text("A001 在当前事件没有状态记录。", exact=True)).to_be_visible()
+        expect(page.locator(".evidence-panel > .entity-facts")).to_have_count(0)
+        timeline.press("Home")
+        expect(inspector).to_have_value("A001")
+        expect(page.locator(".evidence-panel > .entity-facts")).to_be_visible()
         browser.close()
 
 

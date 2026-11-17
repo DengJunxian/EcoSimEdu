@@ -1,0 +1,219 @@
+{
+  "schema_version": 2,
+  "case_id": "double_auction",
+  "content_version": "2.0.0",
+  "engine_version": "double-auction/1",
+  "source_ids": ["S02", "S03"],
+  "scenes": [
+    {
+      "id": "intro",
+      "legacy_stage": "intro",
+      "title": "走进交易大厅",
+      "question": "每个人只知道自己的底价，第一笔成交价怎样产生？",
+      "objective": "用一笔二手教材交易解释双方为何会接受同一个价格。",
+      "information": [
+        "想象一个校园二手教材市场。买方愿出 105 代币，卖方至少要 85 代币。他们可以各自报价。",
+        "这组数字是规则练习。课程参照 Vernon L. Smith 的市场实验，接下来的角色、报价和成交均由教学模型生成。"
+      ],
+      "action": "intro",
+      "observables": [],
+      "questions": [
+        {
+          "id": "overlap",
+          "prompt": "为什么双方可能接受 95 代币？",
+          "kind": "concept",
+          "options": [
+            {"id": "overlap", "label": "95 落在双方都接受的范围内", "criterion": "correct", "feedback": "买方最高接受 105，卖方最低接受 85。95 留给双方各 10 代币的剩余。"},
+            {"id": "fixed", "label": "市场规定大家都用 95", "criterion": "incorrect", "feedback": "把 95 换成 90 再检查两条边界。买家和卖家依然都可以接受，因此这个练习本身没有唯一统一价。"}
+          ]
+        }
+      ],
+      "next_scene": "predict"
+    },
+    {
+      "id": "predict",
+      "legacy_stage": "predict",
+      "title": "领取 B01 身份",
+      "question": "手上现金多，出价也可以越高吗？",
+      "objective": "区分现金限制和私人价值，留下可用运行核对的预测。",
+      "role": {"actor_id": "B01", "label": "买家 B01", "goal": "最多买一本教材。若成交，希望结算总支出低于自己的价值。"},
+      "information": [
+        "你有 500 代币现金。基准情景中这本教材对你值 108 代币。",
+        "基准市场有 10 位买家、10 位卖家。进入解释场景前，先从自己的私人价值和公开的订单判断。"
+      ],
+      "action": "predict",
+      "observables": ["cash", "marginals"],
+      "questions": [
+        {
+          "id": "budget-vs-value",
+          "prompt": "基准市场里，你有 500 代币现金。模型接受 200 代币的报价吗？",
+          "kind": "concept",
+          "options": [
+            {"id": "no", "label": "不接受，超过我的私人价值", "criterion": "correct", "feedback": "基准市场无费。现金允许付 200，但课程规则把限价上限定为私人价值和现金中的较小值，即 108。"},
+            {"id": "yes", "label": "接受，现金够付", "criterion": "incorrect", "feedback": "把 200 分别与现金 500、价值 108 比较。第一项过关，第二项不满足本课的非亏损报价规则。"}
+          ]
+        },
+        {
+          "id": "b01-fill",
+          "prompt": "以你随后提交的报价，B01 会在本场成交吗？",
+          "kind": "prediction",
+          "selector": {"event_type": "trade", "actor_id": "B01", "fields": ["buyer_id", "buy_order_id", "price"]},
+          "options": [
+            {"id": "yes", "label": "会成交", "feedback": "记下你预计会出现的条件。观察时查 B01 的买单有没有对应的成交记录。"},
+            {"id": "no", "label": "收盘前不会成交", "feedback": "想想怎样确认是 B01 的单子未成交。等到收盘，再看它是否仍未配对。"},
+            {"id": "unknown", "label": "不确定", "criterion": "uncertain", "feedback": "可以先保留判断。用订单簿查找相容的卖价，等看到真实成交或收盘再更新。"}
+          ]
+        }
+      ],
+      "next_scene": "bid"
+    },
+    {
+      "id": "bid",
+      "legacy_stage": "bid",
+      "title": "把报价送入订单簿",
+      "question": "你愿意为这本教材出多少？",
+      "objective": "在一个真实的本地市场提交限价，体验报价承诺。",
+      "information": [
+        "基准市场接受 1–108 的整数报价。B01 的限价单只在开局提交，最多买一件；随后四轮由自动角色行动。",
+        "学生单留到成交或收盘。固定回放固定使用 96 代币报价，自选报价使用本地规则计算。"
+      ],
+      "action": "bid",
+      "observables": ["orders", "order_submitted", "order_rejected"],
+      "questions": [
+        {
+          "id": "higher-bid",
+          "prompt": "提高自己的限价一定能提高个人剩余吗？",
+          "kind": "concept",
+          "options": [
+            {"id": "no", "label": "不能保证，要看成交和结算价", "criterion": "correct", "feedback": "更高限价可以放宽能接受的卖价。如果你的买单先挂在簿上并据此结算，更高的支付价也会减少成交后剩余。"},
+            {"id": "yes", "label": "一定，价格越高越容易买到", "criterion": "incorrect", "feedback": "先查有没有成交，再比较成交后的剩余。把两次运行的 B01 成交状态、结算价分开记，观察这两项是否朝同一个方向变化。"}
+          ]
+        }
+      ],
+      "evidence": {"selector": {"event_type": "order_submitted", "actor_id": "B01", "fields": ["order_id", "price", "quantity"]}, "missing": "当前还没有 B01 的有效入簿记录。核对报价是否已提交并通过规则。"},
+      "next_scene": "observe"
+    },
+    {
+      "id": "observe",
+      "legacy_stage": "observe",
+      "title": "找出成交的那一刻",
+      "question": "一笔成交由哪两张订单组成，谁给出了结算价？",
+      "objective": "从价格点追到两张原始订单和双方账户。",
+      "information": [
+        "从开盘逐步推进。买单价格达到在簿卖价，或卖单价格达到在簿买价，订单才会交叉。",
+        "没有 B01 成交时，先回查自己的入簿与收盘记录。仍可选择市场中其他真实成交追踪价格。"
+      ],
+      "action": "observe",
+      "observables": ["best_bid", "best_ask", "trade", "accounts", "maker_order_id"],
+      "questions": [
+        {
+          "id": "limit-vs-price",
+          "prompt": "如果我报 96，我一定付 96 吗？",
+          "kind": "concept",
+          "selector": {"event_type": "trade", "actor_id": "B01", "fields": ["buy_order_id", "maker_order_id", "price"]},
+          "options": [
+            {"id": "no", "label": "要看是否成交和哪张单先在簿上", "criterion": "correct", "feedback": "成交后，看成交事件的 price，再用 maker_order_id 核对哪张报价是结算依据。若 B01 未成交，就没有它的支付价。"},
+            {"id": "yes", "label": "下单价就是支付价", "criterion": "incorrect", "feedback": "先找 B01 是否成交。若成交，将其原始 buy_order_id 的报价与实际 price 分开读。两者相等还需要检查在簿订单。"}
+          ]
+        },
+        {
+          "id": "maker-side",
+          "prompt": "结算价总由卖方的报价决定吗？",
+          "kind": "concept",
+          "selector": {"event_type": "trade", "fields": ["buy_order_id", "sell_order_id", "maker_order_id", "price"]},
+          "options": [
+            {"id": "no", "label": "由成交中已经在簿的那张订单决定", "criterion": "correct", "feedback": "用 maker_order_id 回查买单或卖单。如果它对应买单，这笔以买价结算；对应卖单则以卖价结算。"},
+            {"id": "yes", "label": "总是卖方决定", "criterion": "incorrect", "feedback": "试算一个规则练习：先挂买单 96，随后卖方接受 91。两单交叉，先在簿的 96 是结算价。回到实际成交查 maker 是哪一侧。"}
+          ]
+        }
+      ],
+      "evidence": {"selector": {"event_type": "trade", "fields": ["buy_order_id", "sell_order_id", "maker_order_id", "price", "quantity"]}, "missing": "当前查看位置还没有成交。若到收盘也没有，保留实际未成交订单，检查是否出现过相交的买卖报价。"},
+      "next_scene": "explain"
+    },
+    {
+      "id": "explain",
+      "legacy_stage": "explain",
+      "title": "为一笔成交对账",
+      "question": "成交的买方、卖方与平台各得到多少？",
+      "objective": "重算真实交易的剩余，并用供需排序找到未实现机会。",
+      "information": [
+        "买方剩余等于价值减成交价再减买方费。卖方剩余等于成交价减成本再减卖方费。两者加平台费用等于价值减成本。",
+        "将边际价值从高到低、成本从低到高配对，正价差之和给出可实现剩余上界。现在可以展开全部私人边际估值。"
+      ],
+      "action": "explain",
+      "observables": ["buyer_surplus", "seller_surplus", "platform_fee", "demand", "supply", "ceiling", "price_band", "surplus"],
+      "questions": [
+        {
+          "id": "quantity-vs-surplus",
+          "prompt": "成交 10 件的市场总剩余一定比成交 9 件高吗？",
+          "kind": "concept",
+          "options": [
+            {"id": "no", "label": "要看成交者各自的价值与成本", "criterion": "correct", "feedback": "每笔交易的价值减成本才计入总剩余。累计成交量相近时，选一笔成交和一笔潜在配对，分别核算价差。"},
+            {"id": "yes", "label": "一定，成交越多越好", "criterion": "incorrect", "feedback": "做一个独立算式：9 件每件价差 5 共 45，10 件每件价差 4 共 40。再看本次哪些私人价值和成本进入了实际结算。"}
+          ]
+        },
+        {
+          "id": "reference-range",
+          "prompt": "竞争价格参考区间是每笔成交的强制范围吗？",
+          "kind": "concept",
+          "options": [
+            {"id": "no", "label": "它是完整边际曲线给出的静态参考", "criterion": "correct", "feedback": "参考区间来自完整配对的供需切点。实际订单按轮到达，成交规则允许它落在参考区间之外。"},
+            {"id": "yes", "label": "每笔成交价都必须落在区间内", "criterion": "incorrect", "feedback": "从一笔成交回查两张订单。撮合判断只用在簿报价以及费用和预算约束，参考区间由全体边际配对另行计算。"}
+          ]
+        }
+      ],
+      "evidence": {"selector": {"event_type": "trade", "fields": ["price", "buyer_surplus", "seller_surplus", "platform_fee"]}, "missing": "没有可对账的成交。用当前已知买卖报价说明未交叉条件，再用边际曲线计算一项潜在机会。"},
+      "next_scene": "compare"
+    },
+    {
+      "id": "compare",
+      "legacy_stage": "compare",
+      "title": "改变一项制度",
+      "question": "同一笔开局报价遇到更高需求或交易费，会发生什么？",
+      "objective": "分别比较需求上移和费用变化，说明保持项、变化项与结果。",
+      "information": [
+        "比较沿用基准种子、自动角色的到达生成规则和学生原始报价。需求情景将买方估值提高 12，费用情景每件向双方各收 6 代币。",
+        "先预测，再选择相同交易轮或收盘比较。费用会改变买卖可接受的报价边界，也可能使本来合法的学生报价被拒绝。"
+      ],
+      "action": "compare",
+      "observables": ["demand_shift", "fee", "root_hash", "initial_hash", "volume", "surplus", "participant_surplus", "platform_cash"],
+      "questions": [
+        {
+          "id": "fee-transfer",
+          "prompt": "每件买卖双方各付 6，本次交易的总剩余就减少 12 吗？",
+          "kind": "concept",
+          "options": [
+            {"id": "no", "label": "12 进入平台，另查哪些交易发生了变化", "criterion": "correct", "feedback": "平台收入进入本课总剩余。本课没有平台资源成本。另一种费用下若有原本可以发生的交易未发生，再比较对应的配置剩余。"},
+            {"id": "yes", "label": "买卖双方少拿 12，就是总损失", "criterion": "incorrect", "feedback": "费用情景中将买方剩余、卖方剩余和平台费相加，核对价差。再看费用造成的成交配置变化，判断哪部分影响了总剩余。"}
+          ]
+        },
+        {
+          "id": "demand-extrapolation",
+          "prompt": "固定我的报价后，需求上移能代表所有交易者的策略调整吗？",
+          "kind": "concept",
+          "options": [
+            {"id": "no", "label": "只能分析这条固定学生报价与既定自动规则的轨迹", "criterion": "correct", "feedback": "学生报价控制不变，自动角色会按变化后的估值和市场状态报价。外推时要注明现实中交易者可能通过学习改变策略。"},
+            {"id": "yes", "label": "估值上升已经代表每个人的全部策略变化", "criterion": "incorrect", "feedback": "先核对两个运行重复使用的学生价，再定位自动订单。模型对两类角色使用不同决策方式，学生若也重新报价，就变成另一组实验。"}
+          ]
+        }
+      ],
+      "evidence": {"selector": {"event_type": "market_close", "fields": ["seq"]}, "missing": "当前运行还没有收盘记录。可以先在共同轮次检查订单，完成后再核对终局差异。"},
+      "next_scene": "notebook"
+    },
+    {
+      "id": "notebook",
+      "legacy_stage": "notebook",
+      "title": "给二手教材平台写一条建议",
+      "question": "什么证据能让平台判断收费会改变哪些交易？",
+      "objective": "把原预测、真实事件、反事实与成立条件写成可复查的建议。",
+      "information": [
+        "选择一笔成交或实际未成交的订单，再记录一项对照差异。写下你原来怎样预测、结果使你怎样修订，以及你的建议在什么条件下成立。"
+      ],
+      "action": "notebook",
+      "observables": ["trade", "order_cancelled", "market_close"],
+      "questions": [],
+      "rubric": "自评三点：读者能定位你引用的运行和事件；剩余或未交叉条件可以复算；你说明了费用转移、交易配置或者策略外推的适用边界。",
+      "next_scene": null
+    }
+  ]
+}

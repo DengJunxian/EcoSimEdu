@@ -1,0 +1,88 @@
+.schelling-world,
+.schelling-local-compare {
+  display: grid;
+  grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr);
+  gap: 20px;
+  align-items: start;
+}
+.schelling-local-compare {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+.schelling-world .lesson-grid { margin-top: 0; container-type: inline-size; }
+.schelling-world .grid-map-scroll { overflow-x: auto; }
+.schelling-world .grid-map { min-inline-size: calc(25px * var(--grid-size) - 1px); }
+@container (max-width: 498px) {
+  .schelling-world .grid-pan-note { display: inline; }
+}
+.schelling-tracking,
+.schelling-local {
+  min-width: 0;
+}
+.schelling-local,
+.schelling-practice {
+  padding: 14px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  margin-block: 8px 14px;
+}
+.schelling-practice { max-width: 540px; }
+.schelling-neighborhood {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 5px;
+  max-width: 324px;
+  padding: 0;
+  margin: 0 0 12px;
+  list-style: none;
+}
+.schelling-neighborhood > :is(li, button, span) {
+  display: grid;
+  place-items: center;
+  min-height: 44px;
+  padding-inline: 2px;
+  border: 1px solid #acbba8;
+  background: #edf0e7;
+  border-radius: 5px;
+  text-align: center;
+}
+.schelling-neighborhood > [data-group="A"] { background: #ddeade; }
+.schelling-neighborhood > [data-group="B"] { background: #f5e9dc; }
+.schelling-neighborhood > [data-outside] { border-style: dashed; color: var(--muted); }
+.schelling-neighborhood > .local-center {
+  border: 2px solid var(--green);
+  font-weight: 700;
+}
+.schelling-neighborhood > button[aria-pressed="true"] {
+  background: var(--green);
+  color: var(--paper);
+}
+.schelling-neighborhood + p,
+.schelling-practice > button + p { margin-top: 10px; }
+.schelling-local > p:last-child { margin-bottom: 0; }
+.schelling-world .grid-affected { outline: 1px dashed #714027; outline-offset: -2px; }
+.schelling-changes table button { min-height: 44px; }
+.schelling-moved { margin-block: 12px; }
+.schelling-metrics {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+  margin-block: 6px 15px;
+}
+.schelling-metrics > div {
+  border-top: 1px solid var(--line);
+  padding-top: 8px;
+}
+.schelling-metrics :is(dt,p) { color: var(--muted); }
+.schelling-metrics dd p { font-size: .9rem; font-weight: 400; }
+.schelling-metrics dd {
+  font-size: 1.2rem;
+  font-weight: 700;
+  margin-inline-start: 0;
+}
+@media (max-width: 850px) {
+  .schelling-world { grid-template-columns: minmax(0, 1fr); }
+}
+@media (max-width: 600px) {
+  .schelling-local-compare { grid-template-columns: minmax(0, 1fr); }
+  .schelling-metrics { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}

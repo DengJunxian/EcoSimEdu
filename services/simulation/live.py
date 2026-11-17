@@ -54,6 +54,11 @@ class DecisionSession:
                 "SELECT COALESCE(SUM(COALESCE(consumed,reservation)),0) FROM live_attempts WHERE currency=?",
                 (provider.currency,),
             ).fetchone()[0]
+            if conn.execute("SELECT 1 FROM sqlite_master WHERE type='table' AND name='live_l2_attempts'").fetchone():
+                charge += conn.execute(
+                    "SELECT coalesce(sum(coalesce(consumed,reservation)),0) FROM live_l2_attempts WHERE currency=?",
+                    (provider.currency,),
+                ).fetchone()[0]
             if charge + provider.reserve_micros > CEILING[provider.currency]:
                 return None, "budget_limit"
             receipt = conn.execute(

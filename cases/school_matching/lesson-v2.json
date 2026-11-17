@@ -1,0 +1,325 @@
+{
+  "schema_version": 2,
+  "case_id": "school_matching",
+  "content_version": "2.0.0",
+  "engine_version": "school-matching/1",
+  "source_ids": [
+    "S09",
+    "GS62"
+  ],
+  "scenes": [
+    {
+      "id": "intro",
+      "legacy_stage": "intro",
+      "title": "两种顺序怎样相遇",
+      "question": "申请人和学校用的是同一张排序表吗？",
+      "objective": "区分学生志愿、学校优先序和席位容量。",
+      "information": [
+        "12 名合成学生向三所学校申请。学生排序决定先申请哪所学校，学校优先序与容量决定本轮保留谁。"
+      ],
+      "action": "intro",
+      "observables": [
+        "admissions_open",
+        "capacities"
+      ],
+      "questions": [
+        {
+          "id": "matching-priority",
+          "kind": "concept",
+          "prompt": "学生把 A 校放在第一位，A 校会把该生提到优先序前面吗？",
+          "options": [
+            {
+              "id": "a",
+              "label": "学校沿用自己的优先序",
+              "criterion": "correct",
+              "feedback": "申报顺序决定该生何时申请 A。学校用本场固定优先序和席位数处理申请。"
+            },
+            {
+              "id": "b",
+              "label": "首选 A 就优先录取",
+              "criterion": "incorrect",
+              "feedback": "打开 A 校的优先序，找排在该生前面的人。申请先后与校内优先名次分开核对。"
+            }
+          ]
+        }
+      ],
+      "next_scene": "predict"
+    },
+    {
+      "id": "predict",
+      "legacy_stage": "predict",
+      "title": "预测 S01 会不会被拒",
+      "question": "提前申报 B 校会怎样改变申请路径？",
+      "objective": "在基准机制下预测 S01 是否收到拒绝。",
+      "information": [
+        "S01 的真实偏好依次是 A、B、C。可以按真实偏好填报，也可将 B 放在首位。校内优先序与真实偏好随情景保留。"
+      ],
+      "action": "predict",
+      "observables": [
+        "proposals",
+        "rejected"
+      ],
+      "questions": [
+        {
+          "id": "matching-rejection",
+          "kind": "prediction",
+          "prompt": "基准延迟接受中，S01 会收到至少一次拒绝吗？",
+          "selector": {
+            "event_type": "round_resolution",
+            "fields": [
+              "round",
+              "rejected"
+            ],
+            "actor_id": "S01"
+          },
+          "options": [
+            {
+              "id": "yes",
+              "label": "会出现",
+              "feedback": "若收到拒绝，请查学校、校内名次和下一次申请。"
+            },
+            {
+              "id": "no",
+              "label": "不会出现",
+              "feedback": "固定 S01，查看完整申请路径和最终分配再确认。"
+            },
+            {
+              "id": "unknown",
+              "label": "暂不确定",
+              "criterion": "uncertain",
+              "feedback": "先选择申报顺序。从第一份申请跟到最终分配。"
+            }
+          ]
+        }
+      ],
+      "next_scene": "bid",
+      "role": {
+        "actor_id": "S01",
+        "label": "申请人 S01",
+        "goal": "提交志愿，并用真实偏好评价最后获得的席位。"
+      }
+    },
+    {
+      "id": "bid",
+      "legacy_stage": "bid",
+      "title": "填报一张志愿单",
+      "question": "如实填报，还是把 B 放在首位？",
+      "objective": "选定 S01 提交志愿，并保留真实偏好作评价。",
+      "information": [
+        "按钮提交一次完整志愿排序。模拟完成前，真实偏好固定；更换排序要从开局重新运行。"
+      ],
+      "action": "bid",
+      "observables": [
+        "submitted",
+        "capacities"
+      ],
+      "questions": [
+        {
+          "id": "matching-report",
+          "kind": "concept",
+          "prompt": "把 B 改报到首位后，该生的真实首选是什么？",
+          "options": [
+            {
+              "id": "a",
+              "label": "仍是 A",
+              "criterion": "correct",
+              "feedback": "比较结果时，把提交顺序和真实偏好单独列出。提交只改变申请路径。"
+            },
+            {
+              "id": "b",
+              "label": "变成 B",
+              "criterion": "incorrect",
+              "feedback": "回到 S01 的两份排序。A 仍位于真实偏好第一，B 是这次提交的首项。"
+            }
+          ]
+        }
+      ],
+      "next_scene": "observe",
+      "role": {
+        "actor_id": "S01",
+        "label": "申请人 S01",
+        "goal": "提交志愿，并用真实偏好评价最后获得的席位。"
+      }
+    },
+    {
+      "id": "observe",
+      "legacy_stage": "observe",
+      "title": "从拒绝跟到下一份申请",
+      "question": "已经暂留的席位会改变吗？",
+      "objective": "打开一份拒绝的来源事件，跟踪下一轮申请。",
+      "information": [
+        "延迟接受按每轮优先序暂留；即时接受确认的席位在后续轮次保留。用席位和申请账本判断当前状态。"
+      ],
+      "action": "observe",
+      "observables": [
+        "round_proposals",
+        "round_resolution",
+        "rejected",
+        "held"
+      ],
+      "questions": [
+        {
+          "id": "matching-hold",
+          "kind": "concept",
+          "prompt": "延迟接受中，暂留可视为最终入学吗？",
+          "options": [
+            {
+              "id": "a",
+              "label": "后续申请可能改变暂留",
+              "criterion": "correct",
+              "feedback": "找到一位已暂留后被拒绝的学生，回查新一轮申请。结算后再读取最终分配。"
+            },
+            {
+              "id": "b",
+              "label": "暂留就等于最终入学",
+              "criterion": "incorrect",
+              "feedback": "试着对比相邻两轮的席位名单，按优先序重算本轮能保留的名单。"
+            }
+          ],
+          "selector": {
+            "event_type": "round_resolution",
+            "fields": [
+              "round",
+              "held",
+              "rejected"
+            ]
+          }
+        }
+      ],
+      "evidence": {
+        "selector": {
+          "event_type": "round_resolution",
+          "fields": [
+            "round",
+            "rejected"
+          ],
+          "actor_id": "S01"
+        },
+        "missing": "S01 在已揭示轮次中还未收到拒绝。可查看其他学生或等待最终分配。"
+      },
+      "next_scene": "explain"
+    },
+    {
+      "id": "explain",
+      "legacy_stage": "explain",
+      "title": "检查最终分配是否稳定",
+      "question": "相对提交志愿稳定，说明每人满意吗？",
+      "objective": "分别读两种偏好下的阻挡对与真实志愿名次。",
+      "information": [
+        "按提交志愿和真实偏好分别检查。学生更偏好某校且该校有空位，或学生有优先权替换现有占位者，才构成阻挡对。"
+      ],
+      "action": "explain",
+      "observables": [
+        "final_assignment",
+        "submitted_blocking_pairs",
+        "true_blocking_pairs",
+        "first_true_choice"
+      ],
+      "questions": [
+        {
+          "id": "matching-stable",
+          "kind": "concept",
+          "prompt": "按提交志愿没有阻挡对，是否能推出所有人都拿到真实首选？",
+          "options": [
+            {
+              "id": "a",
+              "label": "还需要分别查看真实偏好与名次",
+              "criterion": "correct",
+              "feedback": "没有阻挡对只说明在所用排序和学校优先序下，找不到能双方改配的组合。"
+            },
+            {
+              "id": "b",
+              "label": "每个人都拿到真实首选",
+              "criterion": "incorrect",
+              "feedback": "先核对真实首选人数，再展开真实偏好下的阻挡对。两个统计回答的问题不同。"
+            }
+          ],
+          "selector": {
+            "event_type": "final_assignment",
+            "fields": [
+              "assignments",
+              "submitted_blocking",
+              "true_blocking"
+            ]
+          }
+        }
+      ],
+      "evidence": {
+        "selector": {
+          "event_type": "final_assignment",
+          "fields": [
+            "assignments",
+            "submitted_blocking",
+            "true_blocking"
+          ]
+        },
+        "missing": "最终分配尚未揭示。当前席位可能仍在等待处理。"
+      },
+      "next_scene": "compare"
+    },
+    {
+      "id": "compare",
+      "legacy_stage": "compare",
+      "title": "同一批学生，两种分配条件",
+      "question": "立即锁定席位或增加一个席位后，路径怎样变？",
+      "objective": "在同一轮次比较 S01、剩余席位与阻挡对。",
+      "information": [
+        "机制对照沿用同一志愿、优先序与容量。加席对照保持延迟接受，仅增加 A 校席位。"
+      ],
+      "action": "compare",
+      "observables": [
+        "student_true_rank",
+        "applications",
+        "true_blocking_pairs"
+      ],
+      "questions": [
+        {
+          "id": "matching-fixed",
+          "kind": "concept",
+          "prompt": "比较即录与延迟接受时，哪项是处理变量？",
+          "options": [
+            {
+              "id": "a",
+              "label": "席位确认与能否替换的规则",
+              "criterion": "correct",
+              "feedback": "对照使用同一批申请人和优先序。比较被拒者是否还能申请下一校，以及前一轮席位能否改分。"
+            },
+            {
+              "id": "b",
+              "label": "学生的真实偏好",
+              "criterion": "incorrect",
+              "feedback": "先固定自己的志愿表，再检查两组逐轮保留名单。学校接受规则解释此处的路径差异。"
+            }
+          ],
+          "selector": {
+            "event_type": "round_proposals",
+            "fields": [
+              "round",
+              "proposals"
+            ]
+          }
+        }
+      ],
+      "next_scene": "notebook"
+    },
+    {
+      "id": "notebook",
+      "legacy_stage": "notebook",
+      "title": "为一条分配建议找证据",
+      "question": "把制度移到实习岗位，需要核对哪些前提？",
+      "objective": "引用一次申请、拒绝或最终分配和一项配对比较。",
+      "information": [
+        "在笔记标记你的分配评价依据的是提交志愿还是真实偏好，并给出岗位容量与雇主优先序的解释。"
+      ],
+      "action": "notebook",
+      "observables": [
+        "round_proposals",
+        "round_resolution",
+        "final_assignment"
+      ],
+      "questions": [],
+      "rubric": "标明实际事件、比较制度和偏好口径。迁移时说明岗位规则、容量或申请排序改变会影响哪项判断。",
+      "next_scene": null
+    }
+  ]
+}

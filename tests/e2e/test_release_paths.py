@@ -25,7 +25,7 @@ def test_core_workflows_by_keyboard(local_app, case_id, chromium_options):
 
         context.route("**/*", local)
         page = context.new_page()
-        page.goto(local_app + ("/" if is_auction else f"/?case={case_id}"))
+        page.goto(local_app + f"/?case={case_id}")
 
         def activate(name):
             button = page.get_by_role("button", name=name, exact=True).first
@@ -96,6 +96,8 @@ Storage.prototype.setItem = function(key, value) {
         page.goto(local_app + "/?case=not-in-the-catalog")
         expect(page.get_by_role("heading", name="课程不可用")).to_be_visible()
         page.get_by_role("link", name="返回案例库").click()
+        page.get_by_role("link", name="双向拍卖 价格是怎样形成的？").click()
+        page.get_by_role("link", name="打开原版课堂").click()
         page.get_by_role("button", name="开始实验").click()
         expect(page.get_by_text("浏览器无法保存草稿。", exact=False)).to_be_visible()
         page.get_by_role("radio", name="不确定").check()

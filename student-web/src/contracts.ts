@@ -67,6 +67,9 @@ export type Run = {
 
 const messages: Record<string, string> = {
   BOUNDARY_PARAMETERS_MISMATCH: "边界实验使用课程指定的种子和行动，请从课程入口启动。",
+  V2_PROVIDER_NOT_SUPPORTED: "该运行方式不支持自定义参数或行动序列。",
+  INVALID_ROUND_CONTRIBUTIONS: "逐轮贡献只适用于公共品博弈。每轮贡献须为 0–20 的整数代币。",
+  INVALID_WEEKLY_ORDERS: "逐周订单只适用于啤酒游戏。每周订单须为 0–40 的整数件数。",
   PRESET_NOT_AVAILABLE: "没有匹配的固定回放。可使用本地规则计算。",
   CASE_NOT_AVAILABLE: "此课程尚未发布。",
   ALIGNMENT_NOT_AVAILABLE: "这门课尚未定义共同观察点。",
@@ -82,6 +85,7 @@ const messages: Record<string, string> = {
   LIVE_LOCAL_ONLY: "高级实验只能从本地学生实验室启动。",
   EVIDENCE_RUN_MISMATCH: "证据运行与当前课程不一致。",
   EVIDENCE_TICK_NOT_AVAILABLE: "该运行没有这一事件。",
+  SNAPSHOT_NOT_AVAILABLE: "该运行没有这一观察时刻。",
   EVENT_NOT_AVAILABLE: "该运行没有这一事件序号。",
   RUN_FAILED: "实验计算失败。可用原参数重新运行。",
   RUN_ALREADY_TERMINAL: "这次运行已结束。可用原参数重新运行。",
@@ -91,14 +95,14 @@ export class ApiError extends Error {
     super(message);
   }
 }
-export async function api<T>(path: string, body?: object): Promise<T> {
-  const response = await fetch(`/api${path}`, body === undefined ? undefined : {
-    method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body),
+export async function api<T>(path: string, body?: object, signal?: AbortSignal): Promise<T> {
+  const response = await fetch(`/api${path}`, body === undefined ? { signal } : {
+    signal, method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body),
   });
   if (!response.ok) {
     const problem = await response.json().catch(() => ({}));
     const code = typeof problem.detail === "string" ? problem.detail : "";
-    throw new ApiError(code, messages[code] ?? "本地服务未能处理请求，请检查参数后重试。");
+    throw new ApiError(code, messages[code] ?? (/[\u4e00-\u9fff]/.test(code) ? code : "本地服务未能处理请求，请检查参数后重试。"));
   }
   return response.json();
 }

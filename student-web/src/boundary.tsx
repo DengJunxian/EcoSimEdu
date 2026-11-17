@@ -43,7 +43,7 @@ export function BoundaryApp({ course }: { course: { case_id: string; title: stri
     }
   }
 
-  return <main className="container course-home">
+  return <main id="main" tabIndex={-1} className="container course-home">
     <a href={`/?${new URLSearchParams({ case: course.case_id })}`}>返回课程</a>
     <h1>{spec.label}</h1>
     <p>{spec.description}</p>

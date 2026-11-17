@@ -2,7 +2,7 @@ import type { MarketEvent, Run } from "./contracts";
 
 const W = 720, H = 270, L = 54, R = 695, T = 25, B = 221;
 
-export function SupplyDemand({ run }: { run: Run }) {
+export function SupplyDemand({ run }: { run: { result: Pick<Run["result"], "demand" | "supply"> } }) {
   const { demand, supply } = run.result;
   const low = Math.floor(Math.min(...demand, ...supply) / 10) * 10;
   const high = Math.ceil(Math.max(...demand, ...supply) / 10) * 10;
@@ -31,13 +31,14 @@ export function SupplyDemand({ run }: { run: Run }) {
   </figure>;
 }
 
-export function PriceChart({ events, tick, choose }: {
+export function PriceChart({ events, tick, choose, revealUntil, closed }: {
   events: MarketEvent[]; tick: number; choose: (tick: number) => void;
+  revealUntil?: number; closed?: boolean;
 }) {
-  const points = events.filter(e => e.event_type === "trade" && e.tick <= tick);
-  const end = events.at(-1)?.tick ?? 1;
+  const points = events.filter(e => e.event_type === "trade" && e.tick <= (revealUntil ?? tick));
+  const end = revealUntil ?? events.at(-1)?.tick ?? 1;
   if (!points.length) return <p className="quiet-content">
-    {tick === end ? "整场无成交。成交价未定义。" : "当前时点尚无成交。"}
+    {(closed ?? tick === end) ? "整场无成交。成交价未定义。" : "当前时点尚无成交。"}
   </p>;
   const prices = points.map(e => e.price!);
   const low = Math.min(...prices) - 2;
@@ -55,7 +56,7 @@ export function PriceChart({ events, tick, choose }: {
         className={e.tick === tick ? "selected-point" : "chart-point"} onClick={() => choose(e.tick)}
         tabIndex={0} role="button" aria-label={`成交事件 ${e.seq}，${e.price} 代币`}
         onKeyDown={event => { if (event.key === "Enter" || event.key === " ") { event.preventDefault(); choose(e.tick); } }}/>)}
-      {[0, Math.round(end / 2), end].map(at =>
+      {[...new Set([0, Math.round(end / 2), end])].map(at =>
         <text key={at} x={x(at)} y={B + 24} textAnchor="middle">{at}</text>)}
       <text x={R} y={H - 4} textAnchor="end">事件序号</text>
     </svg>

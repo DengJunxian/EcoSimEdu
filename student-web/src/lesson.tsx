@@ -9,6 +9,7 @@ import { LivePanel, liveCourses } from "./live-panel";
 import { TutorPanel } from "./tutor";
 import { LabTools, teacherEnabled } from "./lab-tools";
 import { BoundaryLink } from "./boundary";
+import { AppHeader } from "./app/shell";
 
 function Options({ question, value, onChange }: {
   question: Question; value: string; onChange: (id: string) => void;
@@ -60,6 +61,7 @@ export function LessonApp({ caseId }: { caseId: string }) {
   const [study, setStudy] = useState(loaded.study);
   const [runs, setRuns] = useState<Record<string, LessonRun>>({});
   const [comparison, setComparison] = useState("baseline");
+  const [fullReview, setFullReview] = useState(false);
   const [pending, setPending] = useState(!!Object.keys(loaded.study.runs).length);
   const [error, setError] = useState(loaded.error);
   const [notice, setNotice] = useState("");
@@ -117,6 +119,7 @@ export function LessonApp({ caseId }: { caseId: string }) {
       setComparison(scenario);
       if (scenario === "baseline") {
         setRuns({ baseline: result });
+        setFullReview(false);
         update({ runs: { baseline: result.run_id }, selections: {}, evidence: [],
           explanation: "", complete: false, stage: 3, unlocked: 3,
           reviewRequired: noteKeys.some(key => Boolean(study.notes[key].trim())) });
@@ -160,21 +163,21 @@ export function LessonApp({ caseId }: { caseId: string }) {
 
   const trace = (run: LessonRun) => {
     const selection = study.selections[run.run_id] ?? { tick: 0, actor: "" };
+    const guided = current.id === "observe";
     return <Fragment key={run.run_id}><TraceView course={course} run={run} {...selection}
+      review={guided ? { active: fullReview, change: setFullReview } : undefined}
       select={(tick, actor) => setStudy(prev => ({ ...prev, selections: { ...prev.selections, [run.run_id]: { tick, actor } } }))}
       cite={event => cite(run, event)}
       cited={study.evidence.some(item => item.run_id === run.run_id && item.seq === selection.tick)}/>
-      <TutorPanel caseId={caseId} runId={run.run_id} tick={selection.tick}/>
+      <TutorPanel caseId={caseId} runId={run.run_id} tick={selection.tick}
+        revealUntil={guided && !fullReview ? selection.tick : undefined}/>
     </Fragment>;
   };
 
   return <>
-    <header className="topbar"><div className="container brand-bar">
-      <button className="brand" onClick={() => visit(0)}><span className="brand-mark" aria-hidden="true"/>Civitas <em>Economica</em></button>
-      <a className="topbar-link" href={`/?${new URLSearchParams({ case: caseId, view: "model" })}`}>模型实验</a>
-    </div></header>
+    <AppHeader resetLesson={() => visit(0)} modelCaseId={caseId}/>
     <div className="container">
-      <main>
+      <main id="main" tabIndex={-1}>
         {error && <p className="error" role="alert">{error}</p>}
         {notice && <p className="callout" role="status">{notice}</p>}
         {pending && <p className="callout" role="status">正在处理本地实验…</p>}

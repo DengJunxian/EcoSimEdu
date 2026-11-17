@@ -4,10 +4,12 @@ import random
 from fractions import Fraction
 
 from .auction import digest
+from .classroom_policy import choose_actions
 
 STATES = ("A", "B")
 ROUNDS = 12
 STUDENT_TURN = 3
+LIVE_TURNS = (1, 2, 4)
 
 
 def _likelihood(observed, state, accuracy):
@@ -27,7 +29,9 @@ def _pct(probability):
     return round(float(probability * 100), 4)
 
 
-def simulate(case, scenario_id, seed, action, *, decide=None):
+def simulate(case, scenario_id, seed, action, *, decide=None, classroom_policy=None):
+    if decide is not None and classroom_policy is not None:
+        raise ValueError("Only one model policy may own a decision")
     parameters = next(s["parameters"] for s in case["scenarios"] if s["id"] == scenario_id)
     observe_actions = parameters["observe_actions"]
     verification_turn = parameters["verification_turn"]
@@ -96,7 +100,7 @@ def simulate(case, scenario_id, seed, action, *, decide=None):
         before = prior
         policy = action if turn == STUDENT_TURN else "bayes"
         decision_details = {}
-        if decide is not None and turn == 4:
+        if (decide is not None and turn == 4) or (classroom_policy is not None and turn in LIVE_TURNS):
             allowed = {
                 "bayes": "按公共后验与私信号进行贝叶斯选择，平局跟随私信号",
                 "private_signal": "跟随自己的私信号",
@@ -104,13 +108,19 @@ def simulate(case, scenario_id, seed, action, *, decide=None):
                 "force_b": "预先公开固定为 B",
             }
             stage = "choose_public_policy"
-            policy = decide(actor, stage, {
+            observation = {
                 "turn": turn, "public_a_pct": _pct(before), "private_accuracy": str(accuracy),
                 "visible_actions": [{"actor_id": person, "choice": entities[person]["行动"]}
                                     for person in visible_choices],
                 "verification": entities["V01"]["公共核验"] if verification_visible else None,
-            }, allowed, "bayes")
-            if policy not in allowed:
+            }
+            if classroom_policy is not None:
+                policy = choose_actions(classroom_policy, turn, [
+                    {"actor": actor, "stage": stage, "observation": observation, "allowed": allowed, "default": "bayes"},
+                ])[actor]
+            else:
+                policy = decide(actor, stage, observation, allowed, "bayes")
+            if not isinstance(policy, str) or policy not in allowed:
                 raise ValueError("Cascade decision is outside the offered policies")
             decision_details["agent_action_seq"] = len(events)
             record("agent_action_selected", f"{actor} 公开声明策略：{allowed[policy]}。", actors=[actor],
@@ -189,13 +199,17 @@ def simulate(case, scenario_id, seed, action, *, decide=None):
         )
         if observe_actions:
             visible_choices.append(actor)
+        if classroom_policy is not None and turn < ROUNDS:
+            classroom_policy.commit(turn, events, snapshots)
 
     record(
         "reveal", f"核对答案：本场抽样来自 {state} 箱，12 人中有 {correct} 人猜对。",
         state=state, correct_count=correct,
     )
+    if classroom_policy is not None:
+        classroom_policy.commit(ROUNDS, events, snapshots)
     return {
-        "engine_version": "information-cascade/1",
+        "engine_version": "information-cascade/2" if classroom_policy is not None else "information-cascade/1",
         "initial": initial,
         "events": events,
         "snapshots": snapshots,

@@ -1,0 +1,322 @@
+{
+  "schema_version": 2,
+  "case_id": "lemons_market",
+  "content_version": "2.0.0",
+  "engine_version": "lemons-market/1",
+  "source_ids": [
+    "S08"
+  ],
+  "scenes": [
+    {
+      "id": "intro",
+      "legacy_stage": "intro",
+      "title": "挂牌市场的两份信息",
+      "question": "质量由谁知道？",
+      "objective": "分清整批分布与每件商品的质量。",
+      "information": [
+        "30 位合成卖家各有一件商品。开盘时买家看到挂牌商品的质量分布，卖家知道自己的质量。教程中的商品与交易来自规则模型。"
+      ],
+      "action": "intro",
+      "observables": [
+        "market_open",
+        "listed_quality_distribution"
+      ],
+      "questions": [
+        {
+          "id": "lemons-mask",
+          "kind": "concept",
+          "prompt": "知道质量分布就能识别每件商品吗？",
+          "options": [
+            {
+              "id": "a",
+              "label": "单件仍需单独信号",
+              "criterion": "correct",
+              "feedback": "分布给出每一级有多少件。卖家身份与单件质量的对应需要核验或公开。"
+            },
+            {
+              "id": "b",
+              "label": "知道分布就能识别每一件",
+              "criterion": "incorrect",
+              "feedback": "举两件不同等级的商品，把匿名标签调换。整批分布相同，买家手里的单件判断却变了。"
+            }
+          ]
+        }
+      ],
+      "next_scene": "predict"
+    },
+    {
+      "id": "predict",
+      "legacy_stage": "predict",
+      "title": "给自己的商品估价",
+      "question": "挂牌的商品会因统一报价退出吗？",
+      "objective": "预测本次是否出现真实的退出事件。",
+      "information": [
+        "S01 持有质量 5 的商品，5 代币是本模型的最低可接受价。可以挂牌或保留，其他卖家的规则由模型运行。"
+      ],
+      "action": "predict",
+      "observables": [
+        "quoted_pool_price",
+        "exited"
+      ],
+      "questions": [
+        {
+          "id": "lemons-exit",
+          "kind": "prediction",
+          "prompt": "基准统一报价过程中，会有卖家因报价低于保留价而退出吗？",
+          "selector": {
+            "event_type": "offer_iteration",
+            "fields": [
+              "exited"
+            ],
+            "nonempty": "exited"
+          },
+          "options": [
+            {
+              "id": "yes",
+              "label": "会出现",
+              "feedback": "记下首次退出的报价，并观察愿售数量和下一轮报价。"
+            },
+            {
+              "id": "no",
+              "label": "不会出现",
+              "feedback": "逐轮查看退出栏，等到结算才确认整次报价过程是否出现退出。"
+            },
+            {
+              "id": "unknown",
+              "label": "暂不确定",
+              "criterion": "uncertain",
+              "feedback": "可以从首次报价开始，对照退出数和成交数。"
+            }
+          ]
+        }
+      ],
+      "next_scene": "bid",
+      "role": {
+        "actor_id": "S01",
+        "label": "卖家 S01",
+        "goal": "比较挂牌后的报价与 5 代币的保留价。"
+      }
+    },
+    {
+      "id": "bid",
+      "legacy_stage": "bid",
+      "title": "提交挂牌决定",
+      "question": "要把质量 5 的商品挂牌吗？",
+      "objective": "选定一项开局行动，并在比较中保持它。",
+      "information": [
+        "挂牌允许实验采用该情景的质量核验规则。保留商品会使 S01 从一开始就不进入挂牌池。"
+      ],
+      "action": "bid",
+      "observables": [
+        "listed",
+        "willing_supply"
+      ],
+      "questions": [
+        {
+          "id": "lemons-keep",
+          "kind": "concept",
+          "prompt": "S01 选择保留商品时，该商品算在哪个环节？",
+          "options": [
+            {
+              "id": "a",
+              "label": "开盘就未挂牌",
+              "criterion": "correct",
+              "feedback": "保留发生在开盘之前。之后的退出指已经挂牌的卖家按报价撤出。"
+            },
+            {
+              "id": "b",
+              "label": "成交后因库存售罄退出",
+              "criterion": "incorrect",
+              "feedback": "先定位开盘挂牌数量，然后用报价轮次的退出名单核对 S01。"
+            }
+          ]
+        }
+      ],
+      "next_scene": "observe",
+      "role": {
+        "actor_id": "S01",
+        "label": "卖家 S01",
+        "goal": "比较挂牌后的报价与 5 代币的保留价。"
+      }
+    },
+    {
+      "id": "observe",
+      "legacy_stage": "observe",
+      "title": "追踪退出与新报价",
+      "question": "愿售池变小的时候，商品去哪里了？",
+      "objective": "把报价、退出与一次性交割分开。",
+      "information": [
+        "每次报价后按卖家的最低接受价过滤混合池。退出改变下一轮报价使用的质量构成。打开退出名单并引用一次有变化的报价。"
+      ],
+      "action": "observe",
+      "observables": [
+        "offer_iteration",
+        "exited",
+        "willing_supply",
+        "traded"
+      ],
+      "questions": [
+        {
+          "id": "lemons-exit-vs-sale",
+          "kind": "concept",
+          "prompt": "暂定报价后愿售数量下降，就意味着这一批商品已经卖出吗？",
+          "options": [
+            {
+              "id": "a",
+              "label": "仍要查看交割记录",
+              "criterion": "correct",
+              "feedback": "核对报价事件退出者名单，再查成交计数。结算前的商品仍在原卖家手里。"
+            },
+            {
+              "id": "b",
+              "label": "数量下降就是已经卖出",
+              "criterion": "incorrect",
+              "feedback": "报价阶段请并排读愿售数量和实际交割数。两项分别来自退出记录和后续结算。"
+            }
+          ],
+          "selector": {
+            "event_type": "offer_iteration",
+            "fields": [
+              "iteration",
+              "exited",
+              "willing_pool"
+            ]
+          }
+        }
+      ],
+      "evidence": {
+        "selector": {
+          "event_type": "offer_iteration",
+          "fields": [
+            "exited"
+          ],
+          "nonempty": "exited"
+        },
+        "missing": "当前进度未出现卖家退出。继续查看报价与交割。"
+      },
+      "next_scene": "explain"
+    },
+    {
+      "id": "explain",
+      "legacy_stage": "explain",
+      "title": "按交易重新核算收益",
+      "question": "更低报价让买家获益了吗？",
+      "objective": "在交割中查看实际质量、价格和成本。",
+      "information": [
+        "选择一件成交商品，核对买家价值、交割价格和双方收益。复盘质量只在结算后用于核账。"
+      ],
+      "action": "explain",
+      "observables": [
+        "settlement",
+        "transactions",
+        "willing_quality",
+        "net_surplus"
+      ],
+      "questions": [
+        {
+          "id": "lemons-price-quality",
+          "kind": "concept",
+          "prompt": "混合报价下降，足以证明买家得到了更高剩余吗？",
+          "options": [
+            {
+              "id": "a",
+              "label": "需要实际成交质量和成交价",
+              "criterion": "correct",
+              "feedback": "买家剩余是实际价值减去实付价格。退出之后仍愿售的商品构成也会改变。"
+            },
+            {
+              "id": "b",
+              "label": "价格下降足以证明",
+              "criterion": "incorrect",
+              "feedback": "先从交易表选一件商品，再比较它的实际价值与交割价。报价本身只给出潜在支付额。"
+            }
+          ],
+          "selector": {
+            "event_type": "settlement",
+            "fields": [
+              "transactions",
+              "status"
+            ]
+          }
+        }
+      ],
+      "evidence": {
+        "selector": {
+          "event_type": "settlement",
+          "fields": [
+            "transactions",
+            "status"
+          ]
+        },
+        "missing": "还未结算。暂停在交割事件即可核对净剩余。"
+      },
+      "next_scene": "compare"
+    },
+    {
+      "id": "compare",
+      "legacy_stage": "compare",
+      "title": "比较公开质量和收费认证",
+      "question": "提供质量信号以后，谁能继续交易？",
+      "objective": "比较成交覆盖、认证成本和净剩余。",
+      "information": [
+        "完全信息组按公开的单件质量报价。认证组只有达到核验参与条件的挂牌者单独报价，其余商品沿用混合池。"
+      ],
+      "action": "compare",
+      "observables": [
+        "certification",
+        "fee",
+        "traded",
+        "net_surplus",
+        "certification_cost"
+      ],
+      "questions": [
+        {
+          "id": "lemons-cert-cost",
+          "kind": "concept",
+          "prompt": "认证使更多商品成交，就能推定净剩余一定更高吗？",
+          "options": [
+            {
+              "id": "a",
+              "label": "核算新增交易收益与核验成本",
+              "criterion": "correct",
+              "feedback": "认证费用在模型中消耗真实资源。把净剩余与交易量并列观察，也比较完全信息情景。"
+            },
+            {
+              "id": "b",
+              "label": "成交数增加足以证明",
+              "criterion": "incorrect",
+              "feedback": "从认证事件找费用，再按交易表查认证成本。价差信息和成本合在一起才决定净剩余。"
+            }
+          ],
+          "selector": {
+            "event_type": "certification",
+            "fields": [
+              "certified",
+              "fee"
+            ]
+          }
+        }
+      ],
+      "next_scene": "notebook"
+    },
+    {
+      "id": "notebook",
+      "legacy_stage": "notebook",
+      "title": "写下信息与参与的证据",
+      "question": "换到二手设备交易，要补查哪条证据？",
+      "objective": "引用一次退出或无退出的报价记录，并关联一个对照。",
+      "information": [
+        "说明买卖双方各能看见什么、谁改变了参与，并注明核验证据的成本。若两组结果相同，保留该结果并说明条件。"
+      ],
+      "action": "notebook",
+      "observables": [
+        "offer_iteration",
+        "settlement",
+        "net_surplus"
+      ],
+      "questions": [],
+      "rubric": "能区分暂定报价和交割，说明质量信号如何改变参与，并用真实事件与比较时点核对。",
+      "next_scene": null
+    }
+  ]
+}
