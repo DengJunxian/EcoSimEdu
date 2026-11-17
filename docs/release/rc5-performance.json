@@ -1,0 +1,133 @@
+{
+  "platform": "macOS-27.0-arm64-arm-64bit",
+  "architecture": "arm64",
+  "server_cold_health_ms": 162.441,
+  "rule_flash_create_and_run_ms": 34.578,
+  "data": {
+    "default_trajectories": 41,
+    "largest_gzip": {
+      "case_id": "schelling_segregation",
+      "scenario_id": "higher",
+      "events": 154,
+      "gzip_bytes": 42528
+    },
+    "total_gzip_bytes": 325582
+  },
+  "flash_events": 368,
+  "native_flash_seek": {
+    "n": 30,
+    "p50_ms": 3.809,
+    "p95_ms": 4.2
+  },
+  "browser": {
+    "chrome": "157.0.8103.78",
+    "cold_profile_first_interactive": {
+      "n": 30,
+      "p50_ms": 53.848,
+      "p95_ms": 59.888
+    },
+    "warm_case_first_interactive": {
+      "n": 30,
+      "p50_ms": 14.28,
+      "p95_ms": 21.273
+    },
+    "event_keyboard_feedback": {
+      "n": 30,
+      "p50_ms": 2.301,
+      "p95_ms": 6.724
+    },
+    "catalog_filter": {
+      "n": 30,
+      "p50_ms": 1.897,
+      "p95_ms": 3.098
+    },
+    "trace_js_heap_bytes": 23443496
+  },
+  "combined_fixture": {
+    "stored_bytes": 34743930,
+    "agents_per_frame": 500,
+    "frames": 300,
+    "events_total": 100000,
+    "events_beyond_one_per_frame": 99700,
+    "relations_at_frame_150": 5000,
+    "event_sequence_samples": [
+      0,
+      3448,
+      6896,
+      10344,
+      13792,
+      17241,
+      20689,
+      24137,
+      27585,
+      31034,
+      34482,
+      37930,
+      41378,
+      44827,
+      48275,
+      51723,
+      55171,
+      58620,
+      62068,
+      65516,
+      68964,
+      72413,
+      75861,
+      79309,
+      82757,
+      86206,
+      89654,
+      93102,
+      96550,
+      99999
+    ],
+    "api_event_lookup": {
+      "n": 30,
+      "p50_ms": 49.973,
+      "p95_ms": 53.62
+    },
+    "first_api_event_lookup_ms": 86.734,
+    "event_response_bytes_max": 533,
+    "browser_direct_event_link": {
+      "n": 30,
+      "p50_ms": 93.249,
+      "p95_ms": 104.199
+    },
+    "browser_full_run_requests_on_event_links": 0,
+    "api_seek": {
+      "n": 30,
+      "p50_ms": 33.705,
+      "p95_ms": 35.484
+    },
+    "shared_trace_ready_ms": 1355.587,
+    "initial_relations_open_ms": 120.751,
+    "browser_seek": {
+      "n": 30,
+      "p50_ms": 14.876,
+      "p95_ms": 20.105
+    },
+    "relationship_open": {
+      "n": 30,
+      "p50_ms": 91.827,
+      "p95_ms": 98.953
+    },
+    "visible_relationship_rows_when_opened": 5000,
+    "cold_api_events": {
+      "n": 30,
+      "p50_ms": 59.165,
+      "p95_ms": 66.449
+    },
+    "cold_api_snapshots": {
+      "n": 30,
+      "p50_ms": 45.048,
+      "p95_ms": 47.692
+    },
+    "cold_browser_event_link": {
+      "n": 30,
+      "p50_ms": 94.513,
+      "p95_ms": 98.951
+    }
+  },
+  "service_rss_at_end_bytes": 671465472
+}

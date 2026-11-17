@@ -1,0 +1,79 @@
+{
+  "case_id": "svb_run",
+  "version": "1.0.0",
+  "title": "硅谷银行挤兑",
+  "subtitle": "有资产的银行，为什么会付不出钱？",
+  "identity": "historical_event",
+  "identity_label": "历史事件",
+  "minutes": "25–35 分钟",
+  "intro": "你是下周要发工资的企业财务负责人。银行公布资产重估后，你可以先提交工资款申请，或等一轮再取。观察这笔申请怎样进入银行队列，以及它如何影响其他储户。",
+  "background": "2023 年 3 月 10 日，加州监管机构关闭硅谷银行。美联储复盘指出，利率上升、风险管理薄弱、科技企业存款集中及大量未保险存款，使银行容易遭遇相关提款。3 月 12 日，美国财政部、美联储和 FDIC 宣布保障该行所有存款人。实验中的 60 名储户、消息和金额是独立的教学模拟。",
+  "goals": ["区分提出提款、排队和到账", "用同一张账表区分流动性与净资产", "说明现金缓冲与消息网络如何改变传导"],
+  "seed": 20230309,
+  "player_id": "D01",
+  "action": {
+    "label": "你的工资款何时申请？",
+    "options": [
+      {"id": "withdraw_now", "label": "第一轮提交"},
+      {"id": "withdraw_later", "label": "第二轮提交"}
+    ],
+    "default": "withdraw_now"
+  },
+  "minimum_evidence": 2,
+  "evidence_types": ["revaluation", "messages", "requests", "support", "sale", "payments", "queue"],
+  "checkpoint": {"event_type": "requests", "message": "首批提款已排队。比较这时的存款负债和下一次支付后的银行现金。"},
+  "scenarios": [
+    {"id": "baseline", "label": "基准", "description": "现金为 100 资金单位，部分企业是多名储户共同观察的消息源。", "parameters": {"cash_reallocation": 0, "network": "concentrated"}},
+    {"id": "liquidity_buffer", "label": "提高现金缓冲", "description": "在冲击前把价值 400 的证券换成现金。初始资产总额、存款和权益相同，证券利率暴露也下降。", "parameters": {"cash_reallocation": 400, "network": "concentrated"}},
+    {"id": "network", "label": "分散信息来源", "description": "保持每人观察三位邻居和总边数不变，将观察关系从少数共同消息源转到分散的邻居。", "parameters": {"cash_reallocation": 0, "network": "distributed"}}
+  ],
+  "metrics": [
+    {"id": "cash", "label": "银行现金", "unit": "资金单位"},
+    {"id": "requested", "label": "累计申请", "unit": "资金单位"},
+    {"id": "paid", "label": "累计实付", "unit": "资金单位"},
+    {"id": "queued", "label": "等待支付", "unit": "资金单位"},
+    {"id": "equity", "label": "银行净资产", "unit": "资金单位"},
+    {"id": "sale_loss", "label": "累计折价损失", "unit": "资金单位"}
+  ],
+  "lessons": [
+    {"id": "intro", "title": "走进事件", "prompt": "阅读关闭与处置时间线。区分历史事实和接下来使用的教学账表。"},
+    {"id": "predict", "title": "接到工资任务", "prompt": "你在 D01 企业负责发工资。先预测银行会不会出现尚未支付的申请。"},
+    {"id": "bid", "title": "选择取款时间", "prompt": "决定第一轮或第二轮提交工资款。两组反事实都沿用这次选择。"},
+    {"id": "observe", "title": "追踪申请与到账", "prompt": "定位提款申请、变现和到账。选择 D01 或一名收到邻居消息的储户，比较动作前后的余额。"},
+    {"id": "explain", "title": "读银行账表", "prompt": "找出待付队列首次增加时的银行现金与净资产，说明它们分别衡量什么。"},
+    {"id": "compare", "title": "比较处置条件", "prompt": "用同一群储户、同一初始权益和同一次冲击，依次试验更多现金和更分散的消息来源。"},
+    {"id": "notebook", "title": "写实验笔记", "prompt": "引用两条事件，写下传导机制、条件及该解释在另一家假想银行的适用范围。"}
+  ],
+  "questions": {
+    "prediction": {"prompt": "这轮模拟会出现已经申请、尚未到账的款项吗？", "options": {"yes": "会出现", "no": "不会出现", "unknown": "不确定"}},
+    "explain": {"prompt": "银行获得一笔支持借款后，净资产会立即增加吗？", "options": {"yes": "会增加", "no": "不增加"}, "answer": "no", "feedback": "借款等额增加银行现金和借款负债，所以到账当时净资产不变。证券重估或低于账面价出售会降低净资产。申请进入队列时存款仍是银行负债，实际支付才使现金和存款余额同步减少。"},
+    "transfer": {"prompt": "如果一家假想银行的企业储户彼此联系较少，且存款保障比例更高，哪两条机制可能变化？还需要知道什么？", "rubric": "说明网络结构影响对邻居提款的观察，保障比例影响可防御性提取的金额。结合两条实验事件说明银行账表、资金来源或信息效应。该模型依赖共同冲击和给定的行为规则；真实银行的融资渠道与储户构成需要独立证据。"}
+  },
+  "glossary": [
+    {"term": "流动性", "definition": "到付款时点可调动的现金。贷款和证券有价值，变现速度与价格会限制即期支付。"},
+    {"term": "净资产", "definition": "现金、证券现价和贷款之和减去存款和支持借款负债。"},
+    {"term": "未保险存款", "definition": "超出通常存款保险保护范围的部分。模拟用合成储户的保障份额计算防御性提款规模。"},
+    {"term": "折价变现", "definition": "银行按低于当前账面标记的单价急售证券。价差乘出售数量计入额外损失。"}
+  ],
+  "sources": [
+    {"id": "S01", "title": "美联储《硅谷银行监管复盘》执行摘要（2023 年 4 月）", "url": "https://www.federalreserve.gov/publications/2023-April-SVB-Executive-Summary.htm", "supports": "关闭时点、集中未保险存款、利率风险及监管与治理因素。"},
+    {"id": "SVB-RESOLUTION", "title": "美国财政部、美联储与 FDIC 联合声明（2023 年 3 月 12 日）", "url": "https://www.federalreserve.gov/newsevents/pressreleases/monetary20230312b.htm", "supports": "硅谷银行处置中保障全部储户的公告。"},
+    {"id": "S29", "title": "Diamond 与 Dybvig，《银行挤兑、存款保险与流动性》（1983）", "url": "https://knowledge.uchicago.edu/records/3sa4m-hvw53", "supports": "私人流动性需求与存款契约下挤兑的理论机制。"}
+  ],
+  "rules": {
+    "steps": 20,
+    "initial_cash": 100,
+    "initial_equity": 400,
+    "securities": 170,
+    "initial_price": 10,
+    "shocked_price": 9,
+    "sale_price": 6,
+    "max_sale_units_per_round": 25,
+    "support_start_round": 3,
+    "support_reserve": 140,
+    "public_risk": 18,
+    "sale_signal": 14,
+    "queue_signal": 20,
+    "neighbor_signal": 12
+  }
+}

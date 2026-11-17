@@ -1,0 +1,371 @@
+[
+  {
+    "case_id": "double_auction",
+    "case_version": "1.0.0",
+    "scenario_id": "boundary",
+    "label": "供需无交叠",
+    "seed": 1962,
+    "input": {
+      "bid": 35
+    },
+    "parameters": {
+      "demand_shift": -65,
+      "fee": 0
+    },
+    "engine_version": "double-auction/1",
+    "result_hash": "3eaf04777465e18a45b3e68b68962e4f3f011c6e7fda4c1f7d734c8308357bc3",
+    "events": 156,
+    "final_metrics": {
+      "volume": 0,
+      "price_min": null,
+      "price_max": null,
+      "surplus": 0,
+      "ceiling": 0,
+      "efficiency": null,
+      "platform_cash": 0,
+      "participant_surplus": 0,
+      "price_band": null
+    },
+    "evidence": {
+      "highest_buyer_value": 60,
+      "lowest_seller_cost": 67,
+      "submitted": {
+        "buy": 37,
+        "sell": 40
+      }
+    }
+  },
+  {
+    "case_id": "schelling_segregation",
+    "case_version": "1.0.0",
+    "scenario_id": "boundary",
+    "label": "要求邻居全部同类",
+    "seed": 1971,
+    "input": {
+      "action": "stay"
+    },
+    "parameters": {
+      "threshold": 100
+    },
+    "engine_version": "schelling/1",
+    "result_hash": "452369c8d9db927d24f5ae141fe11faa057695a2629dc3dbd887703ee837f9f7",
+    "events": 7,
+    "final_metrics": {
+      "satisfied": 2.65,
+      "similarity": 51.04,
+      "moves": 2,
+      "remaining": 331
+    },
+    "evidence": {
+      "automatic_moves": 2,
+      "terminal": "blocked"
+    }
+  },
+  {
+    "case_id": "svb_run",
+    "case_version": "1.0.0",
+    "scenario_id": "boundary",
+    "label": "开局现金为零",
+    "seed": 20230309,
+    "input": {
+      "action": "withdraw_now"
+    },
+    "parameters": {
+      "cash_reallocation": -100,
+      "network": "concentrated"
+    },
+    "engine_version": "svb/1",
+    "result_hash": "a3a4a4de0819ab77759bd58cecd1c18e6e250f74562abf22763e3c265a9c63c7",
+    "events": 55,
+    "final_metrics": {
+      "cash": 0,
+      "requested": 1528,
+      "paid": 1220,
+      "queued": 308,
+      "equity": -320,
+      "sale_loss": 540
+    },
+    "evidence": {
+      "opening_cash": 0,
+      "first_sale_proceeds": 36,
+      "request_sale_payment_seqs": [
+        3,
+        4,
+        5
+      ]
+    }
+  },
+  {
+    "case_id": "information_cascade",
+    "case_version": "1.0.0",
+    "scenario_id": "boundary",
+    "label": "私人信号没有信息",
+    "seed": 3,
+    "input": {
+      "action": "bayes"
+    },
+    "parameters": {
+      "observe_actions": true,
+      "verification_turn": null,
+      "private_accuracy": "1/2"
+    },
+    "engine_version": "information-cascade/1",
+    "result_hash": "639c7677d2a49d774a5af8b3fdb5c0ab4b5bb8de22b69da8afab52c6ef773691",
+    "events": 14,
+    "final_metrics": {
+      "public_a_pct": 50.0,
+      "cascade_decisions": 0,
+      "cascade_start": null,
+      "revealing_decisions": 0,
+      "correct_pct": 41.6667
+    },
+    "evidence": {
+      "decisions": 12,
+      "private_and_public_posterior_pct": 50
+    }
+  },
+  {
+    "case_id": "public_goods",
+    "case_version": "1.0.0",
+    "scenario_id": "boundary",
+    "label": "惩罚成本超过可用余额",
+    "seed": 2000,
+    "input": {
+      "action": "0"
+    },
+    "parameters": {
+      "unit_cost": 100
+    },
+    "engine_version": "public-goods/1",
+    "result_hash": "f26aa086742332d4d204b7c2e5f1a2f9e89f089c3bd4a419f17078b362e66cc8",
+    "events": 21,
+    "final_metrics": {
+      "contributions": 40,
+      "total_contributions": 365,
+      "net_income": 1019.0,
+      "sanction_cost": 0.0
+    },
+    "evidence": {
+      "first_student_contribution": 0,
+      "settlements_without_sanctions": 10
+    }
+  },
+  {
+    "case_id": "commons_governance",
+    "case_version": "1.0.0",
+    "scenario_id": "boundary",
+    "label": "资源存量从零开始",
+    "seed": 2009,
+    "input": {
+      "action": "4"
+    },
+    "parameters": {
+      "institution": "open",
+      "initial_stock": 0
+    },
+    "engine_version": "commons-governance/1",
+    "result_hash": "736314fc7c9fd60df41bbc06b7cb5757f8bbf41fef654bb65d90d83661a3d6da",
+    "events": 25,
+    "final_metrics": {
+      "stock": 0.0,
+      "harvest": 0.0,
+      "growth": 0.0,
+      "income": 0.0,
+      "monitoring_cost": 0.0
+    },
+    "evidence": {
+      "first_student_request": 4,
+      "periods_with_zero_withdrawal_and_growth": 12
+    }
+  },
+  {
+    "case_id": "lemons_market",
+    "case_version": "1.0.0",
+    "scenario_id": "boundary",
+    "label": "认证费高于可获收益",
+    "seed": 1970,
+    "input": {
+      "action": "list"
+    },
+    "parameters": {
+      "information": "certified",
+      "certification_fee": 100
+    },
+    "engine_version": "lemons-market/1",
+    "result_hash": "f13e97e0d3761969f471dd92f5e339e1d2a52b721e9b54b2881a8a3a1c022171",
+    "events": 6,
+    "final_metrics": {
+      "quoted_pool_price": 1.2,
+      "willing_quality": 1.0,
+      "willing_supply": 6,
+      "traded": 6,
+      "certification_cost": 0.0,
+      "net_surplus": 1.2
+    },
+    "evidence": {
+      "certified": 0,
+      "pooled_quote_rounds": 4
+    }
+  },
+  {
+    "case_id": "school_matching",
+    "case_version": "1.0.0",
+    "scenario_id": "boundary",
+    "label": "首选学校没有名额",
+    "seed": 2005,
+    "input": {
+      "action": "truthful"
+    },
+    "parameters": {
+      "mechanism": "deferred",
+      "extra_a_seats": -4
+    },
+    "engine_version": "school-matching/1",
+    "result_hash": "83aa77966702bc84401262033ac96c9e6c95c21605f2751597528eb579f34203",
+    "events": 10,
+    "final_metrics": {
+      "applications": 23,
+      "rejections": 15,
+      "first_true_choice": 6,
+      "student_true_rank": 2,
+      "submitted_blocking_pairs": 0,
+      "true_blocking_pairs": 0
+    },
+    "evidence": {
+      "a_rejections": 6,
+      "a_assignments": 0,
+      "unmatched": 4
+    }
+  },
+  {
+    "case_id": "beer_game",
+    "case_version": "1.0.0",
+    "scenario_id": "boundary",
+    "label": "客户需求没有波动",
+    "seed": 1989,
+    "input": {
+      "action": "8"
+    },
+    "parameters": {
+      "delay": 2,
+      "share_demand": false,
+      "policy": "heuristic",
+      "constant_demand": 4
+    },
+    "engine_version": "beer/1",
+    "result_hash": "37f2f033bdae2dc08192bd440152f1b089b12cff310d45bbec67802c7c023666",
+    "events": 41,
+    "final_metrics": {
+      "retail_stock": 12,
+      "retail_backlog": 0,
+      "factory_order": 4,
+      "in_transit": 33,
+      "total_cost": 1041.5,
+      "factory_variance_ratio": null
+    },
+    "evidence": {
+      "weeks": 40,
+      "weekly_customer_demand": 4,
+      "week_5_retail_order": 8
+    }
+  },
+  {
+    "case_id": "carbon_market",
+    "case_version": "1.0.0",
+    "scenario_id": "boundary",
+    "label": "排放上限为零",
+    "seed": 2005,
+    "input": {
+      "action": "0"
+    },
+    "parameters": {
+      "policy": "trade",
+      "cap": 0,
+      "allocation": "emissions"
+    },
+    "engine_version": "carbon/1",
+    "result_hash": "1a80b36a023473c1a320995001a11194e8935c897561abedfd9b4cef5f355023",
+    "events": 12,
+    "final_metrics": {
+      "cap": 0,
+      "planned_emissions": 0,
+      "abatement_cost": 10544.0,
+      "price": null,
+      "permits_moved": 0,
+      "surrendered": 0
+    },
+    "evidence": {
+      "firms_surrendering_zero_permits": 8,
+      "max_marginal_abatement_cost": 207
+    }
+  },
+  {
+    "case_id": "flash_crash",
+    "case_version": "1.0.0",
+    "scenario_id": "boundary",
+    "label": "卖出程序暂停至收盘",
+    "seed": 20100506,
+    "input": {
+      "action": "tight"
+    },
+    "parameters": {
+      "depth_multiplier": 1,
+      "withdraw_on_inventory": true,
+      "pause_steps": 146
+    },
+    "engine_version": "flash-crash/1",
+    "result_hash": "967f73e7620fc634f0e52365ed273fd9c9a773a4a95f0f6ebb79bc5709ce0ac5",
+    "events": 314,
+    "final_metrics": {
+      "last_price": 9.98,
+      "low_price": 9.98,
+      "high_price": 10.02,
+      "volume": 3,
+      "bid_depth": 300,
+      "ask_depth": 67,
+      "spread": 0.04,
+      "program_filled": 0,
+      "program_queued": 278
+    },
+    "evidence": {
+      "released_shares": 278,
+      "background_trades": 2
+    }
+  },
+  {
+    "case_id": "gamestop",
+    "case_version": "1.0.0",
+    "scenario_id": "boundary",
+    "label": "可借股票为零",
+    "seed": 202101,
+    "input": {
+      "action": "observe"
+    },
+    "parameters": {
+      "social_weight": 1,
+      "loan_supply": 0,
+      "offer_depth": 1
+    },
+    "engine_version": "gamestop/1",
+    "result_hash": "2e3bc2e65f4ce7e604abe6e3556e267535fd9f40090f1975e66dfec8ecfb596a",
+    "events": 187,
+    "final_metrics": {
+      "last_price": 17.8,
+      "low_price": 10.02,
+      "high_price": 17.8,
+      "volume": 40,
+      "bid_depth": 32,
+      "ask_depth": 0,
+      "spread": null,
+      "short_interest": 0,
+      "forced_cover": 0,
+      "discretionary_buys": 40,
+      "social_buys": 18,
+      "reach": 5
+    },
+    "evidence": {
+      "loan_blocked_seq": 29,
+      "ordinary_trades": 39
+    }
+  }
+]

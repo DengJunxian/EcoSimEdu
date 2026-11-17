@@ -1,0 +1,21 @@
+{
+  "version": "1.0.0-rc.4",
+  "tested_archive_sha256": "bf37a38f0f1e3f02a4d21ecf24c227bf5a7796751283ef6ef234652d25979728",
+  "macos_arm64": {
+    "passed": 228,
+    "seconds": 90.06,
+    "python": "3.12.11",
+    "browser": "Google Chrome 157.0.8103.78"
+  },
+  "linux_arm64": {
+    "passed": 228,
+    "seconds": 94.34,
+    "python": "3.12.13",
+    "browser": "Debian Chromium 156.0.8078.79 in Xvfb"
+  },
+  "saved_live_events_checked": 4,
+  "model_attempt_count_before_and_after": [
+    8,
+    8
+  ]
+}

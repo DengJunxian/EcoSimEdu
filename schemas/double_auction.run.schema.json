@@ -1,0 +1,133 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:civitas:double-auction:run:1",
+  "title": "Completed double-auction run export",
+  "type": "object",
+  "required": ["run_id", "case_id", "case_version", "scenario_id", "provider_kind", "parent_run_id", "seed", "bid", "execution_status", "origin", "result_hash", "result"],
+  "properties": {
+    "run_id": {"$ref": "#/$defs/id"},
+    "case_id": {"const": "double_auction"},
+    "case_version": {"const": "1.0.0"},
+    "scenario_id": {"enum": ["baseline", "demand", "fee", "boundary"]},
+    "provider_kind": {"enum": ["rule", "replay"]},
+    "parent_run_id": {"anyOf": [{"$ref": "#/$defs/id"}, {"type": "null"}]},
+    "seed": {"type": "integer", "minimum": 0, "maximum": 4294967295},
+    "bid": {"type": "integer", "minimum": 1, "maximum": 108},
+    "execution_status": {"const": "completed"},
+    "origin": {"enum": ["offline_simulation", "precomputed_simulation"]},
+    "result_hash": {"$ref": "#/$defs/hash"},
+    "result": {
+      "type": "object",
+      "required": ["engine_version", "rules", "root_hash", "initial_hash", "intervention", "initial", "events", "snapshots", "supply", "demand", "metrics"],
+      "properties": {
+        "engine_version": {"const": "double-auction/1"},
+        "rules": {"type": "object"},
+        "root_hash": {"$ref": "#/$defs/hash"},
+        "initial_hash": {"$ref": "#/$defs/hash"},
+        "intervention": {
+          "type": "object",
+          "required": ["demand_shift", "fee"],
+          "properties": {"demand_shift": {"enum": [-65, 0, 12]}, "fee": {"enum": [0, 6]}}
+        },
+        "initial": {"type": "object", "minProperties": 20, "maxProperties": 20},
+        "events": {"type": "array", "minItems": 2, "items": {"$ref": "#/$defs/event"}},
+        "snapshots": {"type": "array", "minItems": 2, "items": {"$ref": "#/$defs/snapshot"}},
+        "supply": {"type": "array", "items": {"$ref": "#/$defs/nonnegative"}},
+        "demand": {"type": "array", "items": {"$ref": "#/$defs/nonnegative"}},
+        "metrics": {"$ref": "#/$defs/metrics"}
+      }
+    }
+  },
+  "$defs": {
+    "id": {"type": "string", "pattern": "^[0-9a-f]{8}(-[0-9a-f]{4}){3}-[0-9a-f]{12}$"},
+    "hash": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "nonnegative": {"type": "integer", "minimum": 0},
+    "positivePrice": {"type": "integer", "minimum": 1, "maximum": 200},
+    "quotePrice": {"type": "integer", "maximum": 200},
+    "priceOrNull": {"anyOf": [{"$ref": "#/$defs/positivePrice"}, {"type": "null"}]},
+    "actor": {"type": "string", "pattern": "^[BS](0[1-9]|10)$"},
+    "account": {
+      "type": "object",
+      "required": ["cash", "goods", "filled"],
+      "properties": {
+        "cash": {"$ref": "#/$defs/nonnegative"},
+        "goods": {"$ref": "#/$defs/nonnegative"},
+        "filled": {"$ref": "#/$defs/nonnegative"}
+      }
+    },
+    "event": {
+      "type": "object",
+      "required": ["seq", "tick", "event_type"],
+      "properties": {
+        "seq": {"$ref": "#/$defs/nonnegative"},
+        "tick": {"$ref": "#/$defs/nonnegative"},
+        "event_type": {"enum": ["market_open", "market_close", "order_submitted", "order_rejected", "order_cancelled", "trade"]},
+        "price": {"$ref": "#/$defs/quotePrice"},
+        "quantity": {"const": 1},
+        "side": {"enum": ["buy", "sell"]},
+        "actor_id": {"$ref": "#/$defs/actor"},
+        "buyer_id": {"$ref": "#/$defs/actor"},
+        "seller_id": {"$ref": "#/$defs/actor"},
+        "buyer_surplus": {"$ref": "#/$defs/nonnegative"},
+        "seller_surplus": {"$ref": "#/$defs/nonnegative"},
+        "platform_fee": {"$ref": "#/$defs/nonnegative"}
+      },
+      "allOf": [
+        {
+          "if": {"properties": {"event_type": {"const": "trade"}}},
+          "then": {
+            "required": ["buyer_id", "seller_id", "buy_order_id", "sell_order_id", "maker_order_id", "price", "quantity", "buyer_surplus", "seller_surplus", "platform_fee"],
+            "properties": {"price": {"$ref": "#/$defs/positivePrice"}}
+          }
+        },
+        {
+          "if": {"properties": {"event_type": {"enum": ["order_submitted", "order_rejected"]}}},
+          "then": {"required": ["actor_id", "order_id", "side", "price", "quantity", "source"]}
+        },
+        {
+          "if": {"properties": {"event_type": {"const": "order_cancelled"}}},
+          "then": {"required": ["actor_id", "order_id"]}
+        }
+      ]
+    },
+    "snapshot": {
+      "type": "object",
+      "required": ["tick", "best_bid", "best_ask", "last_price", "volume", "surplus", "platform_cash", "accounts", "orders"],
+      "properties": {
+        "tick": {"$ref": "#/$defs/nonnegative"},
+        "best_bid": {"$ref": "#/$defs/priceOrNull"},
+        "best_ask": {"$ref": "#/$defs/priceOrNull"},
+        "last_price": {"$ref": "#/$defs/priceOrNull"},
+        "volume": {"$ref": "#/$defs/nonnegative"},
+        "surplus": {"$ref": "#/$defs/nonnegative"},
+        "platform_cash": {"$ref": "#/$defs/nonnegative"},
+        "accounts": {"type": "object", "additionalProperties": {"$ref": "#/$defs/account"}},
+        "orders": {"type": "array", "items": {
+          "type": "object",
+          "required": ["order_id", "actor_id", "price", "side", "quantity"],
+          "properties": {
+            "actor_id": {"$ref": "#/$defs/actor"},
+            "price": {"$ref": "#/$defs/positivePrice"},
+            "side": {"enum": ["buy", "sell"]},
+            "quantity": {"const": 1}
+          }
+        }}
+      }
+    },
+    "metrics": {
+      "type": "object",
+      "required": ["volume", "price_min", "price_max", "surplus", "ceiling", "efficiency", "platform_cash", "participant_surplus", "price_band"],
+      "properties": {
+        "volume": {"$ref": "#/$defs/nonnegative"},
+        "price_min": {"$ref": "#/$defs/priceOrNull"},
+        "price_max": {"$ref": "#/$defs/priceOrNull"},
+        "surplus": {"$ref": "#/$defs/nonnegative"},
+        "ceiling": {"$ref": "#/$defs/nonnegative"},
+        "efficiency": {"type": ["number", "null"], "minimum": 0, "maximum": 1},
+        "platform_cash": {"$ref": "#/$defs/nonnegative"},
+        "participant_surplus": {"$ref": "#/$defs/nonnegative"},
+        "price_band": {"type": ["array", "null"], "minItems": 2, "maxItems": 2, "items": {"$ref": "#/$defs/positivePrice"}}
+      }
+    }
+  }
+}

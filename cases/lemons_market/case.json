@@ -1,0 +1,61 @@
+{
+  "case_id": "lemons_market",
+  "version": "1.0.0",
+  "title": "柠檬市场",
+  "subtitle": "为什么好商品反而可能退出？",
+  "identity": "theoretical_model",
+  "identity_label": "经典理论模型",
+  "minutes": "20–25 分钟",
+  "intro": "30 位卖家各有一件商品。买方只知道整批商品的质量分布。你持有一件最高等级商品，要决定是否挂牌。后续报价会随着愿售商品的构成变化。",
+  "background": "Akerlof 在 1970 年用二手车说明，买卖双方掌握不同信息时，买方按平均质量出价，可能让好商品逐步退出。本课使用合成商品，逐轮展示退出如何改变下一次报价。",
+  "goals": ["从报价、退出和后续价格辨认逆向选择", "区分暂定愿售量和最终成交", "核算认证成本和完整信息的交易净收益"],
+  "seed": 1970,
+  "action": {
+    "label": "你持有一件质量为 5 的商品",
+    "default": "list",
+    "options": [
+      {"id": "list", "label": "挂牌，可接受第三方核验"},
+      {"id": "keep", "label": "保留商品，本次不挂牌"}
+    ]
+  },
+  "minimum_evidence": 2,
+  "evidence_types": ["offer_iteration", "certification", "settlement"],
+  "checkpoint": {"event_type": "offer_iteration", "message": "先核对暂定报价与愿售数。此时尚未成交，商品仍在原卖家手中。"},
+  "alignment": {"axis_label": "报价轮次", "field": "iteration", "event_type": "offer_iteration"},
+  "lessons": [
+    {"id": "intro", "title": "认识二手市场", "prompt": "买卖双方有哪些信息相同，哪些信息只掌握在卖家手里？"},
+    {"id": "predict", "title": "预测谁会退出", "prompt": "你的商品质量为 5，最低接受价为 5 代币。买家只看公开分布时会采用统一报价。"},
+    {"id": "bid", "title": "决定是否挂牌", "prompt": "提交一个选择。三组实验都使用同一批商品和同一挂牌选择。"},
+    {"id": "observe", "title": "跟踪报价和退出", "prompt": "逐轮对照暂定报价、愿售数与实际成交数，查找愿售组成开始改变的时点。"},
+    {"id": "explain", "title": "解释逆向选择", "prompt": "查看最后一轮的成交质量与净剩余。价格和质量会随愿售者构成一起变化。"},
+    {"id": "compare", "title": "打开信息或加入核验", "prompt": "比较统一报价、质量全部公开和收费核验三种机制。最后核对净剩余中的认证成本。"},
+    {"id": "notebook", "title": "写实验笔记", "prompt": "引用报价与交割事件，说明何时观察到逆向选择，以及什么条件会改变结果。"}
+  ],
+  "questions": {
+    "prediction": {"prompt": "统一报价低于 5 代币时，你会接受报价吗？", "options": {"yes": "接受", "no": "不接受", "unknown": "不确定"}},
+    "explain": {"prompt": "统一暂定报价下降，是否足以证明买家获益？", "options": {"yes": "足以证明", "no": "无法单凭价格判断"}, "answer": "no", "feedback": "报价下降常与退出和平均质量下降同时发生。买方剩余要按最终交易商品的实际价值减去支付额核算。暂定报价阶段还没有实际交易。"},
+    "transfer": {"prompt": "把本课的机制迁移到保险或招聘。哪个变量在报价前由一方私下掌握？", "rubric": "说明谁掌握什么信息、如何改变市场参与，以及核验信号的来源和成本。另指出现实环境中可能出现的行为反馈。"}
+  },
+  "glossary": [
+    {"term": "保留价", "definition": "卖家愿意接受的最低价。本课等于商品质量分级。"},
+    {"term": "逆向选择", "definition": "在交易发生前，基于未完全公开的信息作出的选择，改变了愿参加者的构成。"},
+    {"term": "道德风险", "definition": "订约后，难以观察的被保行为或努力随契约而改变。本课机制发生在成交前。"},
+    {"term": "认证成本", "definition": "第三方核验消耗的真实资源。本课从交易净剩余中扣除。"}
+  ],
+  "scenarios": [
+    {"id": "baseline", "label": "统一报价", "description": "买方用愿售组成的平均质量更新统一报价。", "parameters": {"information": "pooled", "certification_fee": 0}},
+    {"id": "informed", "label": "完全信息", "description": "单件质量公开，买方按单件质量报价。", "parameters": {"information": "informed", "certification_fee": 0}},
+    {"id": "certified", "label": "收费认证", "description": "每件核验费用为 0.5 代币。符合参与规则的卖家取得独立核验，其余商品仍按混合报价。", "parameters": {"information": "certified", "certification_fee": 0.5}}
+  ],
+  "metrics": [
+    {"id": "quoted_pool_price", "label": "混合池暂定报价", "unit": "代币"},
+    {"id": "willing_quality", "label": "愿售平均质量", "unit": "质量级"},
+    {"id": "willing_supply", "label": "愿售商品", "unit": "件"},
+    {"id": "traded", "label": "已交割商品", "unit": "件"},
+    {"id": "certification_cost", "label": "认证成本", "unit": "代币"},
+    {"id": "net_surplus", "label": "成交净剩余", "unit": "代币"}
+  ],
+  "sources": [
+    {"id": "S08", "title": "Akerlof, The Market for “Lemons”: Quality Uncertainty and the Market Mechanism (1970)", "url": "https://doi.org/10.2307/1879431", "supports": "二手车理论例子、质量不确定性、卖方退出、平均质量与市场规模的变化。"}
+  ]
+}

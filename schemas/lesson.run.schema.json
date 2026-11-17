@@ -1,0 +1,73 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:civitas:lesson:run:1",
+  "title": "Completed offline non-auction lesson run",
+  "type": "object",
+  "required": ["run_id", "case_id", "case_version", "scenario_id", "action", "seed", "parent_run_id", "provider_kind", "execution_status", "origin", "result_hash", "result"],
+  "properties": {
+    "run_id": {"type": "string", "format": "uuid"},
+    "case_id": {"type": "string", "minLength": 1},
+    "case_version": {"type": "string", "minLength": 1},
+    "scenario_id": {"type": "string", "minLength": 1},
+    "action": {"type": "string", "minLength": 1},
+    "seed": {"type": "integer", "minimum": 0, "maximum": 4294967295},
+    "parent_run_id": {"type": ["string", "null"], "format": "uuid"},
+    "provider_kind": {"const": "rule"},
+    "execution_status": {"const": "completed"},
+    "origin": {"const": "offline_simulation"},
+    "result_hash": {"$ref": "#/$defs/hash"},
+    "result": {
+      "type": "object",
+      "required": ["engine_version", "initial", "root_hash", "initial_hash", "intervention", "events", "snapshots", "metrics"],
+      "properties": {
+        "engine_version": {"type": "string", "minLength": 1},
+        "initial": {"type": "object"},
+        "root_hash": {"$ref": "#/$defs/hash"},
+        "initial_hash": {"$ref": "#/$defs/hash"},
+        "intervention": {"type": "object"},
+        "events": {
+          "type": "array", "minItems": 2,
+          "items": {
+            "type": "object", "required": ["seq", "tick", "event_type", "summary"],
+            "properties": {
+              "seq": {"type": "integer", "minimum": 0},
+              "tick": {"type": "integer", "minimum": 0},
+              "event_type": {"type": "string", "minLength": 1},
+              "summary": {"type": "string", "minLength": 1},
+              "actors": {"type": "array", "items": {"type": "string", "minLength": 1}}
+            }
+          }
+        },
+        "snapshots": {
+          "type": "array", "minItems": 2,
+          "items": {
+            "type": "object", "required": ["tick", "metrics", "entities"],
+            "properties": {
+              "tick": {"type": "integer", "minimum": 0},
+              "metrics": {"$ref": "#/$defs/metrics"},
+              "entities": {
+                "type": "object",
+                "additionalProperties": {
+                  "type": "object",
+                  "additionalProperties": {"type": ["number", "string", "boolean", "null"]}
+                }
+              },
+              "relations": {
+                "type": "array",
+                "items": {
+                  "type": "object", "required": ["from", "to", "label"],
+                  "properties": {"from": {"type": "string"}, "to": {"type": "string"}, "label": {"type": "string"}}
+                }
+              }
+            }
+          }
+        },
+        "metrics": {"$ref": "#/$defs/metrics"}
+      }
+    }
+  },
+  "$defs": {
+    "hash": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "metrics": {"type": "object", "additionalProperties": {"type": ["number", "null"]}}
+  }
+}

@@ -1,0 +1,75 @@
+{
+  "double_auction": {
+    "label": "供需无交叠",
+    "description": "把所有买家估值下调 65 代币，卖方成本保持原样。以 35 代币报价，沿事件查看为什么买卖双方可以同时挂单，却没有成交。没有成交就没有成交价，可实现总剩余上界为零时也无法计算效率。",
+    "bid": 35,
+    "parameters": {"demand_shift": -65, "fee": 0},
+    "replay": true
+  },
+  "schelling_segregation": {
+    "label": "要求邻居全部同类",
+    "description": "把相似度阈值提高到 100%，选择原地观察。沿搬迁事件查看新位置的邻居构成，再检查终局还有多少主体未达到阈值。",
+    "action": "stay",
+    "parameters": {"threshold": 100}
+  },
+  "svb_run": {
+    "label": "开局现金为零",
+    "description": "把开局 100 代币现金全部换成等值证券，在第一轮申请取款。沿申请、卖券和支付事件查看银行如何获得现金。",
+    "action": "withdraw_now",
+    "parameters": {"cash_reallocation": -100, "network": "concentrated"}
+  },
+  "information_cascade": {
+    "label": "私人信号没有信息",
+    "description": "把二元私人信号的正确率设为 50%，保留公开行动并停用独立核验。采用贝叶斯规则，检查后验是否偏离 50%。",
+    "action": "bayes",
+    "parameters": {"observe_actions": true, "verification_turn": null, "private_accuracy": "1/2"}
+  },
+  "public_goods": {
+    "label": "惩罚成本超过可用余额",
+    "description": "学生首轮贡献 0，把每单位惩罚的成本提高到 100 代币，超过惩罚者对每个对象的 4 代币预算。检查实际贡献与惩罚账本。",
+    "action": "0",
+    "parameters": {"unit_cost": 100}
+  },
+  "commons_governance": {
+    "label": "资源存量从零开始",
+    "description": "水域从零存量开始，采用开放取用规则并在首期请求取用 4 单位。检查实际取用与按现有存量计算的自然增长。",
+    "action": "4",
+    "parameters": {"institution": "open", "initial_stock": 0}
+  },
+  "lemons_market": {
+    "label": "认证费高于可获收益",
+    "description": "允许认证，把认证费提高到 100 代币，学生表示愿意出售。检查实际认证名单、费用和买方报价。",
+    "action": "list",
+    "parameters": {"information": "certified", "certification_fee": 100}
+  },
+  "school_matching": {
+    "label": "首选学校没有名额",
+    "description": "把 A 校的 4 个名额减为 0，学生如实填报。沿延迟接受流程查看 A 校如何拒绝申请，以及学生如何转投其他学校。",
+    "action": "truthful",
+    "parameters": {"mechanism": "deferred", "extra_a_seats": -4}
+  },
+  "beer_game": {
+    "label": "客户需求没有波动",
+    "description": "把 40 周客户需求固定在每周 4 件，零售商仍在第 5 周订 8 件。检查订货波动与客户需求方差为零时的牛鞭比率。",
+    "action": "8",
+    "parameters": {"delay": 2, "share_demand": false, "policy": "heuristic", "constant_demand": 4}
+  },
+  "carbon_market": {
+    "label": "排放上限为零",
+    "description": "把配额上限设为零，保留模型的减排技术。检查发行、转让、缴回及实际排放。零供给时模型仍可算出完全减排的边际成本，清算价格留空。",
+    "action": "0",
+    "parameters": {"policy": "trade", "cap": 0, "allocation": "emissions"}
+  },
+  "flash_crash": {
+    "label": "卖出程序暂停至收盘",
+    "description": "从冲击开始暂停卖出程序直到实验结束，同时保留背景交易。检查计划释放、程序实际成交和待执行数量。",
+    "action": "tight",
+    "parameters": {"depth_multiplier": 1, "withdraw_on_inventory": true, "pause_steps": 146}
+  },
+  "gamestop": {
+    "label": "可借股票为零",
+    "description": "把可借库存设为零，让学生观察。沿借券与普通交易事件检查借券受限时哪些市场活动仍在发生。",
+    "action": "observe",
+    "parameters": {"social_weight": 1, "loan_supply": 0, "offer_depth": 1}
+  }
+}

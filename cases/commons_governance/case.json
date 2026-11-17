@@ -1,0 +1,51 @@
+{
+  "case_id": "commons_governance",
+  "version": "1.0.0",
+  "title": "公地治理",
+  "subtitle": "今天多捕一点，下一期会剩多少？",
+  "identity": "theoretical_model",
+  "identity_label": "理论模型",
+  "minutes": "25–35 分钟",
+  "intro": "24 位使用者共享一片可再生水域。取用带来收入，也会减少下一期用来再生的资源。",
+  "background": "Ostrom 的研究考察使用者怎样组织公共资源治理。这里的水域、使用者与制度参数均为教学设定。",
+  "goals": ["区分存量、取用流量和再生流量", "核对管护预算与扣缴流向", "用相同初始条件比较三种安排"],
+  "seed": 2009,
+  "action": {"label": "首期计划取用量", "options": [{"id": "0", "label": "计划取用 0 单位"}, {"id": "1", "label": "计划取用 1 单位"}, {"id": "4", "label": "计划取用 4 单位"}], "default": "1"},
+  "sources": [
+    {"id": "S06", "title": "Elinor Ostrom，Beyond Markets and States", "url": "https://www.aeaweb.org/articles?id=10.1257/aer.100.3.641", "supports": "诺奖讲座发表版本的第五节讨论公共资源实验中的沟通和执行机制。"}
+  ],
+  "lessons": [
+    {"id": "intro", "title": "认识水域", "prompt": "把一片共享水域的存量和当期取用分开看。"},
+    {"id": "predict", "title": "预测存量", "prompt": "猜想取用限制怎样影响第 12 期末的存量。"},
+    {"id": "bid", "title": "制定取用计划", "prompt": "选择首期计划。实际取用受到可用存量和所选制度约束。"},
+    {"id": "observe", "title": "追踪取用与再生", "prompt": "对照同一期的取用和再生事件，找到下一期初存量。"},
+    {"id": "explain", "title": "核对存量与预算", "prompt": "分别看资源账和收入账，定位再生源项和管护支出。"},
+    {"id": "compare", "title": "比较治理安排", "prompt": "共用水域初值、使用者和首期计划，比较开放进入、统一限额及社区监测。"},
+    {"id": "notebook", "title": "记录反馈机制", "prompt": "引用至少两条事件，解释本期取用怎样改变下一期机会。"}
+  ],
+  "questions": {
+    "prediction": {"prompt": "统一限额的期末存量会比开放进入时更高吗？", "options": {"yes": "会", "no": "不会", "unknown": "不确定"}},
+    "explain": {"prompt": "在本课模型中，资源归零后会靠自身再生恢复吗？", "options": {"yes": "会", "no": "不会"}, "answer": "no", "feedback": "再生量与取用后的余量相乘。余量为 0 时，再生量也是 0。该设定代表封闭水域的自然增长。"},
+    "transfer": {"prompt": "若把模型迁移到地下水管理，你需要加入哪些补给或取用条件？", "rubric": "写出一项季节补给、抽水权或监测条件，引用本课的存量和取用事件解释该条件可能影响的环节。"}
+  },
+  "glossary": [
+    {"term": "共同池资源", "definition": "一人取用后会减少其他人可用的数量，且排除潜在使用者有成本。"},
+    {"term": "资源平衡", "definition": "下期初存量等于本期初存量减当期取用再加当期再生。"},
+    {"term": "管护预算", "definition": "每次检查花费预算，超额扣缴进入账户。扣缴在群体内转移，检查支出消耗资源。"}
+  ],
+  "scenarios": [
+    {"id": "baseline", "label": "开放进入", "description": "资源短缺时按申请量同比例分配。", "parameters": {"institution": "open"}},
+    {"id": "quota", "label": "统一限额", "description": "每人每期的获准申请最多 1 单位。", "parameters": {"institution": "quota"}},
+    {"id": "community", "label": "社区监测", "description": "社区约定每人 1 单位，监测按预算抽样并对超额取用扣缴。", "parameters": {"institution": "community"}}
+  ],
+  "metrics": [
+    {"id": "stock", "label": "资源存量", "unit": "单位"},
+    {"id": "harvest", "label": "本期取用", "unit": "单位"},
+    {"id": "growth", "label": "本期再生", "unit": "单位"},
+    {"id": "income", "label": "累计群体净收益", "unit": "代币"},
+    {"id": "monitoring_cost", "label": "累计监测成本", "unit": "代币"}
+  ],
+  "minimum_evidence": 2,
+  "evidence_types": ["withdrawal", "growth"],
+  "checkpoint": {"event_type": "withdrawal", "message": "查看首期取用后的余量，再前进一步查看自然再生。"}
+}

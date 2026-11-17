@@ -1,0 +1,42 @@
+{
+  "archived_runs": 8,
+  "replayed_latest": [
+    {
+      "case_id": "svb_run",
+      "run_id": "c509f029-d95e-4b41-9fa0-eb7dc1e67966",
+      "tick": 3,
+      "result_hash": "481d28d0dbe1442fd58fa4c889a33accc4cada04f51f5b8f3ed885433b6c4c6e"
+    },
+    {
+      "case_id": "information_cascade",
+      "run_id": "3fab9221-d691-488c-b1d2-d2b39d14ce95",
+      "tick": 4,
+      "result_hash": "353d31cd0bdb92d1bf233a2b8f408f524d128e287de8847aa0741a8a58668033"
+    },
+    {
+      "case_id": "public_goods",
+      "run_id": "2b185989-7cb3-4ed0-9559-0c21333d8e91",
+      "tick": 3,
+      "result_hash": "439248dd3cd2dd71901dd41dea3c25f34f009b1a20df98b4bb899095881fd7d6"
+    },
+    {
+      "case_id": "gamestop",
+      "run_id": "5b3d0da8-3b22-4936-8faa-c7495f689c75",
+      "tick": 42,
+      "result_hash": "1a37672c6e8024f8d3f31aae27cf130e713238cdfa108ad5cdc58a4f5825329f"
+    }
+  ],
+  "live_enabled": false,
+  "browser_external_requests": 0,
+  "attempt_counts_before": {
+    "USD": 8
+  },
+  "attempt_counts_after": {
+    "USD": 8
+  },
+  "latest_model_usage": {
+    "input_tokens": 919,
+    "output_tokens": 55,
+    "estimated_cost_usd": 0.00012
+  }
+}

@@ -1,0 +1,20 @@
+{
+  "version": "1.0.0-rc.8",
+  "audit_date": "2026-11-17",
+  "tested_archive_sha256": "94956a0f9bc10aa1d8802662d11461a56e4eb16143f441172639bb2f695f1474",
+  "macos_arm64": {
+    "passed": 237,
+    "seconds": 86.76,
+    "python": "3.12.11"
+  },
+  "wp00_rerun": {
+    "python_asts": 204,
+    "legacy_demos": 3
+  },
+  "catalog_cases": 12,
+  "candidate_scores_verified": 26,
+  "deterministic_runs": 41,
+  "seed_matrix_scenario_combinations": 820,
+  "mechanism_chains": 6,
+  "live_provider_attempts_after_audit": 8
+}

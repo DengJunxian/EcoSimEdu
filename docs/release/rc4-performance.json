@@ -1,0 +1,149 @@
+{
+  "platform": "macOS-27.0-arm64-arm-64bit",
+  "chrome": "157.0.8103.78",
+  "record_size_bytes": 36226307,
+  "baseline_rc3": {
+    "stored_bytes": 36226307,
+    "agents_per_frame": 500,
+    "frames": 300,
+    "events_total": 100000,
+    "events_beyond_one_per_frame": 99700,
+    "relations_at_frame_150": 5000,
+    "event_sequence_samples": [
+      0,
+      3448,
+      6896,
+      10344,
+      13792,
+      17241,
+      20689,
+      24137,
+      27585,
+      31034,
+      34482,
+      37930,
+      41378,
+      44827,
+      48275,
+      51723,
+      55171,
+      58620,
+      62068,
+      65516,
+      68964,
+      72413,
+      75861,
+      79309,
+      82757,
+      86206,
+      89654,
+      93102,
+      96550,
+      99999
+    ],
+    "api_event_lookup": {
+      "n": 30,
+      "p50_ms": 237.246,
+      "p95_ms": 251.553
+    },
+    "first_api_event_lookup_ms": 246.545,
+    "event_response_bytes_max": 533,
+    "browser_direct_event_link": {
+      "n": 30,
+      "p50_ms": 298.999,
+      "p95_ms": 303.292
+    },
+    "browser_full_run_requests_on_event_links": 0,
+    "api_seek": {
+      "n": 30,
+      "p50_ms": 245.479,
+      "p95_ms": 255.941
+    },
+    "shared_trace_ready_ms": 1352.929,
+    "initial_relations_open_ms": 139.063,
+    "browser_seek": {
+      "n": 30,
+      "p50_ms": 14.419,
+      "p95_ms": 20.012
+    },
+    "relationship_open": {
+      "n": 30,
+      "p50_ms": 89.003,
+      "p95_ms": 100.209
+    },
+    "visible_relationship_rows_when_opened": 5000,
+    "service_rss_at_end_bytes": 1986641920
+  },
+  "final_rc4": {
+    "stored_bytes": 36226307,
+    "agents_per_frame": 500,
+    "frames": 300,
+    "events_total": 100000,
+    "events_beyond_one_per_frame": 99700,
+    "relations_at_frame_150": 5000,
+    "event_sequence_samples": [
+      0,
+      3448,
+      6896,
+      10344,
+      13792,
+      17241,
+      20689,
+      24137,
+      27585,
+      31034,
+      34482,
+      37930,
+      41378,
+      44827,
+      48275,
+      51723,
+      55171,
+      58620,
+      62068,
+      65516,
+      68964,
+      72413,
+      75861,
+      79309,
+      82757,
+      86206,
+      89654,
+      93102,
+      96550,
+      99999
+    ],
+    "api_event_lookup": {
+      "n": 30,
+      "p50_ms": 56.875,
+      "p95_ms": 62.029
+    },
+    "first_api_event_lookup_ms": 252.601,
+    "event_response_bytes_max": 533,
+    "browser_direct_event_link": {
+      "n": 30,
+      "p50_ms": 92.963,
+      "p95_ms": 99.685
+    },
+    "browser_full_run_requests_on_event_links": 0,
+    "api_seek": {
+      "n": 30,
+      "p50_ms": 41.499,
+      "p95_ms": 42.18
+    },
+    "shared_trace_ready_ms": 1353.978,
+    "initial_relations_open_ms": 135.019,
+    "browser_seek": {
+      "n": 30,
+      "p50_ms": 16.898,
+      "p95_ms": 21.66
+    },
+    "relationship_open": {
+      "n": 30,
+      "p50_ms": 86.66,
+      "p95_ms": 95.558
+    },
+    "visible_relationship_rows_when_opened": 5000,
+    "service_rss_at_end_bytes": 439566336
+  }
+}

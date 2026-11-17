@@ -1,0 +1,336 @@
+{
+  "case_version": "1.0.0",
+  "action": "10",
+  "runs": [
+    {
+      "seed": 2000,
+      "scenario": "baseline",
+      "metrics": {
+        "contributions": 40,
+        "total_contributions": 379,
+        "net_income": 1027.4,
+        "sanction_cost": 0.0
+      },
+      "digest": "2dfeb3534e4e79a25b1f3735c2f355d3ba9ead4132bb36b8fee092f3c3e9e375"
+    },
+    {
+      "seed": 2000,
+      "scenario": "low_cost",
+      "metrics": {
+        "contributions": 43,
+        "total_contributions": 405,
+        "net_income": 963.0,
+        "sanction_cost": 80.0
+      },
+      "digest": "d4a15f8bf40deff9de2ee35f84ed1cc90719522f986fc0f9ef58086baec9d4d6"
+    },
+    {
+      "seed": 2000,
+      "scenario": "high_cost",
+      "metrics": {
+        "contributions": 43,
+        "total_contributions": 405,
+        "net_income": 973.0,
+        "sanction_cost": 70.0
+      },
+      "digest": "986179311eb7c3a1b7b786335b9ff0a7ea7679cfa1866d8c3c672f4063043fcb"
+    },
+    {
+      "seed": 2001,
+      "scenario": "baseline",
+      "metrics": {
+        "contributions": 36,
+        "total_contributions": 372,
+        "net_income": 1023.2,
+        "sanction_cost": 0.0
+      },
+      "digest": "77db64f1fcb209e1fcee7d0c853f8be4cca19f1e164f5ce25a6363d5f9144f65"
+    },
+    {
+      "seed": 2001,
+      "scenario": "low_cost",
+      "metrics": {
+        "contributions": 38,
+        "total_contributions": 399,
+        "net_income": 959.4,
+        "sanction_cost": 80.0
+      },
+      "digest": "5a7c54eac0346c527bf51e2125037620744f8e61dc05ff2c773274490ef0d557"
+    },
+    {
+      "seed": 2001,
+      "scenario": "high_cost",
+      "metrics": {
+        "contributions": 38,
+        "total_contributions": 399,
+        "net_income": 969.4,
+        "sanction_cost": 70.0
+      },
+      "digest": "2179c01a89c3c330dc3e7ece463cf8e3385e202bc69bf8b40b0c86679ac2b736"
+    },
+    {
+      "seed": 2002,
+      "scenario": "baseline",
+      "metrics": {
+        "contributions": 42,
+        "total_contributions": 410,
+        "net_income": 1046.0,
+        "sanction_cost": 0.0
+      },
+      "digest": "445ec064e22493f0b23301ea2bc33ac6426f28f04889eec1e51dca2938e9409d"
+    },
+    {
+      "seed": 2002,
+      "scenario": "low_cost",
+      "metrics": {
+        "contributions": 47,
+        "total_contributions": 445,
+        "net_income": 987.0,
+        "sanction_cost": 80.0
+      },
+      "digest": "7b004fc5a61c77d35a4ecf85754e3379b6ebe93fa13489c5a0731e277f6ebb06"
+    },
+    {
+      "seed": 2002,
+      "scenario": "high_cost",
+      "metrics": {
+        "contributions": 47,
+        "total_contributions": 445,
+        "net_income": 997.0,
+        "sanction_cost": 70.0
+      },
+      "digest": "facc38be204b9eadde5a6b3e9f75809afefb787c3ea4e40936ffc52e5928b860"
+    },
+    {
+      "seed": 2003,
+      "scenario": "baseline",
+      "metrics": {
+        "contributions": 27,
+        "total_contributions": 352,
+        "net_income": 1011.2,
+        "sanction_cost": 0.0
+      },
+      "digest": "49d137bd3ad7cee001f4765e54a842b821a93acb7465ef57cff53071a88c107c"
+    },
+    {
+      "seed": 2003,
+      "scenario": "low_cost",
+      "metrics": {
+        "contributions": 32,
+        "total_contributions": 385,
+        "net_income": 951.0,
+        "sanction_cost": 80.0
+      },
+      "digest": "019a58592aa0ce67356300dc122d09b89ceed8cccef66540de7a80692b70b0d6"
+    },
+    {
+      "seed": 2003,
+      "scenario": "high_cost",
+      "metrics": {
+        "contributions": 32,
+        "total_contributions": 385,
+        "net_income": 961.0,
+        "sanction_cost": 70.0
+      },
+      "digest": "8d44b60e827b3b9b998995f564d795477fa5cc2654be9d8caeff46699825066a"
+    },
+    {
+      "seed": 2004,
+      "scenario": "baseline",
+      "metrics": {
+        "contributions": 41,
+        "total_contributions": 399,
+        "net_income": 1039.4,
+        "sanction_cost": 0.0
+      },
+      "digest": "34d208b13d926ffc38c6fa80476eb6c35d8dc64251ecd16964430a0a97e5c706"
+    },
+    {
+      "seed": 2004,
+      "scenario": "low_cost",
+      "metrics": {
+        "contributions": 45,
+        "total_contributions": 428,
+        "net_income": 976.8,
+        "sanction_cost": 80.0
+      },
+      "digest": "d158766a055c5ca5af01801c0638324fcc65f3cd53a8b621625e72dbf8f938d7"
+    },
+    {
+      "seed": 2004,
+      "scenario": "high_cost",
+      "metrics": {
+        "contributions": 45,
+        "total_contributions": 428,
+        "net_income": 986.8,
+        "sanction_cost": 70.0
+      },
+      "digest": "0876521569b1b2a323ffec8284875c053d368b39b4a227c7419aca34e8b5326f"
+    },
+    {
+      "seed": 2005,
+      "scenario": "baseline",
+      "metrics": {
+        "contributions": 32,
+        "total_contributions": 312,
+        "net_income": 987.2,
+        "sanction_cost": 0.0
+      },
+      "digest": "b632bddbca181da9fec7c50971c6bd218bb88e9e4a573e52cbb19e51f60e7e42"
+    },
+    {
+      "seed": 2005,
+      "scenario": "low_cost",
+      "metrics": {
+        "contributions": 37,
+        "total_contributions": 355,
+        "net_income": 917.0,
+        "sanction_cost": 96.0
+      },
+      "digest": "871fe90face6532c035ef345e3ca70b1ac0d37fe29683e24a962b5442ce12188"
+    },
+    {
+      "seed": 2005,
+      "scenario": "high_cost",
+      "metrics": {
+        "contributions": 37,
+        "total_contributions": 355,
+        "net_income": 929.0,
+        "sanction_cost": 84.0
+      },
+      "digest": "f8aaabee778d3d876d0f43d975144857f6a33a7c38d24c2001e93c26af0602bc"
+    },
+    {
+      "seed": 2006,
+      "scenario": "baseline",
+      "metrics": {
+        "contributions": 42,
+        "total_contributions": 377,
+        "net_income": 1026.2,
+        "sanction_cost": 0.0
+      },
+      "digest": "6f50c0c6e0ec7062a29f41f71fc9f8def5a4bb742649f9df3305a6fee6dc5e5b"
+    },
+    {
+      "seed": 2006,
+      "scenario": "low_cost",
+      "metrics": {
+        "contributions": 42,
+        "total_contributions": 402,
+        "net_income": 977.2,
+        "sanction_cost": 64.0
+      },
+      "digest": "dabdd667c18c998d47e53a239494a11f6f31f071e350b96377eb161700af1d65"
+    },
+    {
+      "seed": 2006,
+      "scenario": "high_cost",
+      "metrics": {
+        "contributions": 42,
+        "total_contributions": 402,
+        "net_income": 985.2,
+        "sanction_cost": 56.0
+      },
+      "digest": "996242812ac3bace868176488eaf4b60e4540e592be15cfa02c8958193b1e9e6"
+    },
+    {
+      "seed": 2007,
+      "scenario": "baseline",
+      "metrics": {
+        "contributions": 38,
+        "total_contributions": 356,
+        "net_income": 1013.6,
+        "sanction_cost": 0.0
+      },
+      "digest": "d7562f5e616b601b4883469cf0fd1dc36494bf43ce48becb54e31e906e0b90f2"
+    },
+    {
+      "seed": 2007,
+      "scenario": "low_cost",
+      "metrics": {
+        "contributions": 41,
+        "total_contributions": 381,
+        "net_income": 948.6,
+        "sanction_cost": 80.0
+      },
+      "digest": "241c9689ea214cb3cbcda0d05028850324f473d19b03216cb607d8417233fec6"
+    },
+    {
+      "seed": 2007,
+      "scenario": "high_cost",
+      "metrics": {
+        "contributions": 41,
+        "total_contributions": 381,
+        "net_income": 958.6,
+        "sanction_cost": 70.0
+      },
+      "digest": "cde9ac27cac9198aa353e1288e1b748f97188caa2dd0e26c2aa380894c7f7fc1"
+    },
+    {
+      "seed": 2008,
+      "scenario": "baseline",
+      "metrics": {
+        "contributions": 31,
+        "total_contributions": 372,
+        "net_income": 1023.2,
+        "sanction_cost": 0.0
+      },
+      "digest": "d23acbcaa838300d6d7bc505b74796c14488415c522fabf358a21600df895d79"
+    },
+    {
+      "seed": 2008,
+      "scenario": "low_cost",
+      "metrics": {
+        "contributions": 34,
+        "total_contributions": 398,
+        "net_income": 974.8,
+        "sanction_cost": 64.0
+      },
+      "digest": "bcf5861593a9fa3bddb728351881beb933e2e3a9673322cc1c3c8334abbbae97"
+    },
+    {
+      "seed": 2008,
+      "scenario": "high_cost",
+      "metrics": {
+        "contributions": 34,
+        "total_contributions": 398,
+        "net_income": 982.8,
+        "sanction_cost": 56.0
+      },
+      "digest": "2279f2dd30ab2b6f14f9efe5a6608a13d6f39f2bda752c1c5570c1f560182520"
+    },
+    {
+      "seed": 2009,
+      "scenario": "baseline",
+      "metrics": {
+        "contributions": 39,
+        "total_contributions": 376,
+        "net_income": 1025.6,
+        "sanction_cost": 0.0
+      },
+      "digest": "4f39b386ddb6e8d8ba5a97caec7e7ead2538c75dc26d137db84f3f3f6f2c374a"
+    },
+    {
+      "seed": 2009,
+      "scenario": "low_cost",
+      "metrics": {
+        "contributions": 43,
+        "total_contributions": 410,
+        "net_income": 966.0,
+        "sanction_cost": 80.0
+      },
+      "digest": "2720282c60ba016158604b87a37fcf878f3b444581f873ae9d62420075b8f4c1"
+    },
+    {
+      "seed": 2009,
+      "scenario": "high_cost",
+      "metrics": {
+        "contributions": 43,
+        "total_contributions": 410,
+        "net_income": 976.0,
+        "sanction_cost": 70.0
+      },
+      "digest": "877e08c46ed0dd79e4077cab8d53a5e9f4b80efd165d3a5c25721aed7b8d8b56"
+    }
+  ]
+}

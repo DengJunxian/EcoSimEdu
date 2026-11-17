@@ -1,0 +1,150 @@
+{
+  "browser": "156.0.8078.79",
+  "viewport_width": 390,
+  "observations": [
+    {
+      "task": "svb_title",
+      "required_phrases": [
+        "硅谷银行挤兑",
+        "实验回放"
+      ],
+      "spoken": [
+        "about:blank - Chromium frame",
+        "Finished loading 硅谷银行挤兑 · 实验回放 · Civitas Economica."
+      ],
+      "passed": true
+    },
+    {
+      "task": "svb_timeline",
+      "required_phrases": [
+        "事件时间轴",
+        "事件 51"
+      ],
+      "spoken": [
+        "main content",
+        "事件时间轴 horizontal slider 事件 51，末条为 53 96 percent."
+      ],
+      "passed": true
+    },
+    {
+      "task": "svb_timeline_right",
+      "required_phrases": [
+        "事件 52"
+      ],
+      "spoken": [
+        "Focus mode",
+        "事件 52，末条为 53"
+      ],
+      "passed": true
+    },
+    {
+      "task": "svb_next",
+      "required_phrases": [
+        "下一步"
+      ],
+      "spoken": [
+        "下一步 button.",
+        "Browse mode"
+      ],
+      "passed": true
+    },
+    {
+      "task": "svb_boundary",
+      "required_phrases": [
+        "下一步",
+        "grayed"
+      ],
+      "spoken": [
+        "下一步 button grayed."
+      ],
+      "passed": true
+    },
+    {
+      "task": "schelling_row",
+      "required_phrases": [
+        "行"
+      ],
+      "spoken": [
+        "行 combo box 11.",
+        "opens menu"
+      ],
+      "passed": true
+    },
+    {
+      "task": "schelling_column",
+      "required_phrases": [
+        "列"
+      ],
+      "spoken": [
+        "列 combo box 9."
+      ],
+      "passed": true
+    },
+    {
+      "task": "schelling_coordinates_changed",
+      "required_phrases": [
+        "A136",
+        "第 2 行第 2 列"
+      ],
+      "spoken": [
+        "opens menu",
+        "space",
+        "列 combo box expanded",
+        "leaving panel.",
+        "menu",
+        "9.",
+        "1.",
+        "2.",
+        "return",
+        "列 combo box 2.",
+        "opens menu",
+        "列 combo box collapsed",
+        "A136 · 第 2 行第 2 列。同组邻居 3/7。"
+      ],
+      "passed": true
+    },
+    {
+      "task": "auction_table",
+      "required_phrases": [
+        "已播放成交价格"
+      ],
+      "spoken": [
+        "Browse mode is sticky.",
+        "t",
+        "已播放成交价格（代币 / 件）",
+        "table with 7 rows 2 columns",
+        "table with 7 rows 2 columns",
+        "成交事件 column header."
+      ],
+      "passed": true
+    },
+    {
+      "task": "auction_table_value",
+      "required_phrases": [
+        "事件 123",
+        "价格",
+        "95"
+      ],
+      "spoken": [
+        "left alt",
+        "left shift",
+        "事件 123 row header 价格 column header 95.",
+        "Row 8, column 3."
+      ],
+      "passed": true
+    }
+  ],
+  "orca": "48.1",
+  "at_spi": "2.56.2",
+  "speech_dispatcher": "0.12.0",
+  "platform": "Debian GNU/Linux 13 ARM64",
+  "browser_display": "Xvfb/openbox",
+  "isolated_loopback": true,
+  "rc6_svb_title_utterance": "Finished loading Civitas Economica · 双向拍卖.",
+  "audio": {
+    "filename": "Civitas_Economica_Student_Lab_1.0.0-rc.7_Orca.wav",
+    "seconds": 10.49,
+    "nonzero_samples": 163323,
+    "sha256": "865f083ef2072bbfda1cf009faba7f92a000072efa2e2bd615880adbfa086f55"
+  }
+}

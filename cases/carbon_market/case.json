@@ -1,0 +1,59 @@
+{
+  "case_id": "carbon_market",
+  "version": "1.0.0",
+  "title": "碳配额市场",
+  "subtitle": "同一个减排目标，谁来减排？",
+  "identity": "institutional_case",
+  "identity_label": "制度案例",
+  "minutes": "25–35 分钟",
+  "intro": "八家工厂面对同一个排放上限。先调整免费配额的分配，再看固定减排比例和配额交易分别怎样满足总量约束。",
+  "background": "欧盟碳排放交易体系于 2005 年启动，受管控单位须按核定排放量缴回配额。本课抽取总量、交易和缴回机制，企业、成本、价格和配额均由教学模型生成。",
+  "goals": ["用边际成本解释哪家企业多减一吨", "从发行到缴回追踪一张许可证", "区分总成本与免费配额的分配效应"],
+  "seed": 2005,
+  "action": {
+    "label": "把多少张免费初始配额从 F08 调给 F01？",
+    "options": [{"id": "0", "label": "保留原分配"}, {"id": "3", "label": "转给 F01 3 张"}, {"id": "6", "label": "转给 F01 6 张"}],
+    "default": "3"
+  },
+  "sources": [
+    {"id": "S14", "title": "European Commission · About the EU ETS", "url": "https://climate.ec.europa.eu/areas-action/carbon-markets/about-eu-ets_en", "supports": "欧盟委员会说明总量、配额单位、配额交易和年度缴回。"},
+    {"id": "S14-CN", "title": "生态环境部 · 2021、2022 年全国碳市场发电行业配额方案答问", "url": "https://www.mee.gov.cn/ywdt/zbft/202303/t20230316_1019719.shtml", "supports": "该历史履约期发电配额采用强度基准和实际发电活动量分配，公式与本课固定发行量不同。"}
+  ],
+  "lessons": [
+    {"id": "intro", "title": "进入碳市场", "prompt": "阅读配额发行、交易和缴回三个环节。"},
+    {"id": "predict", "title": "预测减排任务", "prompt": "比较 F01 和 F08 的边际成本，把减排量与缴回量分开。"},
+    {"id": "bid", "title": "选择免费分配", "prompt": "选定开局调拨数量。每个情景保持你的同一选择，实际调拨受捐出方持有量限制。"},
+    {"id": "observe", "title": "追踪配额流向", "prompt": "查看企业计划和交易账。选中一笔转移，核对买卖双方及数量。"},
+    {"id": "explain", "title": "拆分成本与款项", "prompt": "区分企业实际减排成本、配额净支付和社会总成本。"},
+    {"id": "compare", "title": "改变制度条件", "prompt": "在同一组企业上改变减排规则、免费配额分配或排放总量。"},
+    {"id": "notebook", "title": "记录制度边界", "prompt": "引用至少两条记录，解释分配与效率怎样各自发生变化。"}
+  ],
+  "questions": {
+    "prediction": {"prompt": "在相同总量下，允许交易会降低本模型的减排总成本吗？", "options": {"yes": "会", "no": "不会", "unknown": "不确定"}},
+    "explain": {"prompt": "在本课无融资约束和零交易成本的条件下，仅改变免费配额分配会改变成本最低的行业减排方案吗？", "options": {"yes": "会", "no": "不会"}, "answer": "no", "feedback": "行业最优方案按边际成本排序。免费配额会改变企业的买卖数量与净支付。相同总量和技术成本下，最优减排向量保持一致。"},
+    "transfer": {"prompt": "如果市场按实际发电量和排放强度基准分配免费配额，哪个变量需要重新进入模型？", "rubric": "说明实际产出如何进入配额分配，并引用本课的发行或转移证据对照固定发行量。若加入固定碳税，指出税率预先给定而排放内生。"}
+  },
+  "glossary": [
+    {"term": "排放配额", "definition": "本课中每张许可证覆盖一期内一吨二氧化碳当量排放，缴回后不可再次使用。"},
+    {"term": "边际减排成本", "definition": "二次成本下连续边际成本为 k 乘当前减排量。整数模型用多减一吨的实际成本增量。"},
+    {"term": "配额净支付", "definition": "企业购买配额付出的代币减去出售配额收到的代币。交易款在企业间转移。"}
+  ],
+  "scenarios": [
+    {"id": "baseline", "label": "总量交易", "description": "总量 88 吨，按基准排放免费分配，企业按最低边际成本减排。", "parameters": {"policy": "trade", "cap": 88, "allocation": "emissions"}},
+    {"id": "uniform", "label": "统一比例减排", "description": "总量维持 88 吨。以相同比例分配减排任务并按需调配配额。", "parameters": {"policy": "uniform", "cap": 88, "allocation": "emissions"}},
+    {"id": "redistribute", "label": "调整免费配额分配", "description": "总量维持 88 吨，免费配额从按基准排放权重切换到按成本系数权重。", "parameters": {"policy": "trade", "cap": 88, "allocation": "cost"}},
+    {"id": "tighten", "label": "缩紧排放总量", "description": "将总量从 88 吨降为 56 吨，沿用交易制度和原免费分配权重。", "parameters": {"policy": "trade", "cap": 56, "allocation": "emissions"}}
+  ],
+  "metrics": [
+    {"id": "cap", "label": "已发行配额", "unit": "张"},
+    {"id": "planned_emissions", "label": "计划排放", "unit": "吨 CO₂e"},
+    {"id": "abatement_cost", "label": "方案减排总成本", "unit": "代币"},
+    {"id": "price", "label": "清算价格", "unit": "代币/张"},
+    {"id": "permits_moved", "label": "转移配额", "unit": "张"},
+    {"id": "surrendered", "label": "已缴回配额", "unit": "张"}
+  ],
+  "alignment": {"axis_label": "阶段", "field": "phase", "event_type": "phase_end"},
+  "minimum_evidence": 2,
+  "evidence_types": ["issuance", "phase_end", "transfer", "surrender"],
+  "checkpoint": {"event_type": "phase_end", "message": "计划已算出。核对全行业排放上限，再查看企业之间如何结算。"}
+}

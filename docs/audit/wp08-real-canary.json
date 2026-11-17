@@ -1,0 +1,206 @@
+[
+  {
+    "case_id": "svb_run",
+    "case_version": "1.0.0",
+    "run_id": "d6a202f1-1f87-41a2-b3b1-2ccc9ac55aba",
+    "seed": 20230309,
+    "action": "withdraw_now",
+    "result_hash": "c82adcb13c8abc04b986cd52cf05249feaaba535f3c49c30bdb26960a91c61fb",
+    "model_metrics_differ_from_rule": true,
+    "selected_by_model": 1,
+    "rule_fallbacks": 0,
+    "external_attempts": 1,
+    "decisions": [
+      {
+        "actor_id": "D02",
+        "stage": "protective_withdrawal",
+        "allowed": {
+          "hold": "本轮不追加防御性提款",
+          "withdraw_unprotected": "本轮追加 40 资金单位的防御性提款申请"
+        },
+        "rule_default": "hold",
+        "observation_hash": "0ec9b5e10e277628603c26621f50af15fc285815b76994252dca9d10bc185f87",
+        "attempts": [
+          {
+            "provider": "openai",
+            "model": "gpt-6-luna",
+            "requested_model": "gpt-6-luna",
+            "request_id": null,
+            "response_id": null,
+            "usage": {
+              "input_tokens": 195,
+              "output_tokens": 15,
+              "cached_input_tokens": 0
+            },
+            "cost": 2.7e-05,
+            "currency": "USD",
+            "pricing_basis": "published_standard",
+            "pricing_date": "2026-11-16",
+            "reason": null,
+            "provider_http_status": null,
+            "prompt_hash": "8728424178d89c13c2d6aa37e3858f9dc0bc62cf1b04edf5d44c2bc4f19c0425"
+          }
+        ],
+        "action": "withdraw_unprotected",
+        "source": "model",
+        "reason": null,
+        "event_seq": 3,
+        "changed_from_rule": true
+      }
+    ]
+  },
+  {
+    "case_id": "information_cascade",
+    "case_version": "1.0.0",
+    "run_id": "ee97e95c-fcc1-4f10-88c0-1757d39577e5",
+    "seed": 3,
+    "action": "bayes",
+    "result_hash": "1abf8d80c4d0e805b8f5d0b88e3a0d325f3022669e78336cfd745dbd79a6a4eb",
+    "model_metrics_differ_from_rule": false,
+    "selected_by_model": 1,
+    "rule_fallbacks": 0,
+    "external_attempts": 1,
+    "decisions": [
+      {
+        "actor_id": "D04",
+        "stage": "choose_public_policy",
+        "allowed": {
+          "bayes": "按公共后验与私信号进行贝叶斯选择，平局跟随私信号",
+          "private_signal": "跟随自己的私信号",
+          "force_a": "预先公开固定为 A",
+          "force_b": "预先公开固定为 B"
+        },
+        "rule_default": "bayes",
+        "observation_hash": "28a657f158cb5007a3c53218ebfc83706db76076cf52159bd04452ce07cea8b5",
+        "attempts": [
+          {
+            "provider": "openai",
+            "model": "gpt-6-luna",
+            "requested_model": "gpt-6-luna",
+            "request_id": null,
+            "response_id": null,
+            "usage": {
+              "input_tokens": 244,
+              "output_tokens": 14,
+              "cached_input_tokens": 0
+            },
+            "cost": 3.2e-05,
+            "currency": "USD",
+            "pricing_basis": "published_standard",
+            "pricing_date": "2026-11-16",
+            "reason": null,
+            "provider_http_status": null,
+            "prompt_hash": "384f29e0fd02d64d0238f83f8da1489696582a96ef536f655d1a2b4fcddc38d0"
+          }
+        ],
+        "action": "bayes",
+        "source": "model",
+        "reason": null,
+        "event_seq": 4,
+        "changed_from_rule": false
+      }
+    ]
+  },
+  {
+    "case_id": "public_goods",
+    "case_version": "1.0.0",
+    "run_id": "e249711e-7d2c-443e-9b8b-43bd844c356b",
+    "seed": 2000,
+    "action": "10",
+    "result_hash": "31f7fa6eadcb0099431b9cf756adb4f6a6002b0fab2b7af1ba90fbfead5b9602",
+    "model_metrics_differ_from_rule": false,
+    "selected_by_model": 1,
+    "rule_fallbacks": 0,
+    "external_attempts": 1,
+    "decisions": [
+      {
+        "actor_id": "P2",
+        "stage": "round_2_contribution",
+        "allowed": {
+          "0": "投入 0 代币",
+          "10": "投入 10 代币",
+          "20": "投入 20 代币"
+        },
+        "rule_default": "10",
+        "observation_hash": "057147d8e0164ef7860fa170a84d177f0dc6b1a8f8837f052e63071eb9d290ea",
+        "attempts": [
+          {
+            "provider": "openai",
+            "model": "gpt-6-luna",
+            "requested_model": "gpt-6-luna",
+            "request_id": null,
+            "response_id": null,
+            "usage": {
+              "input_tokens": 235,
+              "output_tokens": 13,
+              "cached_input_tokens": 0
+            },
+            "cost": 3e-05,
+            "currency": "USD",
+            "pricing_basis": "published_standard",
+            "pricing_date": "2026-11-16",
+            "reason": null,
+            "provider_http_status": null,
+            "prompt_hash": "08ad65ab5e0734c658b7e24763f97e8a6c7b8dcd480948407c3e469b19963d98"
+          }
+        ],
+        "action": "10",
+        "source": "model",
+        "reason": null,
+        "event_seq": 3,
+        "changed_from_rule": false
+      }
+    ]
+  },
+  {
+    "case_id": "gamestop",
+    "case_version": "1.0.0",
+    "run_id": "ace30e90-62b4-41b1-b0ec-b933d0bb0b58",
+    "seed": 202101,
+    "action": "buy",
+    "result_hash": "0ca121d3847bf0d8866870c666ee8a0292562dfb46e52c1a1bfe40a24b3560b3",
+    "model_metrics_differ_from_rule": true,
+    "selected_by_model": 1,
+    "rule_fallbacks": 0,
+    "external_attempts": 1,
+    "decisions": [
+      {
+        "actor_id": "关注投资者 5",
+        "stage": "first_attention_order",
+        "allowed": {
+          "hold": "保留现金并观察",
+          "buy_1": "用 20 美元/股限价买 1 股",
+          "buy_2": "用 20 美元/股限价买 2 股"
+        },
+        "rule_default": "buy_1",
+        "observation_hash": "60d1f84fb9eab1fa559bc2b2ea194672be97ddbf7f956142aaa02f9b8c8bdb40",
+        "attempts": [
+          {
+            "provider": "openai",
+            "model": "gpt-6-luna",
+            "requested_model": "gpt-6-luna",
+            "request_id": null,
+            "response_id": null,
+            "usage": {
+              "input_tokens": 245,
+              "output_tokens": 13,
+              "cached_input_tokens": 0
+            },
+            "cost": 3.1e-05,
+            "currency": "USD",
+            "pricing_basis": "published_standard",
+            "pricing_date": "2026-11-16",
+            "reason": null,
+            "provider_http_status": null,
+            "prompt_hash": "a63c80dbd84aaeb75643c46750454d81cc74c8f67715b969fa2d5b34d2adbfe2"
+          }
+        ],
+        "action": "hold",
+        "source": "model",
+        "reason": null,
+        "event_seq": 42,
+        "changed_from_rule": true
+      }
+    ]
+  }
+]

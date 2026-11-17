@@ -1,0 +1,148 @@
+{
+  "version": 3,
+  "milestone": "M3",
+  "paths": [
+    {
+      "title": "市场形成",
+      "cases": [
+        "double_auction",
+        "lemons_market"
+      ]
+    },
+    {
+      "title": "社会互动",
+      "cases": [
+        "schelling_segregation",
+        "information_cascade"
+      ]
+    },
+    {
+      "title": "金融风险",
+      "cases": [
+        "svb_run",
+        "flash_crash",
+        "gamestop"
+      ]
+    },
+    {
+      "title": "制度设计",
+      "cases": [
+        "public_goods",
+        "commons_governance",
+        "school_matching",
+        "beer_game",
+        "carbon_market"
+      ]
+    }
+  ],
+  "lessons": [
+    {
+      "case_id": "double_auction",
+      "concepts": [
+        "私人价值",
+        "价格优先与时间优先",
+        "可实现剩余",
+        "交易费"
+      ]
+    },
+    {
+      "case_id": "schelling_segregation",
+      "concepts": [
+        "八邻域",
+        "阈值",
+        "同类邻接率",
+        "空间自组织"
+      ]
+    },
+    {
+      "case_id": "svb_run",
+      "concepts": [
+        "存款负债",
+        "流动性",
+        "净资产",
+        "证券急售"
+      ]
+    },
+    {
+      "case_id": "information_cascade",
+      "concepts": [
+        "私人信号",
+        "贝叶斯后验",
+        "公开行动",
+        "信息级联"
+      ]
+    },
+    {
+      "case_id": "public_goods",
+      "concepts": [
+        "贡献",
+        "边际回报",
+        "惩罚成本",
+        "群体净收益"
+      ]
+    },
+    {
+      "case_id": "commons_governance",
+      "concepts": [
+        "资源存量",
+        "再生",
+        "取用限额",
+        "监督成本"
+      ]
+    },
+    {
+      "case_id": "lemons_market",
+      "concepts": [
+        "信息不对称",
+        "逆向选择",
+        "混合报价",
+        "核验成本"
+      ]
+    },
+    {
+      "case_id": "school_matching",
+      "concepts": [
+        "暂留",
+        "优先序",
+        "延迟接受",
+        "阻挡对"
+      ]
+    },
+    {
+      "case_id": "beer_game",
+      "concepts": [
+        "库存",
+        "欠货",
+        "在途",
+        "牛鞭效应"
+      ]
+    },
+    {
+      "case_id": "carbon_market",
+      "concepts": [
+        "固定总量",
+        "边际减排成本",
+        "许可转移",
+        "缴回"
+      ]
+    },
+    {
+      "case_id": "flash_crash",
+      "concepts": [
+        "流动性深度",
+        "库存撤单",
+        "实际成交",
+        "暂停再开"
+      ]
+    },
+    {
+      "case_id": "gamestop",
+      "concepts": [
+        "消息来源",
+        "借券",
+        "保证金",
+        "强制回补"
+      ]
+    }
+  ]
+}

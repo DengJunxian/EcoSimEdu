@@ -1,0 +1,13 @@
+{
+  "version": "1.0.0-rc.7",
+  "tested_archive_sha256": "bc79ead25c0ce0cc90f2f2bfd5296c69cf44c0f4ed36c98759dadf1733cfabb3",
+  "macos_arm64": {
+    "passed": 233,
+    "seconds": 85.9,
+    "python": "3.12.11"
+  },
+  "catalog_cases": 12,
+  "deterministic_runs": 41,
+  "orca_passed": 10,
+  "saved_live_attempts_after_release_check": 8
+}

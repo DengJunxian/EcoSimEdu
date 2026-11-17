@@ -1,0 +1,50 @@
+{
+  "case_id": "public_goods",
+  "version": "1.0.0",
+  "title": "公共品博弈",
+  "subtitle": "贡献增加后，群体一定更好吗？",
+  "identity": "academic_experiment",
+  "identity_label": "学术实验",
+  "minutes": "20–30 分钟",
+  "intro": "四人每轮各得 20 代币。投入公共池的每个代币给每人带来 0.4 代币。你会投入多少？",
+  "background": "Fehr 与 Gächter 比较了有无成本性惩罚机会的实验处理。本课使用合成参与者和线性惩罚成本，检验贡献、惩罚和群体净收益如何相互影响。",
+  "goals": ["手算投入公共池的个人和群体收益", "追踪施罚成本与受罚扣损", "用同初始条件比较制度"],
+  "seed": 2000,
+  "action": {"label": "首轮投入公共池", "options": [{"id": "0", "label": "贡献 0 代币"}, {"id": "10", "label": "贡献 10 代币"}, {"id": "20", "label": "贡献 20 代币"}], "default": "10"},
+  "sources": [
+    {"id": "S05", "title": "Fehr 与 Gächter（2000），Cooperation and Punishment in Public Goods Experiments", "url": "https://www.aeaweb.org/articles?id=10.1257/aer.90.4.980", "supports": "有无付费惩罚机会是原始人类实验的比较处理。"}
+  ],
+  "lessons": [
+    {"id": "intro", "title": "认识公共池", "prompt": "每贡献 1 代币，四个人各得 0.4 代币。"},
+    {"id": "predict", "title": "提出预测", "prompt": "区分群体贡献和扣完惩罚成本后的收益。"},
+    {"id": "bid", "title": "提交贡献", "prompt": "决定首轮贡献。其余三人的当轮贡献会在提交后公开。"},
+    {"id": "observe", "title": "观察结算", "prompt": "定位同一轮的贡献与结算，核对个人收入。"},
+    {"id": "explain", "title": "计算收益", "prompt": "假设其他人的贡献固定，想一想你多贡献 1 代币对自己与群体的影响。"},
+    {"id": "compare", "title": "比较惩罚制度", "prompt": "保留随机种子、参与者和首轮贡献，比较两种付费惩罚。"},
+    {"id": "notebook", "title": "记录机制", "prompt": "引用至少两条运行事件，说明贡献、惩罚与净收益之间的关系。"}
+  ],
+  "questions": {
+    "prediction": {"prompt": "允许低成本惩罚后，你预计群体累计净收益会比无惩罚时更高吗？", "options": {"yes": "会", "no": "不会", "unknown": "不确定"}},
+    "explain": {"prompt": "其他人贡献固定时，你多贡献 1 代币会提高自己的惩罚前收益吗？", "options": {"yes": "会", "no": "不会"}, "answer": "no", "feedback": "你交出 1 代币，收回 0.4，个人惩罚前收益减少 0.6 代币。其他三人合计多得 1.2，群体惩罚前净增 0.6。"},
+    "transfer": {"prompt": "如果团队用问责提高共同投入，怎样判断总收益也提高了？", "rubric": "分别写出共同投入、参与者承担的执行成本和净收益。引用本课事件，说明结论所需的条件。"}
+  },
+  "glossary": [
+    {"term": "个人边际回报", "definition": "每增加 1 代币公共贡献，每人收到 0.4 代币。"},
+    {"term": "条件合作", "definition": "本课的条件合作者根据上轮同伴的平均贡献调整投入。"},
+    {"term": "惩罚成本", "definition": "施罚者支付成本，受罚者的余额被扣减，两项会降低模型的群体净收益。"}
+  ],
+  "scenarios": [
+    {"id": "baseline", "label": "无惩罚", "description": "贡献公开后直接结算。", "parameters": {"unit_cost": null}},
+    {"id": "low_cost", "label": "低成本惩罚", "description": "施罚每点花 1 代币，受罚每点最多扣 3 代币。", "parameters": {"unit_cost": 1}},
+    {"id": "high_cost", "label": "高成本惩罚", "description": "施罚每点花 4 代币，受罚每点最多扣 3 代币。", "parameters": {"unit_cost": 4}}
+  ],
+  "metrics": [
+    {"id": "contributions", "label": "本轮贡献", "unit": "代币"},
+    {"id": "total_contributions", "label": "累计贡献", "unit": "代币"},
+    {"id": "net_income", "label": "累计群体净收益", "unit": "代币"},
+    {"id": "sanction_cost", "label": "累计惩罚消耗", "unit": "代币"}
+  ],
+  "minimum_evidence": 2,
+  "evidence_types": ["contributions", "settlement"],
+  "checkpoint": {"event_type": "settlement", "message": "核对首轮公共回报、施罚成本和受罚扣损。"}
+}

@@ -1,0 +1,38 @@
+{
+  "version": "1.0.0-rc.6",
+  "tested_archive_sha256": "a26ee0771e81ccc065f40e17fbbdbfe868c88a86ae934e5525faed713c8c95bd",
+  "macos_arm64": {
+    "passed": 233,
+    "seconds": 84.54,
+    "python": "3.12.11"
+  },
+  "catalog_cases": 12,
+  "deterministic_runs": 41,
+  "saved_live_attempts_after_release_check": 8,
+  "chrome": {
+    "version": "157.0.8103.78",
+    "axe_version": "4.14.0",
+    "states": 125,
+    "violations": 0,
+    "viewport_overflow": 0,
+    "manual_review_rules": {
+      "aria-prohibited-attr": 5,
+      "color-contrast": 65,
+      "label-content-name-mismatch": 15,
+      "target-size": 12
+    }
+  },
+  "edge": {
+    "version": "152.0.4191.53",
+    "axe_version": "4.14.0",
+    "states": 25,
+    "violations": 0,
+    "viewport_overflow": 0,
+    "manual_review_rules": {
+      "aria-prohibited-attr": 1,
+      "color-contrast": 12,
+      "label-content-name-mismatch": 3,
+      "target-size": 5
+    }
+  }
+}

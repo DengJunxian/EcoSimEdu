@@ -1,0 +1,3058 @@
+{
+  "seed_count_per_case": 20,
+  "repetitions": 2,
+  "paired_scenario_seed_runs": 820,
+  "cases": {
+    "double_auction": {
+      "case_version": "1.0.0",
+      "seeds": [
+        1962,
+        1963,
+        1964,
+        1965,
+        1966,
+        1967,
+        1968,
+        1969,
+        1970,
+        1971,
+        1972,
+        1973,
+        1974,
+        1975,
+        1976,
+        1977,
+        1978,
+        1979,
+        1980,
+        1981
+      ],
+      "scenarios": [
+        {
+          "scenario": "baseline",
+          "result_hashes_in_seed_order": [
+            "a9139897c22f03c6c771d3c10157966917376352857e116969c1281befd96649",
+            "f7521be0d34e8d97ec5fc5e3e7ca2739c5e9ae93e0603e49283858049d37c190",
+            "772f2b3c3cc6a82614beac5b9d0ff9acc65370713b045e52c444f935ff49789d",
+            "10b01cdab4c2a1beb6b8daa6a5a068f7acfcafa263564de8fa526e77ba90660c",
+            "b3a054bf3df68e158fbb0c2d38aeff46f61ec7258245e37392f6813f403d53ac",
+            "ffea9787f0e0ad937f0612ea48ef1ef0f394d8a658cb046633b268403701e1a0",
+            "b684037cf3a817a9c07f1aaf36dc40b8bd506b0f88f2062bfc80111691c8c77c",
+            "59a41dd590a5e8b0176d56a8e271007dc24dc423682ad25f5bf01c3df595e3a1",
+            "60db6bc93e3e3e66d5ac2ca78572d90f9dd8a87992ecffbd73c37209ffd12235",
+            "6e213710c93f3676d8f8c11d0d213779ddf4872cadc525aff17c0de5fb411b3d",
+            "8d9636b3ae14380db21fb48b6dbf92af3e1efa915e27e0b9cbb01146119b52e4",
+            "e99502a08df4e15efa9b758bac227fa2550352ace43e38b98eae9191f402275d",
+            "689ac4902f6735a82063776e6d2f19e1378d22998228cdcce2ca3326b03d6cb5",
+            "f4cd6cfc7bd548c83beeef43ee2a3c090d79fb9338142eb01d6897d71f43cf3f",
+            "c840cdddbc9930bdb9a13676b839a31f3a92650fef084813611d368cdd030bd6",
+            "94fe835dbd4243b393da6760b900423d9e1f9ef09ee49c5ffd2f0e6f1cc8be33",
+            "e471c627f1d8bc388f6b7457869232dc449ae33be337bad6e4d35a3a95f55035",
+            "9d5b176bd85daaea16f3f1a935753b00804b3ef8a4b742a8ee9f520089850c70",
+            "872bbe8f06211750ec78f7de8d366a5b32c96764350fcc6c41e20678fdd7cfbd",
+            "32c11af76cbefe39cee2cb6e84aa3fe4706d789cc6e90a566ef039090fd79534"
+          ],
+          "metrics": {
+            "volume": {
+              "observed": 20,
+              "minimum": 3,
+              "median": 5.0,
+              "maximum": 7
+            },
+            "price_min": {
+              "observed": 20,
+              "minimum": 94,
+              "median": 98.5,
+              "maximum": 113
+            },
+            "price_max": {
+              "observed": 20,
+              "minimum": 96,
+              "median": 100.5,
+              "maximum": 114
+            },
+            "surplus": {
+              "observed": 20,
+              "minimum": 90,
+              "median": 138.0,
+              "maximum": 219
+            },
+            "ceiling": {
+              "observed": 20,
+              "minimum": 264,
+              "median": 286.0,
+              "maximum": 305
+            },
+            "efficiency": {
+              "observed": 20,
+              "minimum": 0.30303030303030304,
+              "median": 0.49392668411061513,
+              "maximum": 0.8021978021978022
+            },
+            "platform_cash": {
+              "observed": 20,
+              "minimum": 0,
+              "median": 0.0,
+              "maximum": 0
+            },
+            "participant_surplus": {
+              "observed": 20,
+              "minimum": 90,
+              "median": 138.0,
+              "maximum": 219
+            }
+          }
+        },
+        {
+          "scenario": "demand",
+          "result_hashes_in_seed_order": [
+            "3c988e04dfd44ed8910c19d4a016e686c40debc0b491789cbc685f702e14e93a",
+            "c9e30cfea99f6bfc0f0cdee674ae79ba117ef627ff20b9e40703b1c70ee78eb1",
+            "6a6ad6679958380be1ac8580d504a03caed4a83b73f2b3a90b04fdd9a2454ea6",
+            "893005c9c5820337d42231a57d48b1a5744ba889e0c2c4da13a1e34bfcffa541",
+            "98f45008a80f637a3363fde27c79ecf1e70e9e290b2a6965d84a6fd970d9abec",
+            "478093e1a2ae3105485d84c6133140919937f7ba506e8c9a8c11a82d19190283",
+            "05e2108ee3d080b2330b7df086fbc4b118e51c733d4705c6a67e2047c3d3dd10",
+            "1fc4568ce473a746a504795b319017b9833f82f2b195547e921b3845f2d0a495",
+            "a511de16f8174496ad3d3cd5328b99c5931350a384f623f10766066f33e6664c",
+            "3f077d14909f42ff8d47c77b1c76fdc556850cfdbce8e097269121da6895b34d",
+            "1ff637d1035ed7336c55ae033ea8d0d3183e4c1891b65c4efd3a36b6889eda0f",
+            "f30c17606420bbc55d8aaaaf29f9fd0c55d3aafe5e3e6afc9111a978524f22a2",
+            "7e55c8f99719312ba34b4ea290c32df72e6674df741a6d41b0c7497f0f7a9ef5",
+            "f71c2ae244443553633788d4b90f832471deacc33aac9c2faeb82632fbeece3f",
+            "9a72fb8e54d73a602fea6bcce21c80ab31c03fe42e5243c5d1098833114ef236",
+            "56d29ae26617d976d50d0e5ee1db0413ea61d960c0b5d46cec56c24f70ff1d17",
+            "3b640fdc87283b3fa61747d7a233f533f09d56bee871c0eb6922d9f49c9c77a4",
+            "9fa41d638b836b85211d50500f05537da5ec5d4bdb4040ef788a314aa014e5af",
+            "a9f6643424d7e2ca8b613cce2d0632bac6d8611e33d677d98bfcc4971c120a8e",
+            "60427f42cd02ad5db22193e33696faf2d93dfd8846e850512e4ab4ead652970c"
+          ],
+          "metrics": {
+            "volume": {
+              "observed": 20,
+              "minimum": 4,
+              "median": 6.0,
+              "maximum": 9
+            },
+            "price_min": {
+              "observed": 20,
+              "minimum": 94,
+              "median": 103.0,
+              "maximum": 123
+            },
+            "price_max": {
+              "observed": 20,
+              "minimum": 96,
+              "median": 105.5,
+              "maximum": 125
+            },
+            "surplus": {
+              "observed": 20,
+              "minimum": 113,
+              "median": 216.0,
+              "maximum": 341
+            },
+            "ceiling": {
+              "observed": 20,
+              "minimum": 413,
+              "median": 429.0,
+              "maximum": 457
+            },
+            "efficiency": {
+              "observed": 20,
+              "minimum": 0.24780701754385964,
+              "median": 0.4819830745300677,
+              "maximum": 0.8023529411764706
+            },
+            "platform_cash": {
+              "observed": 20,
+              "minimum": 0,
+              "median": 0.0,
+              "maximum": 0
+            },
+            "participant_surplus": {
+              "observed": 20,
+              "minimum": 113,
+              "median": 216.0,
+              "maximum": 341
+            }
+          }
+        },
+        {
+          "scenario": "fee",
+          "result_hashes_in_seed_order": [
+            "fe83f31175476b41dc26b37aa0255b0c9ce28d594910ff64d27f8e14e2728ee1",
+            "da5b16264d6574e01d096e7ed43b816983275c1ab3de3614145ef34ced56a343",
+            "e4aead681245e8b66213476e6c6c7a4b0a6725a9a2113be478a6d1103c50b1cf",
+            "af8e54c03712014c6947b3b66d46c49d7e0ecac6f5ca0a69a37ed9d857d955bd",
+            "d156f8cd6b89c3d5b02094f751cb6e35f4260844710b4530362e6a914d5fa274",
+            "03b92ef49275ed5b37944aa0666000a5f24e112cde7d85d3d5dc7c40e3fe49c8",
+            "8c22b09bd762148bb850df99b7d534232a0d92d431541922e2a8c20d19186b64",
+            "9422ee69993b60f9a4bf42829454ed42b77d4fcbe93765c697296a15d0f99a85",
+            "dbb5301040896295984fec61e546bd9ffb5b0ac6dffe914e5a825403b3b8e1ac",
+            "42ce1fb4955d9bbc61398120a8a0abb8525decbdaa63978b99e55be08c41778a",
+            "202a7df718bd3313315e4cf409b9d861c26fc850ec39495ab5e23e3b569391ad",
+            "10a74a22f8aee17446382ff288c0a1caea48bc73dd0ff132b9dac893e2171b04",
+            "1f4deff20c5b4e47fc207ba9468e3d829a6408fb18224dbd7696b436a1210699",
+            "12796b79b7ceeeb17fb6934440bdd8199d59cdec4fa051e3746a77403d3d66dd",
+            "3a7dd3102901f841fcbd9ec4d0817745fac493d361186bf78b04a260a737492b",
+            "4960ce92f4efbc134e60b1a2bb5be7d58fdb6c73a10f26840cda5fd98bebffaa",
+            "76ef4654a34fd6fe91ef6469b4c26d8ef72f298e5e84fd840c01d840d0ebac93",
+            "383c26bf35175a9de4cece77202f12a7c8b8e234df795e8c2a241653389a2ec8",
+            "b5fd5171e4a1e1c2f8fcc1c96615923856da59845c89c18f683a8e3c906ac3fc",
+            "bd67738ab643694a4537f267a336fb53b4b0be76d2ca429dec1b2ed0f2956988"
+          ],
+          "metrics": {
+            "volume": {
+              "observed": 20,
+              "minimum": 1,
+              "median": 4.0,
+              "maximum": 7
+            },
+            "price_min": {
+              "observed": 20,
+              "minimum": 93,
+              "median": 96.0,
+              "maximum": 110
+            },
+            "price_max": {
+              "observed": 20,
+              "minimum": 96,
+              "median": 98.5,
+              "maximum": 110
+            },
+            "surplus": {
+              "observed": 20,
+              "minimum": 27,
+              "median": 135.5,
+              "maximum": 227
+            },
+            "ceiling": {
+              "observed": 20,
+              "minimum": 264,
+              "median": 286.0,
+              "maximum": 305
+            },
+            "efficiency": {
+              "observed": 20,
+              "minimum": 0.10227272727272728,
+              "median": 0.46484724379795694,
+              "maximum": 0.7668918918918919
+            },
+            "platform_cash": {
+              "observed": 20,
+              "minimum": 12,
+              "median": 48.0,
+              "maximum": 84
+            },
+            "participant_surplus": {
+              "observed": 20,
+              "minimum": 15,
+              "median": 87.5,
+              "maximum": 143
+            }
+          }
+        }
+      ]
+    },
+    "schelling_segregation": {
+      "case_version": "1.0.0",
+      "seeds": [
+        1971,
+        1972,
+        1973,
+        1974,
+        1975,
+        1976,
+        1977,
+        1978,
+        1979,
+        1980,
+        1981,
+        1982,
+        1983,
+        1984,
+        1985,
+        1986,
+        1987,
+        1988,
+        1989,
+        1990
+      ],
+      "scenarios": [
+        {
+          "scenario": "baseline",
+          "result_hashes_in_seed_order": [
+            "1fd6d63c3fdefeb65e96e5080bb1cfa9ad990a6bc78d3f2a8968ca44673dbab0",
+            "2e38af9d63d5999828042aa39e5cabae10604b6f4ed750ccc76a79bf42565f3f",
+            "7cfcaa837a2c28304ee44085f14428731c914608ecd8776544d1100565ccb4ac",
+            "132287c33a4ee0ba0ddff9eed357099c5723e612ac7b1653d66c3c8811e1f055",
+            "28a48a75d83eeab27688fea637026a709ecbba81a265e37334b5e48efe252c17",
+            "511f36dc79974a955f4fbb1a849b0cf17c0f889db1ff6cdb363f0364af5f6762",
+            "1777492ea934e52f7fc636350cbacd32221ef8fbaeb3b33ebed819ad504c98fa",
+            "9c4b92e23a3d4a390036814b85d72e230769447d4fba1b3bb9880e5265ffe9e4",
+            "be9a194fbc16bcc8772569deecfe1120bb1bcd0eb720672e64ec10f37e61edd9",
+            "81525f763b94448755620501a5fc4b23bebd71ff46afb0ecd0786ca96fe548c4",
+            "c05a7a4088a4e3bf6e18d32b42f29c992f2f9159b6251a8734940e83aa7cd499",
+            "3abc48d2d2caf76ba6a4e364635ec36d31761478210f664728d06d38b1157075",
+            "ec9fc962e870e8664362d12dea4d3a7d3ceab3435079c62edca7eca9b9b4c8b9",
+            "5734761eb17602ce5aca1e65e4e9e36777db970973fd488e442ab010fa93f614",
+            "e26b507c3bb774581da664b4c66a0f76a0a873beddb07e1ea63b80e8d9a2952c",
+            "1aaa22777408eaf2aebcc5345c0068fcbfa845f5107c1d9312ba615463ba4229",
+            "d7f728bbeb75706d02fb6a361781071fb9899894c133a7aecb43da1223b5b455",
+            "91cb676028cb63c1c8d922748f52d204df7f19810717d9dd2408c08b355801be",
+            "be60af24e96c7ebf21ed15a44bcb41ab0b4e19d5020f054f8d2c25df30903f76",
+            "0b97d326ddfff17ad08c0c45468a7fca741415f7986e9acce893cb1772fa5300"
+          ],
+          "metrics": {
+            "satisfied": {
+              "observed": 20,
+              "minimum": 100.0,
+              "median": 100.0,
+              "maximum": 100.0
+            },
+            "similarity": {
+              "observed": 20,
+              "minimum": 67.81,
+              "median": 73.215,
+              "maximum": 82.23
+            },
+            "moves": {
+              "observed": 20,
+              "minimum": 68,
+              "median": 82.0,
+              "maximum": 99
+            },
+            "remaining": {
+              "observed": 20,
+              "minimum": 0,
+              "median": 0.0,
+              "maximum": 0
+            }
+          }
+        },
+        {
+          "scenario": "zero",
+          "result_hashes_in_seed_order": [
+            "a117cf5d32257355f7924b03d2cf85624948ef178110f4b14213e7b0d2cb9532",
+            "2b1ea075694252c92e00a350a40190f9976338acae15b79cac8dca454e551371",
+            "70fb4222e94f753c62c831ead0c871128a6d49c1d0176a9f95371534f854b00a",
+            "38462e9611a2234528cb27805164db9c5b0119242f76af6da12f802dc2bb2feb",
+            "ad3bcb3e84b307202c72a5c4df1543fabcdd4126e99de2b1576b287f3d141107",
+            "8d423b6b6349d7a873ec0d28ccd81c4d197f37ab731faf8ec7405dedb7cd7d81",
+            "9b2b2c50570f11a45c1ff946859e292c2cf40ada6b2a57874bc4c21f6de6fddb",
+            "1aed3aab58696140e71d7fdf8bde0cd6790e69e11808eb16ca200ff79d0b247f",
+            "5bea53eaee469d3437da067eb18b692def74583cc42d3e260657421f990b2e60",
+            "ebf42b2692a3d2571fa0cf01b6c1a380b96f05bdd3b7ea32451ef4b7361024ca",
+            "e8d738f030b96c3289a0330db3ac3b5f50914cd981ac0ddd5d6ce85668b4f8d8",
+            "71dc99c096ff4db37193d516a244c9829ea6cb6c9d6b2cbb06e1f374830d17cc",
+            "5dca528df626fd2148ac88c299193a0bad183d830354790787fdddc408858475",
+            "6e29c64df85b52e756e93ee794f5633dda6990be17ebcb319ca94d2399fc30e5",
+            "0d656c4d307ab2ff0b4a4b61757883644a6658860267ded89104fd7d478c9764",
+            "4209077255662e82fd95996281a1461871fdeb1e86d89ff7d22a7f998e0cc364",
+            "6cd5ff4953d8b340eaa0d674dc93f9ef296f171f7fe81e3cb16eb87ae8e05526",
+            "44efd9020644170479ba4fd5f69b227992530959db97c0ccce6fe3ad0bf8398d",
+            "b60241445c0aa8dd20ab6188a6cb176d4d19e14c4394a228646d5dc6409abac9",
+            "2026d86b3a8aaec8b78da8e97ce04631825b031c40d2ee9b83456e7bdae1bbd0"
+          ],
+          "metrics": {
+            "satisfied": {
+              "observed": 20,
+              "minimum": 100.0,
+              "median": 100.0,
+              "maximum": 100.0
+            },
+            "similarity": {
+              "observed": 20,
+              "minimum": 45.99,
+              "median": 49.835,
+              "maximum": 52.58
+            },
+            "moves": {
+              "observed": 20,
+              "minimum": 0,
+              "median": 0.0,
+              "maximum": 0
+            },
+            "remaining": {
+              "observed": 20,
+              "minimum": 0,
+              "median": 0.0,
+              "maximum": 0
+            }
+          }
+        },
+        {
+          "scenario": "higher",
+          "result_hashes_in_seed_order": [
+            "a771fccb8832bcef8824e002103e4f93ef054297580241a43d612659d05be62d",
+            "1f1456469368b27914278be17fca6a21ae5d7d461bf8d4ef7382ffc04ccdcb3d",
+            "7641629c9b2fe409cb5dd8de6324f44d07d65dd223e67c922074d3f316049a4b",
+            "6efe9aa784eaf0e20cff0fcb0acaf42ea2a5b6a4c0bef16de9ef9a0e7a9104e6",
+            "3ca14a3401e4911380de079c8410b6f8aea570da58a8c6329f457df0eb6f0cc3",
+            "385443ba052bc2aa8d6093b77d1835464f76622aff4f3d062c9472a24043ba42",
+            "fef19318c9ab2e1c23ff55487ab47558c1591ceaae8fb3e77ccc3d0f3df78a97",
+            "8b2dfc968bb35a89ad267ce676bb82cbdb2808cc4f8c78896f7cfebdee04394b",
+            "1a2a9e607bec24c971f12700b8817a7da5ec2ac041d153aecbf45d02d8288f73",
+            "f2bd31cba45d943ad4839ef8fe1029ebb376ac1f03800f05c62a6a20cd0b2d55",
+            "8266690d4b50acceb17e4e5982b65fc342873f4b11349e930d7e5bd1ae42a5c7",
+            "c2d673ff4266f9b778c8dbc2b22901ea1a5448b09f226cf70df4db6c69868af1",
+            "48b73d941eb9867d3f2201040ebbae8c03f9f05773c1fb8dc6293e3744e65013",
+            "eea2b777907a10befafdef87b2b67dfb52edf766b38ab7c397a951baa7d6350c",
+            "85acd1241b64ccbf5b9874619dc029a83cd123efe2352353e97894842baf47e8",
+            "9ff32eb746e7562d81211af297bef57c4db536c1806f5ed6814050735309efef",
+            "8c358be9af82559415a18a70ec7359fa41a24dbd87a922580478ba320f1c9241",
+            "8ecff32160719443b4c0e59441e19700dacf0b259ac2b98af66f4b79018cef07",
+            "e8d303301052828f86a0a94cca946c96778c6e98302a4ce4a5cd98a82b28bc58",
+            "3064ea6597c5c4a1549351ea9fe4b94acb1c5d2bd0df9821050b8fea40e6c55b"
+          ],
+          "metrics": {
+            "satisfied": {
+              "observed": 20,
+              "minimum": 100.0,
+              "median": 100.0,
+              "maximum": 100.0
+            },
+            "similarity": {
+              "observed": 20,
+              "minimum": 83.18,
+              "median": 87.765,
+              "maximum": 91.59
+            },
+            "moves": {
+              "observed": 20,
+              "minimum": 127,
+              "median": 147.0,
+              "maximum": 171
+            },
+            "remaining": {
+              "observed": 20,
+              "minimum": 0,
+              "median": 0.0,
+              "maximum": 0
+            }
+          }
+        }
+      ]
+    },
+    "svb_run": {
+      "case_version": "1.0.0",
+      "seeds": [
+        20230309,
+        20230310,
+        20230311,
+        20230312,
+        20230313,
+        20230314,
+        20230315,
+        20230316,
+        20230317,
+        20230318,
+        20230319,
+        20230320,
+        20230321,
+        20230322,
+        20230323,
+        20230324,
+        20230325,
+        20230326,
+        20230327,
+        20230328
+      ],
+      "scenarios": [
+        {
+          "scenario": "baseline",
+          "result_hashes_in_seed_order": [
+            "8a461afe22eb913ca1e4feb7bdee0104f27c307cb71e2ae8d6ef85f2c5bc885b",
+            "b868cea54f4127f6ddb0e7695287637f9f21273bc01bc97645b9f7b515b3c393",
+            "4185ebca1d63eca1565b66f2df5961ab4327289989ad94c26e9616c3586b6e67",
+            "517931a5a9b91b75adf0d0e85847c3739bd7a8280e369cd35e25f468fd872a82",
+            "2bd5a2b480303894e3983fd088c8cc70fb71123a5377cb75b3e3bdbe1ccff9aa",
+            "970dd661a35cce77b71303a9b86a8033432ead9536146731375c881c4c9a1952",
+            "3c9103b2b6ba2eb4b784402d8e7f55f9640d9e86b5c0b67b31635a41a89379a7",
+            "432c1e6a5864713003b2774a10c13a378643c0e2f169ef33822006920f3eb29a",
+            "308f300885ec41f94f9afad72ecc05903c51c1e1ca7564d173231f20d0323a9e",
+            "43c47dc8f7e4af940919bc5b6addb50550752b156fd98537acdb3ebebb63ebb8",
+            "8237517a331b182ba8a6e3aa1e0436e1ef74fa4b7551e0cee9037c8fc0050fd1",
+            "27f55f02b44f4f5bf8fd965b0268b98e96c8cc1c0d244268f536bc4cc635d32a",
+            "b416c5b60bb8e1816aa96592b1826b357c9f55f154cd116427e1a30c87b18709",
+            "b6892fb0485c67b0609c662954964c248203a5360530aee369e11230b6f569cc",
+            "786bcc2707f8c34b86731487d8322ac94bc09d2307e063653b63dca12ed2446d",
+            "6a538901d2f0403ffce48a0ca5dc9ffa4eb9b65355be3d662eadac11778452ad",
+            "62b604b76ce896a10da702615bf2186b1279e3f3d1c3f0625bc2137c3f3cf723",
+            "4caa10234f989b8c60fbd110feba59cc4065c570f70fee14666110d5a500c283",
+            "571b8d7f392181ebc3848471afc525b8280fe78cb8d9e79acd10e4d41fc0e65f",
+            "d85939461b7530f4cfaf2f26488beaceb36ce423b4ce1b23ae8752bc6c49d84a"
+          ],
+          "metrics": {
+            "cash": {
+              "observed": 20,
+              "minimum": 0,
+              "median": 0.0,
+              "maximum": 0
+            },
+            "requested": {
+              "observed": 20,
+              "minimum": 1474,
+              "median": 1545.0,
+              "maximum": 1603
+            },
+            "paid": {
+              "observed": 20,
+              "minimum": 1260,
+              "median": 1260.0,
+              "maximum": 1260
+            },
+            "queued": {
+              "observed": 20,
+              "minimum": 214,
+              "median": 285.0,
+              "maximum": 343
+            },
+            "equity": {
+              "observed": 20,
+              "minimum": -280,
+              "median": -280.0,
+              "maximum": -280
+            },
+            "sale_loss": {
+              "observed": 20,
+              "minimum": 510,
+              "median": 510.0,
+              "maximum": 510
+            }
+          }
+        },
+        {
+          "scenario": "liquidity_buffer",
+          "result_hashes_in_seed_order": [
+            "41838ed513fff6d14d8fbe18fbe972ae738d7415bae81143eb7f24eb869d3d4b",
+            "add96f3cb1f4e8f506644ca67e8fdf8dc3966a849aa286600d88120804852113",
+            "731721a16a09b84a50f8a53c100e7982e04417d65578d98a6ad62ae69482b745",
+            "48c970a2490285cc10e4a550ed107d2ab80c989ee3339859eff3279a464de27e",
+            "5225c934a6039944ef54e05115049d7f6c7c636ea4b0a2354a6bafbb6f7e48dd",
+            "d987a51de6332fdfa1a2078e4c0be63543ee75b33f9b6295b13d5b16a43bad59",
+            "4a57eff0adc491a923a406b09fb51a896fcc1d7b182c0542bbddc904e10d1dee",
+            "b1c9266c6116c41d69de3d53cdce58a2c6319de6f5e4fbc8f1d32483a21e7be7",
+            "e3e55139e9cd12e328fc8dd74c5af40b4f82bd3495462ba84d94af9d4b854dc8",
+            "c8aa228b997e16b3b69e700e034d677ac48c14a2e5a5d6a2bdc916648496151a",
+            "dcef0cdf05444a6cda38e21f1775059cc59bb13e55d76d1a0d1171f02e25a724",
+            "cc9a51cc0ddda6aa3e5fc8ba295bd7790f9f0103c5fdf0678428a97966586351",
+            "ca9fe3c0266f220d30e5a7672b41e2db573eabdae17b84a4dd6ce8655616779b",
+            "a34f5dd14c4d8add6173bcddafa4b7e31a4dee85f5aa401cc8d201d45d3d08eb",
+            "454647474285e103a705bfc2aff0abd013f313022c84e7601f6abc2f2f2063d5",
+            "8d6c1bdd5524101489e4a2b991ab94d4bfe3ace9f39921cd205a22a0ff6e5c92",
+            "051b61fc3c3fa4dd30e9415f606db9f54131d0dc847ae56ae06b1952bf56723c",
+            "413aa967ecce4fd13fc4689441cd7f89fc5c0502d9df312d073843343d8b7dea",
+            "2cffb4c443eb7d00ef86d15f80d508f657a611e678bc0de9825e7fc3682668de",
+            "5764b41222e2328a93b090d233c9a3e0148fd438c6736a46ad5623adad152bc9"
+          ],
+          "metrics": {
+            "cash": {
+              "observed": 20,
+              "minimum": 0,
+              "median": 0.0,
+              "maximum": 0
+            },
+            "requested": {
+              "observed": 20,
+              "minimum": 1464,
+              "median": 1538.0,
+              "maximum": 1599
+            },
+            "paid": {
+              "observed": 20,
+              "minimum": 1420,
+              "median": 1420.0,
+              "maximum": 1420
+            },
+            "queued": {
+              "observed": 20,
+              "minimum": 44,
+              "median": 118.0,
+              "maximum": 179
+            },
+            "equity": {
+              "observed": 20,
+              "minimum": -120,
+              "median": -120.0,
+              "maximum": -120
+            },
+            "sale_loss": {
+              "observed": 20,
+              "minimum": 390,
+              "median": 390.0,
+              "maximum": 390
+            }
+          }
+        },
+        {
+          "scenario": "network",
+          "result_hashes_in_seed_order": [
+            "068f50e4c54a6269a880cb9839a36924c0899ded13c31d60de41835ea60d1406",
+            "e742f2ac4262b6601c2c979e24af932ff918c7bf286d80f9d82934b001356f99",
+            "fbb04b602b0234b7b0396722de0fd54edf9b647d2ddf18536521a25208abb4ce",
+            "711443eb5d2c6fbbab2418e31059dfc2caa6224295e5db21dbf03d23b95ba0c8",
+            "bec25cbdfffdcc50da857fc3a964077422681f0f9d1f3fcad6610115152df4dc",
+            "3fe9e09cbfa18cd40db743049ea9203ac3755d6438c62f2fabd0768822fc3e65",
+            "15a7705facc7b3f485820eb3c9efae56e6ba84d59c77308a90cd4815a82aa7f5",
+            "1dd7f568194735c4c7d77d023d14da565378ef6e343074db3d24300bd1769945",
+            "98a379894989fcaae6b1b4932af89fb880940ac898b4f0fae2e4e9dd1540cb4e",
+            "14bef15609bc78166ff20854bcce792f86896e028069ed947ddcc62090a2e1a9",
+            "1ad6a5424004591b6789b0d0335d7b751c1fe3c16e9e19d309b7dc9de4475541",
+            "bbd48f97f2302808db0bb3f2d5ea43d9cd6eeedb7e1c7edcd3800b62908d37b9",
+            "6a2d5590f417e2528ecf8a9394bef2dba14f7c4f6e44e7ec89e7ca7f7034b9dc",
+            "6fbd65fc39f19cf249fb6c0b3b8b29a6a4cdc28699af006ade0de49876bd354f",
+            "7db993377fb53b6694fb88d4c197151f88fc9729f1ef7249679105d596a7dd83",
+            "73b2a4fe2264d3c058bd672e1b99d3fc774e07b2a267c318b46d360168dea732",
+            "6182deba318d27cc2c06271a6a437ee80baf7c1ead8114305f81e89188aa6ffa",
+            "901972734dafde4cfef6bbd014d5bfd3ec97f0b33b8145f06d439e4334dee4b5",
+            "db33414865856aaeb33f9747d88c802e0d804b4cd7e32063b7f004d4d4969d8e",
+            "115badda5420273a3218a077fe2bfbbb50817d00cadf7cbfe31872fa38d69d10"
+          ],
+          "metrics": {
+            "cash": {
+              "observed": 20,
+              "minimum": 0,
+              "median": 0.0,
+              "maximum": 0
+            },
+            "requested": {
+              "observed": 20,
+              "minimum": 1465,
+              "median": 1506.0,
+              "maximum": 1576
+            },
+            "paid": {
+              "observed": 20,
+              "minimum": 1260,
+              "median": 1260.0,
+              "maximum": 1260
+            },
+            "queued": {
+              "observed": 20,
+              "minimum": 205,
+              "median": 246.0,
+              "maximum": 316
+            },
+            "equity": {
+              "observed": 20,
+              "minimum": -280,
+              "median": -280.0,
+              "maximum": -280
+            },
+            "sale_loss": {
+              "observed": 20,
+              "minimum": 510,
+              "median": 510.0,
+              "maximum": 510
+            }
+          }
+        }
+      ]
+    },
+    "information_cascade": {
+      "case_version": "1.0.0",
+      "seeds": [
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        10,
+        11,
+        12,
+        13,
+        14,
+        15,
+        16,
+        17,
+        18,
+        19,
+        20,
+        21,
+        22
+      ],
+      "scenarios": [
+        {
+          "scenario": "baseline",
+          "result_hashes_in_seed_order": [
+            "7d836d613fd3349545fa95c075ea30cfcb3dac7a66350610d6f23afd1527ebb5",
+            "ebad530b3f7a041f9818ce102bcebd6bfd96f00743541c908f21f92050f3146a",
+            "216c938a3c0abe0fae4e667887153aa152e5413a8da064f80686967ad36861ff",
+            "31b247c9cb73134960fc601c87ec214e81c62efe9c7c02ee3faa6eb961703233",
+            "a7e1c09de1f3394cc645a3479d6e9462c2b55915cb89bca54ad93a810fca1322",
+            "44b766812a370d61b22a3e499fa6cd47ecd8e3b8aa70501a837ef5f37045d06d",
+            "1a0d48c6d1e2c139eb8b4d110d1b135596960ed40764f0229187283274803493",
+            "7186ef8eee68c7c271f3f1e138018e9f77f31653a3701ac8679705a1eb160706",
+            "e47872c4c11c24bf69188acebf7d6b65273a4d74af3d649519cc4664c7c28d10",
+            "f08e47ab1d128a451cfbf7f2c390e2abbfe6296a688391a206ad9eafac865adf",
+            "8ef78db6daa8b6b06983407a68dc029d29df2411a7e08a0048704293ef3c60e4",
+            "14260fbfdf447d89b8de467df2bdb3854dae86eead29b157dd28fe070d1f9815",
+            "73bf2979288b2c93f8e513ec302bd735591e126e7b6fc00057c42e2ee23c281c",
+            "10b9f52507031593b8c0f34a9a31b0c703d66c251122f907c2cad79fa06e29e7",
+            "f2bef2a0d3772bf388aea4dd019c7592bf37a78bb5183bbfc3d7d70405e88755",
+            "aa3f257b4e929498a579f34b6b10e1bd104597353510c4e2d73f2a24122c7f80",
+            "511fe555dc6b9d098ae9bfdd8c8507b55278a025ef14abde3a20794b5592afc9",
+            "caead4cdf021973dbc3db00aaf0dde8e33cf309e2329cb9fe5bc75fe426694b0",
+            "25ed434cff2399d12f2fe5d95147fe0b0170ef79dbc3f95f609ef8f258f09fa2",
+            "de4c89cab21fd3a3132d4418783941a4d74204f7d3422794861fd7714fd3f9e2"
+          ],
+          "metrics": {
+            "public_a_pct": {
+              "observed": 20,
+              "minimum": 20.0,
+              "median": 80.0,
+              "maximum": 80.0
+            },
+            "cascade_decisions": {
+              "observed": 20,
+              "minimum": 0,
+              "median": 9.0,
+              "maximum": 10
+            },
+            "cascade_start": {
+              "observed": 18,
+              "minimum": 3,
+              "median": 3.0,
+              "maximum": 9
+            },
+            "revealing_decisions": {
+              "observed": 20,
+              "minimum": 2,
+              "median": 3.0,
+              "maximum": 12
+            },
+            "correct_pct": {
+              "observed": 20,
+              "minimum": 0.0,
+              "median": 87.5,
+              "maximum": 100.0
+            }
+          }
+        },
+        {
+          "scenario": "private",
+          "result_hashes_in_seed_order": [
+            "416ab39472249a9a63b62140456a77d72d6f3b56e188e36b20e8a40320421c81",
+            "46bd483e31abaa2d9fd01d5dcdef28baccc940243587f1440070d28472569510",
+            "e90869bf5a7eff5eb4c212d65905bfffaae0f4bb78912530eb17dd327aed0ad8",
+            "2cfa768d4cb8378cb5eabdb61e46503804e9022ecee857a5578efb94b3f2c588",
+            "3559cfec5c09fe6d1d93c7a39a8dba6ead59746c529aa50ae91b3b74c68410bc",
+            "296790f91e6ceb2497e293a9cd3d8b96695ad855ca13adf4a2568f1e4c91d4f2",
+            "6dfd718a760bf43d8b8f94979c2cf2746032485e8f3b2b8d7aa8dc10930ebbc1",
+            "3ff2c0a1d869d03038060b794def99d04a203499630620186188e4286787670f",
+            "82edb8cd1f17e3e7fdc07f0c081432b8517629332e2ce003c1d5544a8475b15e",
+            "df5f69a93c4b16a53904e72788f81d3709868aeb6ae7df71f8d38679ee3d6a7e",
+            "7f742f10e8b14f309f39548318e35321148829235304c8384fc93bdceafe599b",
+            "eaca63f8fdb08e89b36f945e0e1a82a744b7672b1449b6e1aee26597551db0b5",
+            "26a282254687cfa165ee54f5d33d350c338e06c05bcdde0ed375aecc628e0264",
+            "e2553b8ce7d0a2e76f85b17dd61289560bdf60c1e22e556af938c124dc6e5fa3",
+            "4b0a3a152071a6c01ec313e99a082140155f6dfbc3e95a88b5ef280d9144bf3c",
+            "3ba958fbd123f2d25e3802c3259b874926bc2dbc48cc04e18952ca9890581ccf",
+            "77f8c80774a0ddabb5a63600655f873622ae822ed366cfd0a397d8cdb8a55f6c",
+            "70105cc940f2f645ca8de74fc3e357352e439ced00a1cb0499b567cb65f14534",
+            "e40d6079cbe5ef1a4c799d72066e49f653dc0c1946f3cad9244dc4b2d5145da3",
+            "9fa9bbed15b18dc497fa512c4b2018cd2076fe3cc396051667c56f380405c4d0"
+          ],
+          "metrics": {
+            "public_a_pct": {
+              "observed": 20,
+              "minimum": 50.0,
+              "median": 50.0,
+              "maximum": 50.0
+            },
+            "cascade_decisions": {
+              "observed": 20,
+              "minimum": 0,
+              "median": 0.0,
+              "maximum": 0
+            },
+            "cascade_start": {
+              "observed": 0,
+              "minimum": null,
+              "median": null,
+              "maximum": null
+            },
+            "revealing_decisions": {
+              "observed": 20,
+              "minimum": 0,
+              "median": 0.0,
+              "maximum": 0
+            },
+            "correct_pct": {
+              "observed": 20,
+              "minimum": 41.6667,
+              "median": 66.6667,
+              "maximum": 83.3333
+            }
+          }
+        },
+        {
+          "scenario": "verified",
+          "result_hashes_in_seed_order": [
+            "093684dc352fee24d7e9cb3b2c03dae88d649879feac3e0c16ab4dedf83ae3d8",
+            "1867906bf5c9fd1341c2e47205c8233fd81b5d3e9d3febea6e24564d6210d657",
+            "5c019e7b2f1d5fd8cd09b1db97037e0557e018a383a4c8aaee37a7bf8889830a",
+            "e224de110b6eb8af21c5476480096d1dad01502e8a652360c49c0a8e83a48898",
+            "03a22511a8021b94754c9b8f782b169784b561112da3d2cd409a5402516af0ba",
+            "848b7c75941fb7410f662557a9bb4e79ee1019c6ee62e7b7105095e413a73661",
+            "693d821e0c9b08476e94da48d4a927fe25f54ea7b07dcb65d839101a553e2942",
+            "48af2add6ee4c994f0e6faca6df8a6cdeabfad6ee1caf18daaf4a358f0305c5f",
+            "0a33abd93d4d9beb732b73b18cba504e871b5c88888fffabec06b7d7d7400f98",
+            "dbaef782d324294f9f47961f80466cd96be4121725e3409cf5aab657b9562355",
+            "2ac774d4d544bec08b5e019f21e610132b8145e21dbc1a9c3f83b13b5fd54ee9",
+            "d32a1c570f2b0e35fb17e1c145b0784cc982ad7e91c2ab6a7bf52192390edea7",
+            "b6caa0fb768032e1381ac5a0709a35b8f4f6fae64cbe3314e75432498443eb54",
+            "db4b7acff8f387995b3dfa8ea4b77afb5736247bfa3050eab016aaed493c5b39",
+            "44634841e5326d1257f025ff435f748cc9fc88218389ad90542f696c27d5bdec",
+            "18b8fd44e694639c54263363fdd81ac57708cd3e957bf8136de039902de23981",
+            "8b28400111cec3ce4c7098955b2e8caa43287a06909b8732e57e7d07330f7512",
+            "9708f9d4b7692e186055ee786d567c797cd898a17c9f22e05696cbd0e5ed2bc4",
+            "3c3e1d45c3e47906a8d8f7b054579f32a57768cdbceee5e734ecd964b9aefb9e",
+            "5b72d36427061612d597981e9dcd7fb69feb145e745a4211932caf20d62b359b"
+          ],
+          "metrics": {
+            "public_a_pct": {
+              "observed": 20,
+              "minimum": 4.7619,
+              "median": 73.80955,
+              "maximum": 95.2381
+            },
+            "cascade_decisions": {
+              "observed": 20,
+              "minimum": 6,
+              "median": 8.0,
+              "maximum": 10
+            },
+            "cascade_start": {
+              "observed": 20,
+              "minimum": 3,
+              "median": 4.0,
+              "maximum": 7
+            },
+            "revealing_decisions": {
+              "observed": 20,
+              "minimum": 2,
+              "median": 4.0,
+              "maximum": 6
+            },
+            "correct_pct": {
+              "observed": 20,
+              "minimum": 0.0,
+              "median": 87.5,
+              "maximum": 100.0
+            }
+          }
+        }
+      ]
+    },
+    "public_goods": {
+      "case_version": "1.0.0",
+      "seeds": [
+        2000,
+        2001,
+        2002,
+        2003,
+        2004,
+        2005,
+        2006,
+        2007,
+        2008,
+        2009,
+        2010,
+        2011,
+        2012,
+        2013,
+        2014,
+        2015,
+        2016,
+        2017,
+        2018,
+        2019
+      ],
+      "scenarios": [
+        {
+          "scenario": "baseline",
+          "result_hashes_in_seed_order": [
+            "2dfeb3534e4e79a25b1f3735c2f355d3ba9ead4132bb36b8fee092f3c3e9e375",
+            "77db64f1fcb209e1fcee7d0c853f8be4cca19f1e164f5ce25a6363d5f9144f65",
+            "445ec064e22493f0b23301ea2bc33ac6426f28f04889eec1e51dca2938e9409d",
+            "49d137bd3ad7cee001f4765e54a842b821a93acb7465ef57cff53071a88c107c",
+            "34d208b13d926ffc38c6fa80476eb6c35d8dc64251ecd16964430a0a97e5c706",
+            "b632bddbca181da9fec7c50971c6bd218bb88e9e4a573e52cbb19e51f60e7e42",
+            "6f50c0c6e0ec7062a29f41f71fc9f8def5a4bb742649f9df3305a6fee6dc5e5b",
+            "d7562f5e616b601b4883469cf0fd1dc36494bf43ce48becb54e31e906e0b90f2",
+            "d23acbcaa838300d6d7bc505b74796c14488415c522fabf358a21600df895d79",
+            "4f39b386ddb6e8d8ba5a97caec7e7ead2538c75dc26d137db84f3f3f6f2c374a",
+            "a5a044af0ab2d6f3df0b3c1dd48351e533aa8cf6d7318ca9186170cda563a41b",
+            "caf658eb737944c2b95a710dfa25e7baf4e5aceb36a25007c937aefcd1744cc3",
+            "07794321ea120996ba4388498587a3133bee54203d882edf26ac22dc2d1f8e6d",
+            "9537ac1919fa57bb5c3c47bc54ac45089e642e1b30a570951fa9fdb996ba2291",
+            "8914a266edc6ce48a8e875dbe9e2effd537f3020ac61f672ff716c5e2208aa8d",
+            "d5843c6332bd4a44990828daea7bcd856ca47e4b45afe3a2568ac255e2a63565",
+            "d71dcaec41f04860488f3b6422553e9173d10906c380fc731f84a6da3a03fb18",
+            "8e5e34481e68ee22c88be8c0c9616d07ce9f157538e74d331c756ac6f54b83d7",
+            "b5f60dff7c4af75a014f5691adc4b38f8eb058b116c0811bc5ccb6aa2d4bfd60",
+            "4ab6922b7f3935162a61513c75593327805d14925fbc38f56c63ddcb19b666df"
+          ],
+          "metrics": {
+            "contributions": {
+              "observed": 20,
+              "minimum": 27,
+              "median": 37.5,
+              "maximum": 42
+            },
+            "total_contributions": {
+              "observed": 20,
+              "minimum": 312,
+              "median": 376.5,
+              "maximum": 410
+            },
+            "net_income": {
+              "observed": 20,
+              "minimum": 987.2,
+              "median": 1025.9,
+              "maximum": 1046.0
+            },
+            "sanction_cost": {
+              "observed": 20,
+              "minimum": 0.0,
+              "median": 0.0,
+              "maximum": 0.0
+            }
+          }
+        },
+        {
+          "scenario": "low_cost",
+          "result_hashes_in_seed_order": [
+            "d4a15f8bf40deff9de2ee35f84ed1cc90719522f986fc0f9ef58086baec9d4d6",
+            "5a7c54eac0346c527bf51e2125037620744f8e61dc05ff2c773274490ef0d557",
+            "7b004fc5a61c77d35a4ecf85754e3379b6ebe93fa13489c5a0731e277f6ebb06",
+            "019a58592aa0ce67356300dc122d09b89ceed8cccef66540de7a80692b70b0d6",
+            "d158766a055c5ca5af01801c0638324fcc65f3cd53a8b621625e72dbf8f938d7",
+            "871fe90face6532c035ef345e3ca70b1ac0d37fe29683e24a962b5442ce12188",
+            "dabdd667c18c998d47e53a239494a11f6f31f071e350b96377eb161700af1d65",
+            "241c9689ea214cb3cbcda0d05028850324f473d19b03216cb607d8417233fec6",
+            "bcf5861593a9fa3bddb728351881beb933e2e3a9673322cc1c3c8334abbbae97",
+            "2720282c60ba016158604b87a37fcf878f3b444581f873ae9d62420075b8f4c1",
+            "decc1481f45aab12a9223baffc8f640d662a9627b4dc334edd6a3a307cf1c2ba",
+            "7aeef7fbff87432bcca0fea0c694a7ce545c4ad90cfb8699a9da5ca0ebfad90b",
+            "2e3e73ce601df23ea079e4d6c4ed303fdab10cb208be55ffa6e7ee734a52e30f",
+            "7624ab06fd4a72a128d9d3d094b6259f6d3037f649df1333af9600e0f0390e87",
+            "90f231254d3644c3b8a905cfcb951a53c69b642b69730c3d0e51f730735ba0b2",
+            "fd890dfc631471f38e546b3420c89dbbf1867bb7692e50f0108fcc634b50f385",
+            "e1edf196228d965791fd73d62d17c27981ce29671933d39df2838bc837aa106c",
+            "24683a740f124956973a777d48ee48323b484276036174b590836a7984290e56",
+            "15da970e29aaed4610721ccdbf0b91b5331169362391f9399d80516ef69fac0c",
+            "37983715e0758578f4ae1dd94f06b9dfae304a636fa6675f95b9d331643bb6b0"
+          ],
+          "metrics": {
+            "contributions": {
+              "observed": 20,
+              "minimum": 32,
+              "median": 41.5,
+              "maximum": 47
+            },
+            "total_contributions": {
+              "observed": 20,
+              "minimum": 355,
+              "median": 403.5,
+              "maximum": 445
+            },
+            "net_income": {
+              "observed": 20,
+              "minimum": 900.8,
+              "median": 969.6,
+              "maximum": 990.6
+            },
+            "sanction_cost": {
+              "observed": 20,
+              "minimum": 56.0,
+              "median": 80.0,
+              "maximum": 120.0
+            }
+          }
+        },
+        {
+          "scenario": "high_cost",
+          "result_hashes_in_seed_order": [
+            "986179311eb7c3a1b7b786335b9ff0a7ea7679cfa1866d8c3c672f4063043fcb",
+            "2179c01a89c3c330dc3e7ece463cf8e3385e202bc69bf8b40b0c86679ac2b736",
+            "facc38be204b9eadde5a6b3e9f75809afefb787c3ea4e40936ffc52e5928b860",
+            "8d44b60e827b3b9b998995f564d795477fa5cc2654be9d8caeff46699825066a",
+            "0876521569b1b2a323ffec8284875c053d368b39b4a227c7419aca34e8b5326f",
+            "f8aaabee778d3d876d0f43d975144857f6a33a7c38d24c2001e93c26af0602bc",
+            "996242812ac3bace868176488eaf4b60e4540e592be15cfa02c8958193b1e9e6",
+            "cde9ac27cac9198aa353e1288e1b748f97188caa2dd0e26c2aa380894c7f7fc1",
+            "2279f2dd30ab2b6f14f9efe5a6608a13d6f39f2bda752c1c5570c1f560182520",
+            "877e08c46ed0dd79e4077cab8d53a5e9f4b80efd165d3a5c25721aed7b8d8b56",
+            "f1a9743c8bdc8a042c0c5ec5e6c7d7339907b41d4c8d431bb3b0272eaaa60759",
+            "cf3a5c541d2ab5d42c2847fa0c47c51f27cdfe028cc1d6a2098341b6bd81d177",
+            "09e20f7f5c0a5a90553c76a96a420e9da55c9ed68cab79fa04ca420b395ec47e",
+            "904ed696f9a7ad63a8f7742e6336f134d2c8504f0f66756b02fd440e50ae2e8f",
+            "dff3f0afe60d0e5c7e7ebbbfa61497fb65b7834e5dc6f18dfd49336376a44f52",
+            "86997d05fe32577db5d3e9e67a35869f82a42f5f3a9810d05f8e103fbaacc965",
+            "dc4f564df85f09daf9f0b901f64b95de57c824c533138fc2d83e571dd29aaa16",
+            "8e940672990a412a8922fc920213a4dcf0c8a307d8ce0a2c92c6c0cfc2d4760a",
+            "ad894d71132e37aed876a397cc45778f575a4d769f4a880069e9d34f36b9c1e8",
+            "56baaa9cb3647d07786c9654d62c3bf8dae46defe561aebcbc7f3b919510c6fd"
+          ],
+          "metrics": {
+            "contributions": {
+              "observed": 20,
+              "minimum": 32,
+              "median": 41.5,
+              "maximum": 47
+            },
+            "total_contributions": {
+              "observed": 20,
+              "minimum": 355,
+              "median": 403.5,
+              "maximum": 445
+            },
+            "net_income": {
+              "observed": 20,
+              "minimum": 915.8,
+              "median": 979.6,
+              "maximum": 997.6
+            },
+            "sanction_cost": {
+              "observed": 20,
+              "minimum": 49.0,
+              "median": 70.0,
+              "maximum": 105.0
+            }
+          }
+        }
+      ]
+    },
+    "commons_governance": {
+      "case_version": "1.0.0",
+      "seeds": [
+        2009,
+        2010,
+        2011,
+        2012,
+        2013,
+        2014,
+        2015,
+        2016,
+        2017,
+        2018,
+        2019,
+        2020,
+        2021,
+        2022,
+        2023,
+        2024,
+        2025,
+        2026,
+        2027,
+        2028
+      ],
+      "scenarios": [
+        {
+          "scenario": "baseline",
+          "result_hashes_in_seed_order": [
+            "5bf324fe963efbf40e42fb68178edcca548d564c6cca976365be0ad6487b9eff",
+            "f0fd95c2ea9279e0613c6e52b6fc66b6dcd5a841cf33cd51de92b467ae1df9fd",
+            "d7d58caded8c59e2a9a906688328868385284d3b5c03a7695b6b0250c062164c",
+            "24890eb0101c2a40d33988daaa36e0157625b333d5755736dc562db7e86ee5b4",
+            "38b4f5d678f2fda65810073421a58f8a6ec25ebb0a3e7412978e05df690006dd",
+            "c3d0b2950826aa33afd05ab273dfaa0d3ef14af76ddb9a08add3ebcbd6ebb4f5",
+            "7e3fe183f34da6cd7fb5287b26ff46daa156f7bf95c642ea8a1611da057a35a2",
+            "fa9d5560b89eb667e6d22f0f234b193d092d6aa24a2eb2d4b3cdef1c7bed6f02",
+            "5b6efd3b894e4cc86810476be0c59a73c0a24fd8ea3cd09d8cab48a4703811be",
+            "a5d97207a2eb0eac42f098ef09434ee60cccf04c46377cc6345f57f10976303c",
+            "c3c92869673aaeef64c6ebab18bb6391cab824fd31b17493b1737314214f15ed",
+            "701ed225e26aab895f362d89e15d3085056e0fc9945ef7429831e3fd76e98626",
+            "049299563c11dbdc3d968a825fa6f658e5edfc9d281f1ef61ac61b35f5a09a33",
+            "8ca009f1559bddfd3b09dc00b89d79d11ec6c30b1a47a04a5e6ebbd627b900f9",
+            "d04455aa3d3a89c3b88bf944838a2b8d1a7adce759ed819eecc38eb1c69fc0a5",
+            "475887fd4523763f484753f50e2e6e44c1bace30bfe331f6234d37acfedfbbdd",
+            "569ac7cf8366d3423d1bc9231684e8eaa5b34936a0cb6761d453d349b3924e85",
+            "c52d4e6cd097f46eea88304b995baf6e149c9c38cac00ba16962caa7e1b439d4",
+            "8b78e72e05e364ff95b6e92fb6bf795220ce3b19ce95c812f90ab82a721aa5ca",
+            "e7d6a041c27b895b8540509b8a3bd92dfcbf8056383197f01455567815124035"
+          ],
+          "metrics": {
+            "stock": {
+              "observed": 20,
+              "minimum": 0.0,
+              "median": 0.0,
+              "maximum": 0.0
+            },
+            "harvest": {
+              "observed": 20,
+              "minimum": 0.0,
+              "median": 0.0,
+              "maximum": 11.879173591537285
+            },
+            "growth": {
+              "observed": 20,
+              "minimum": 0.0,
+              "median": 0.0,
+              "maximum": 0.0
+            },
+            "income": {
+              "observed": 20,
+              "minimum": 560.6899730603128,
+              "median": 599.4938442401559,
+              "maximum": 827.7583471830745
+            },
+            "monitoring_cost": {
+              "observed": 20,
+              "minimum": 0.0,
+              "median": 0.0,
+              "maximum": 0.0
+            }
+          }
+        },
+        {
+          "scenario": "quota",
+          "result_hashes_in_seed_order": [
+            "6dbb6e01a24b64880eca3b313bc507a284f4bd7d41b0cf276f97449697e0a842",
+            "2698c55366bd781fd18495db4c283a6e9efb33f7f11cb3e31de742413b8b1160",
+            "2e6911f57e0abce70c9839770d392468ae2b36e235a5a3cb83b5644eecb68367",
+            "5fc799133fa6e39238469cf53ae8665d8c649eed06e3a799b38e65d1980b2e04",
+            "d6b44c4833b43f44e25ceff14a647faa973561b78be4bf6216cd6a225867109b",
+            "706f51bb8f9ebb6ddc85d7b1056e9e186706280b1d1b1e5708530dd98ed529b3",
+            "a63df4edd66d668af512ac539ff4f575c91c03ca94fd9fd3ca7d1992217742ea",
+            "ba7184044c9da232ecdb15ee19752910eef83958b3733b8a4d3e7a14999a6bc9",
+            "5009a9bcd9a4afec14585eda12b0d6fd5299236833d363f81f26bb4d76569641",
+            "1fadf382b3e20728da866d3e03314968bd66a0c1afa1cfd203f0a022589533bb",
+            "d2d40ec00ebddd6b977563eb4147c0e2ce2efc6e136ad0339b31783f09d98da0",
+            "4cd982d803b5253fa6ff661b60d9c896ffd5bf8d161114efdd600e1c8c2387db",
+            "da0699991ae97b60fc119e5acfae9aeb9d46d8eb5c3f63b47ddcf1470946bc91",
+            "df72aa665356454ddeef38bd2557e4cd576974d3ea871ccb13cb974b1f42c262",
+            "5eba8ffd0e889a09207c5ed7454ef7677498baed5e494871192840430dc523df",
+            "fdb5e63d1a84bb5a0352a6e7c541cdb6d70e5ee5f61c004b64251416050c9ff9",
+            "b95648fa2bd2b9b0e2242c44940034ac43bbde9b115a0f6109adac6b8836916a",
+            "20da10d3a4d1e9401cd17be61327c7142e565439e6dc19338009ab191d8204e2",
+            "5cbc051679c2edec01023db394bcbd23fdf244cba84f2d0ce4e98599fad2d2d4",
+            "f0a37a4b483a5b13338d2de74238ff09f7c086eb5c16ad98c51df1bce54d0373"
+          ],
+          "metrics": {
+            "stock": {
+              "observed": 20,
+              "minimum": 206.03253788603217,
+              "median": 206.03253788603217,
+              "maximum": 206.03253788603217
+            },
+            "harvest": {
+              "observed": 20,
+              "minimum": 24.0,
+              "median": 24.0,
+              "maximum": 24.0
+            },
+            "growth": {
+              "observed": 20,
+              "minimum": 24.25351605895521,
+              "median": 24.25351605895521,
+              "maximum": 24.25351605895521
+            },
+            "income": {
+              "observed": 20,
+              "minimum": 576.0,
+              "median": 576.0,
+              "maximum": 576.0
+            },
+            "monitoring_cost": {
+              "observed": 20,
+              "minimum": 0.0,
+              "median": 0.0,
+              "maximum": 0.0
+            }
+          }
+        },
+        {
+          "scenario": "community",
+          "result_hashes_in_seed_order": [
+            "dbabc63e7aba3d3634ffac1c4d6241c40058960e17c4ea244bfc7a43cacbc2de",
+            "4008639d47be8ba40c2830ec8a9d20ac8bec29bf117fb602b354bf764b63f327",
+            "6609fc57bc35cedc76adec97d31e8aa9da4d736f04ac9beac025ff91281ddf47",
+            "50fbae4b16506b8111ee49d664ce30a0507a1d49eae869644b71345016ee05ab",
+            "4db068fee1395d2e38e6feabdcd04deb3d26ceee067644d0b721526f2a07ead5",
+            "b96bff3db43d7fb05e781e618fde0bda89f5be0f9ee3cee180aa8d3a64436b1e",
+            "226c05020e80c9d4f2dd0d30468b25b1dbb259906559dd109517f0b918dba2de",
+            "a66ac2e2a11578814da3d24ab3716e9d32747339969a7e454b514901dd0de626",
+            "3b65cf58f37d778e633913a4ac6de85a6e47074a88f3a0c45f65d94324945a91",
+            "6cef9b99a38b283069d8eab31033615780c004d35853ce19cc21e44f522fab60",
+            "9fed24f434780d57cf3c86e3c414cf1271b742b734d3e43cc7df1dd55b6bf3e3",
+            "7a562f3b071f8b12cc46ca42f4052670ae533181826e53f73d8f41e2b54f1b38",
+            "b32cedea2c234f3b9fb0eaf2ee638f463c1a32dccd2b5599eaad84ce74811493",
+            "b96d3d48f45ae9e7a1609f6989d585aeabd450b9e48678548817a973189ea29f",
+            "5a6acdc7cd82aefab928f6c908ef727fd7efa3c46d8f5bc732ad63696713cc53",
+            "98cadd547d40989495506dfd99044e8313f2b02feb700ea518b78054d0eae265",
+            "dce5275e7daa5727a01d7a8d6c33bb7dc125a53fc15d29725c15ee3639a7d95f",
+            "626d411ab36f6421e0260e1c932cb60347ef8a1be6a91baab3abb00177cf50a3",
+            "8cf8d44095437fc917372a7346cc1e1c412708d80dd50eec6ed59f6c32370176",
+            "f78dd18e8946811eb35169e420b2c6527ca91f5dfd8cccf03ccadb4d00169771"
+          ],
+          "metrics": {
+            "stock": {
+              "observed": 20,
+              "minimum": 166.20068877710594,
+              "median": 175.40688799324153,
+              "maximum": 195.50397089214985
+            },
+            "harvest": {
+              "observed": 20,
+              "minimum": 24.0,
+              "median": 32.0,
+              "maximum": 44.0
+            },
+            "growth": {
+              "observed": 20,
+              "minimum": 27.780706284892155,
+              "median": 31.713512641659605,
+              "maximum": 32.57449928303953
+            },
+            "income": {
+              "observed": 20,
+              "minimum": 646.0,
+              "median": 711.0,
+              "maximum": 744.0
+            },
+            "monitoring_cost": {
+              "observed": 20,
+              "minimum": 8.0,
+              "median": 8.0,
+              "maximum": 13.0
+            }
+          }
+        }
+      ]
+    },
+    "lemons_market": {
+      "case_version": "1.0.0",
+      "seeds": [
+        1970,
+        1971,
+        1972,
+        1973,
+        1974,
+        1975,
+        1976,
+        1977,
+        1978,
+        1979,
+        1980,
+        1981,
+        1982,
+        1983,
+        1984,
+        1985,
+        1986,
+        1987,
+        1988,
+        1989
+      ],
+      "scenarios": [
+        {
+          "scenario": "baseline",
+          "result_hashes_in_seed_order": [
+            "4261c1cda6b39eec9f03a141dab37515361b61ea36e5fb5a8bdd8b8b6d59ef3b",
+            "0560295d955b3b6deb5b57f78e90a81b9aaf426a8f9b417ac9bac926f2f5c79b",
+            "55d2aabb8884d4670c1e9b095712270bdb9be4297cd5d8677aa95f349985cbbc",
+            "dd71b63426cf713b861ebe29fafc0807253d63fe7d7e4323ceadce16d7bb01d2",
+            "fd8d921c305d2fcd109d29f74dab5ac9e2e6b29789924db011be6cf203ee727a",
+            "7f71abc658773cb5b91230d1d42a101d22e1cc3fef17f75df36148a274306091",
+            "2a4fa9c4f32ecdbdbfc7b362db24193487f416bcf1cfa7c8cb3d5418971226e4",
+            "650e71fa712f5f36f9d1fe8f25fb6f685ad25ffa0ca6c0af71900ccc055ceec4",
+            "a4c882d3c57dc69f6014b91af05b18567f8245fd6f9415f7c28c765780c4fdc8",
+            "d9dfc20c8896fc6b02310c98bc6829bea3f93e29f5b17a59f39edd5fda5b7ac8",
+            "fe4e98310515137f25d89d2b1f9e7058e3fa70c5af416dd3635b21b55ef7a7ae",
+            "2cbd69543eb451dd6c0926d3d597cd974342489638bc8a71705645d768fd1c71",
+            "148ac8d5fd21a0d8a48f2da098e0837575d82e4b73817dc35a66e4ba4856de2f",
+            "6e8a1d8b96638a2147b5f1ca4e6916770499e338ac85d4f0b0e94526251fe980",
+            "0c51471786672d41769b3487af3ac0adfaec8fb92110c714c9a8947f42cbdfda",
+            "4eeaa9247c0bf1fb16ed0007462941eaeb344f433d3d470d17f3c019d5eed20a",
+            "a2b4dc47cd8c747deb060c50d51ebfefa08f1d7594183784bb1cf8248d287ee9",
+            "33189cef7ede8ebf932e04bc9dd72f236c3da5918b3e10d1c508a25120bfe1d3",
+            "6bfacaaee129c35903a65a684c5f37737460740fa3d7d8d6a7b1032778faf456",
+            "237379836ef18ac7aca7dfa6388e05d8f9e6b4a17f2a6c276cd547738bf1dcb5"
+          ],
+          "metrics": {
+            "quoted_pool_price": {
+              "observed": 20,
+              "minimum": 1.2,
+              "median": 1.2,
+              "maximum": 1.2
+            },
+            "willing_quality": {
+              "observed": 20,
+              "minimum": 1.0,
+              "median": 1.0,
+              "maximum": 1.0
+            },
+            "willing_supply": {
+              "observed": 20,
+              "minimum": 6,
+              "median": 6.0,
+              "maximum": 6
+            },
+            "traded": {
+              "observed": 20,
+              "minimum": 6,
+              "median": 6.0,
+              "maximum": 6
+            },
+            "certification_cost": {
+              "observed": 20,
+              "minimum": 0.0,
+              "median": 0.0,
+              "maximum": 0.0
+            },
+            "net_surplus": {
+              "observed": 20,
+              "minimum": 1.2,
+              "median": 1.2,
+              "maximum": 1.2
+            }
+          }
+        },
+        {
+          "scenario": "informed",
+          "result_hashes_in_seed_order": [
+            "58168e39efcdde252b9bd54e1ff9f092b27f7a70fc3499796172f823fa024239",
+            "a7378d770c8caf929ee681bcba354cff8ff2f8a22b8f745576f8f656f9b6faac",
+            "d0e272b74556e83b050cd9bd67388f8773e1e0b8241f5254ad73fae978958599",
+            "2d83d2c4c58b9fd33fd8b2d8cd787386bf7ca92b779eff6c546f2bdf948ea032",
+            "4df7f21073a62a062d64909c0b1feb56446b2bbe6eb99640c2255c6b92509824",
+            "c0fc8fbb92f3e3bc57e7d372a1528586f7126a5820f580d2ec43a4f752708a3a",
+            "9c8cfe2d988c2767dc9681145ad50b18bf8d8f4ee99f868cfd4bef2705d8ddb9",
+            "d4de90ea0ce7245f66af6a76f5c11bd34fd99661ba3a2d0ae0b4fc64291620b2",
+            "8868f670fb2bb14d04ade3a9eb09a8379e9e469737cc360e93ab804ae0803959",
+            "994a49184f2039e3a3f0bc877773eff8f0c2902ea7678a5774de9c92fb9f82d8",
+            "523d3e83911230aa4e081ad04eca31b85ee0e0ceb8c398668516270efce412c6",
+            "085421bf64a55368e5a493710f84038a109a2eb1928f19ef13aa03aede602c0b",
+            "bf2c36d0c7f4fbfbb6e1dc6e74a9bc57f02bbe76ea9f7de046a64cedfc325399",
+            "231127e72ad1342c59fdfa8268630be6dcefd3595f9c5b739517a42aa7a62f6b",
+            "7733a2e9a963061c0d5b110baec473bb8a9d48e0e72f9e49cc3beb8bd4da272b",
+            "f0f6d3eba0c2c29071d3dfca9d083ced080a5850ee44c43f36c21eca2825881a",
+            "9a178515fd4ed0c1204ab30bad2396e69a3b072c788b73c6d40c05aa24d481c6",
+            "b71f1f89fa31e0e4a76c2c189083a107f1a9f9be1107a730814239369671cd38",
+            "913b146d7f33aed997649bbf60b7a4b0896ef1c88ccbf6c9edfc111f84724719",
+            "d6906f93d0a335ea4a5af6ac24c2208f96931e3f8c2cd2b0cbc4a1caf8b71a33"
+          ],
+          "metrics": {
+            "quoted_pool_price": {
+              "observed": 0,
+              "minimum": null,
+              "median": null,
+              "maximum": null
+            },
+            "willing_quality": {
+              "observed": 20,
+              "minimum": 3.0,
+              "median": 3.0,
+              "maximum": 3.0
+            },
+            "willing_supply": {
+              "observed": 20,
+              "minimum": 30,
+              "median": 30.0,
+              "maximum": 30
+            },
+            "traded": {
+              "observed": 20,
+              "minimum": 30,
+              "median": 30.0,
+              "maximum": 30
+            },
+            "certification_cost": {
+              "observed": 20,
+              "minimum": 0.0,
+              "median": 0.0,
+              "maximum": 0.0
+            },
+            "net_surplus": {
+              "observed": 20,
+              "minimum": 18.0,
+              "median": 18.0,
+              "maximum": 18.0
+            }
+          }
+        },
+        {
+          "scenario": "certified",
+          "result_hashes_in_seed_order": [
+            "1b63b08d0846b915e44b9973d9e1a7164c6e345bcbb3ab7574d85631f633e092",
+            "795d295106553c4d26fdcfa4a9bd7188f600895e37b1ea013e9bf552b9c3c966",
+            "d43006007f7676bdbd96eea5283cc296c89fa48f4feec6c6ee1ada2e23cd02aa",
+            "a50be2f6a6341589622cc7e5d6b7c6d4aa194fe245d2154f2d4faaae11e58353",
+            "465bfc3452200fe7c9baa552ba3f0a9cab305090d9afbdcb02d55830f8ce1b3e",
+            "3b17edf2876463bff273e3ef623667e5ec8a27346c527483c14e8cab44b4fc16",
+            "63801e415807dc148712e34f913013877c7066b0496ab98e79abdced62df9b9a",
+            "33d08d707cc47413c3e3c41f7b420ee83509831b7139a616d8c24c64dd0bc70e",
+            "c117dcc8fb1ca9cd7ddc20f7993dee57519ed2317e646f53809622a63b46ebbb",
+            "f169b767de895c6be5f230e325bc5d5a0d42c8e1eaca43cdc57e06c792a80d35",
+            "e0e3907750042ebe7cc31e7b483dd7de5ce1df81e7a699770ba87ee2249e0886",
+            "4543b20bbeccc1ff5284db9ec117d46b6f3000c48c6ef03ae5ef97544f38abe5",
+            "61f09881a8f8fa9808372f5912456f2e59367b2ab1ce3ef120c10fe349582c60",
+            "3f2682bf37ddafb532ea1e0089adc0ef95e79f8f5f7c6321aed4194b2622444e",
+            "a542d29dfa59efe99fe2642d421398e487b11ecc7b0c5f6b47fb000a3bb77d3b",
+            "082d759077a97afc4daa9075a12508136782582ab8125c2724ccf5a17a892c26",
+            "0d4515259574942a105527a2c6f47a046db7b6b044a27f797048e683d14cb1ec",
+            "e242d68ed1f7031894ee332f91bad40087494188572dec12bce390777f81baeb",
+            "b1ee7fa15caa8f0b820c73efe9387fd8fc70f443ae3bcec84c3e4e166b46f51c",
+            "18d9a7f578a85ffdcb2b2977878774eb023a1d04fd2f607cfbe1fc3511943aa3"
+          ],
+          "metrics": {
+            "quoted_pool_price": {
+              "observed": 20,
+              "minimum": 1.2,
+              "median": 1.2,
+              "maximum": 1.2
+            },
+            "willing_quality": {
+              "observed": 20,
+              "minimum": 3.25,
+              "median": 3.25,
+              "maximum": 3.25
+            },
+            "willing_supply": {
+              "observed": 20,
+              "minimum": 24,
+              "median": 24.0,
+              "maximum": 24
+            },
+            "traded": {
+              "observed": 20,
+              "minimum": 24,
+              "median": 24.0,
+              "maximum": 24
+            },
+            "certification_cost": {
+              "observed": 20,
+              "minimum": 9.0,
+              "median": 9.0,
+              "maximum": 9.0
+            },
+            "net_surplus": {
+              "observed": 20,
+              "minimum": 6.6,
+              "median": 6.6,
+              "maximum": 6.6
+            }
+          }
+        }
+      ]
+    },
+    "school_matching": {
+      "case_version": "1.0.0",
+      "seeds": [
+        2005,
+        2006,
+        2007,
+        2008,
+        2009,
+        2010,
+        2011,
+        2012,
+        2013,
+        2014,
+        2015,
+        2016,
+        2017,
+        2018,
+        2019,
+        2020,
+        2021,
+        2022,
+        2023,
+        2024
+      ],
+      "scenarios": [
+        {
+          "scenario": "baseline",
+          "result_hashes_in_seed_order": [
+            "cb29deb06aef8861c0b9c1c7d0789bfd3efbd2008862a6deb93328373c12519d",
+            "48133c47fc02102987de59737d02963a1536091189f57f8fa387674067c9deaa",
+            "cfbb1309ca2910834baf68887f9a2c7fb63985f652cb0674c203b640f083b074",
+            "6327116fcd0bd64fab5f188e221e8848f15f733343c606b393558d4bcb65fcb7",
+            "44750ae4c78834ea572ca03573bb99c41d2c1b83d88e0437805e311c9619253b",
+            "6fb478e5effce50c6c1f14dca5e56c69d1ed20c9ec9fc34501d6213cfd073f6a",
+            "56ddeeea36e6ce09968f858ff674a84eaca6aab7c96d466cdc55c98f3d19c584",
+            "6eb94edc81a273b2391113aec83630118e9a10cf388693d89e8848d1a636273b",
+            "dd6694f274f54aa64969bece82d9eb5c6cbf98c66500f46f94f3af595ceb12d9",
+            "158681cb0ca446058fe8508d8216acb4466306133a59bc4037927c7261ab7088",
+            "de18926d450d5325409fa755540f752afaf42baee280306bef785b2468cd16fa",
+            "33170e5ca5188aeec65e38a3cc44a0bdfcf355ef05f814dec621aae9e6c54a76",
+            "cba45d54ecee47127c8e37ba5330c2902e6074683fd02047e7d6efd45c603b5c",
+            "9ea9299aed3be9d7294d7b54a0a20301e6c04c49c3158419a2e70183b4a83f49",
+            "f6a9c89381535ae543ae29019326e5eed353e3905ee721fea33e4aed0260b397",
+            "92cd192005678fd3feb6eed7d554a87d58c02dc147e5650daf03126b8d673272",
+            "02aeb192505a62651ffefaeaf490f5086766aead5fdc3c601b8d20b68bba33c5",
+            "658ecb02f7aec76956ab11046960a608877bf4112f90ba36e30292f065cf761c",
+            "be2283825210455200c5fb5a859d9196225d8312834cdabecd2d0adfa43b6622",
+            "a202a89717fbb2792dac2e274a9c3be46ed24af7c63765a1073cea80521145df"
+          ],
+          "metrics": {
+            "applications": {
+              "observed": 20,
+              "minimum": 16,
+              "median": 16.0,
+              "maximum": 16
+            },
+            "rejections": {
+              "observed": 20,
+              "minimum": 4,
+              "median": 4.0,
+              "maximum": 4
+            },
+            "first_true_choice": {
+              "observed": 20,
+              "minimum": 9,
+              "median": 9.0,
+              "maximum": 9
+            },
+            "student_true_rank": {
+              "observed": 20,
+              "minimum": 2,
+              "median": 2.0,
+              "maximum": 2
+            },
+            "submitted_blocking_pairs": {
+              "observed": 20,
+              "minimum": 0,
+              "median": 0.0,
+              "maximum": 0
+            },
+            "true_blocking_pairs": {
+              "observed": 20,
+              "minimum": 0,
+              "median": 0.0,
+              "maximum": 0
+            }
+          }
+        },
+        {
+          "scenario": "immediate",
+          "result_hashes_in_seed_order": [
+            "61d23ab7b1d76559bb43a6fd6c37182b1bf8482fe3dc3da2d3a2d53f57fc5ba0",
+            "e0045bb9c0199940543a1a2168293fef8e9745895ce63f298f0784ca72a666c1",
+            "2a28e9f6bbe1f2efa8d029734918ef0b617aee4fcb40faabac0d58365b920493",
+            "a73c93dc6295f97495574cee98996911f0462090fa8c09a627fba8a2464c2822",
+            "4ac1f7f50080f1e83eafe43a196315d8b6bfb11f04196fe8dabfc576fa581d23",
+            "e6d44e21c8345bb591a94d384860daeb5ad2e062c45a56f4037df456ee6902ca",
+            "d46d0c5ec755451e3eb643dac3b0b0511d84c359cb348bac39ce1f185844c0b8",
+            "3b6af41def78b1e9aa28a16ff25ae6b4714a6d5b85904668464e1c82bdf6d850",
+            "4af3c723c8c8ec59a03054c00d53bcb9ffdd495c0861bf1201284c7fb3cc8ab8",
+            "16ee4b6032a3730c8c62fcb29b4c4f03db2264a3556add81817dba69d9aa83a9",
+            "8200b392815da1e4e8e0b39b8eb916d86e09666a87be0d5441951303d4c0f3e3",
+            "d08baae7dca67697f6df20ef00f0baad6827026db4aac03366b05c18c51b88cd",
+            "f679013ddc1c94a6ca97202696c83492eddd6b819c1cf9993db94f0692521d76",
+            "e77bb9b77499920b728cf38464d469fe1effc4a321a7b6554b2e7a33977a3c58",
+            "d9d24ce8dc2d85b04bba227ee5bc18e0ec742143793df115750fc3c4dbf0bfe4",
+            "9908b33563a4f0b9a027ea3e3d4edf1101a96266760ed92216f17c5421dba92b",
+            "91445a8fec6e63743ba3cf10ff653c154308db2a5f1d165eeed4627986331fa7",
+            "e4f397ac1531a17d90f5a5baf970decc499e82ad84eb318d2b35bab831bdaf5c",
+            "90a3a6c4dbecd7d8cf7f8383955884fd81f03708a7391f1c7b8b436425ee7e2c",
+            "890774dd5e63b36fb7c90092fe63d8acb6997b856b2782f8657abf6c597987b0"
+          ],
+          "metrics": {
+            "applications": {
+              "observed": 20,
+              "minimum": 14,
+              "median": 14.0,
+              "maximum": 14
+            },
+            "rejections": {
+              "observed": 20,
+              "minimum": 2,
+              "median": 2.0,
+              "maximum": 2
+            },
+            "first_true_choice": {
+              "observed": 20,
+              "minimum": 11,
+              "median": 11.0,
+              "maximum": 11
+            },
+            "student_true_rank": {
+              "observed": 20,
+              "minimum": 3,
+              "median": 3.0,
+              "maximum": 3
+            },
+            "submitted_blocking_pairs": {
+              "observed": 20,
+              "minimum": 1,
+              "median": 1.0,
+              "maximum": 1
+            },
+            "true_blocking_pairs": {
+              "observed": 20,
+              "minimum": 1,
+              "median": 1.0,
+              "maximum": 1
+            }
+          }
+        },
+        {
+          "scenario": "expanded",
+          "result_hashes_in_seed_order": [
+            "64b889011970e03c56d03677acc533e8e214c7971947af7a9ce5649e89281f16",
+            "d4995d5ffa1e159bf4519b5c97ea7cb57219bc0ae1eb1a1b7c7b00972f5d8d69",
+            "8c10ddd2d687bb0865eef62187245d7543a940e49b346b63b33fd4fe95916bb7",
+            "b92c339075880444fbd8b21c7db92d98d65982e046d37bcb7dae5e91f56c0623",
+            "bc4712603139abef89795e810531d2ef322b9be07772b393f38f995fd667002e",
+            "3793cc3e5795399da822602513ee187e84cbb5438294b42cf2c2d3d6184dc791",
+            "cc5a9124af22b6480970bc744b5e86a4a091e9b85df2dc5f76f02f81c9edddcf",
+            "ba9f1c9956bd16ffbb669a6920daca4ec079b456e4c4acec975a3092b2d0f80b",
+            "6a8818c40dafea6aeddaa4f1ed9d6a370254ab9d821bb446ad65a78ceb0c7efc",
+            "d01b190b3ba4a36e99f897d58f554866c98e2086ef9e36d798b2d0230155da4b",
+            "278e5d64157271c74887b52ae36a195cf6f473f799dd986d4b626caeab058b31",
+            "d0c12f99bee749745ff9955bdbb8cb2b2f109fb8ed4ac4fa421f12bfc00daa05",
+            "6309c4b542984c538e28c6632307c042c6600e3961e0686f67c7c11bdc16113c",
+            "3d14d5540f36a13f7c84be36c7c4ae95e8fb6cfe87d20482df287fedc35921af",
+            "71976c2ac305a7b410604ee79b0243a9c2ac1490080889ff0ceb31dbe2053475",
+            "d4087536736c2af8e52a204d938b279c96575fd04da72fd3e8c5a323f6cc7f5b",
+            "bce0748c186f60736e8f743da65358598a618ae12dd78446d8761f305a7c22c6",
+            "3f42da04184f14f2e3ac17f232aaab2cada33baa4883c27bc6e9243fd014f11c",
+            "6f3d4bc0ad29a067bb59e3d7d48bf8f5dff7724b8362e539c3862f976f063885",
+            "2fb71fc31e9766bec192648891570c417d68ca6e5f8a36233f6fa16893c53063"
+          ],
+          "metrics": {
+            "applications": {
+              "observed": 20,
+              "minimum": 12,
+              "median": 12.0,
+              "maximum": 12
+            },
+            "rejections": {
+              "observed": 20,
+              "minimum": 0,
+              "median": 0.0,
+              "maximum": 0
+            },
+            "first_true_choice": {
+              "observed": 20,
+              "minimum": 12,
+              "median": 12.0,
+              "maximum": 12
+            },
+            "student_true_rank": {
+              "observed": 20,
+              "minimum": 1,
+              "median": 1.0,
+              "maximum": 1
+            },
+            "submitted_blocking_pairs": {
+              "observed": 20,
+              "minimum": 0,
+              "median": 0.0,
+              "maximum": 0
+            },
+            "true_blocking_pairs": {
+              "observed": 20,
+              "minimum": 0,
+              "median": 0.0,
+              "maximum": 0
+            }
+          }
+        }
+      ]
+    },
+    "beer_game": {
+      "case_version": "1.0.0",
+      "seeds": [
+        1989,
+        1990,
+        1991,
+        1992,
+        1993,
+        1994,
+        1995,
+        1996,
+        1997,
+        1998,
+        1999,
+        2000,
+        2001,
+        2002,
+        2003,
+        2004,
+        2005,
+        2006,
+        2007,
+        2008
+      ],
+      "scenarios": [
+        {
+          "scenario": "baseline",
+          "result_hashes_in_seed_order": [
+            "57cb37a903003158156fbafd322a28a5967a064999b161bafcfaff547dde0dce",
+            "0bef62ed06f831dc3ee7bf6d127807f9d07e77acc7ea92f9e2d5fd3c9767a7a5",
+            "3cf9d4ea83d45affc91c7c0bfb7b18b33b1c81c9a10ccaa01f0e8e660a5dc098",
+            "ea90b34a0850d82d9f476683c70d7251354600b50d80f82e16195d897cda35ae",
+            "444ddfef5f216e235fa4e6651103180ac921c9cfd3746723d565ec2531dee2d1",
+            "da9d6fc8566633307967e24c444aaeac8bcbc5b80f55d791d07aeeadc4b29e60",
+            "95d7a9a84e9e8969b0566204c6513e8b2589de290f4ac510af90e6cf38090a34",
+            "448b6f2862a04c40450fb279dee5c7753ffc67e358baecfe13804bc8173beac0",
+            "86497ae8f3c80cb5af4d6584f5f8f3430e842eb81a24a46810c80be0f5f705a6",
+            "065dfe53e3a27625b1ad99fe19bba38f88dd9bd1499d616486ecf994e709bbee",
+            "c7f85b8df8f77e6a663948595bf7b7ce7abdbd9b9858da747c36b55dfa13fdc8",
+            "ea6bbe266f3816c3fc7dae5b21978aea0222a4aff49ce58c8d27062b888235b9",
+            "6ee40c0573e95da19b4479b46a45be53e74f2530b92750586c6f7f9bfa008501",
+            "0a86b829039f506cd1eb50dbeb53584b9c333350b05b992ea845dc890477d45e",
+            "8d69938683dc3879a0cc1eac546fdfa9c1b52338728ac4d2223e2ecdbf80dccd",
+            "56ba43332b770e67dcf8df6df518a6daa17051e535acb1c886d6f82d622d4817",
+            "6b7a4e74371768c68e8fb400c139f8111365f554b8b7488b25039d4b4529ccae",
+            "1f37312d648b88631d3585fcafa693126289910b88d5ded5bc02c5264ad903b4",
+            "0584f77afd17e2b3968f4b2f462d8b34f9d294cd21bb78efb75261f102721ce7",
+            "df3a59509f18bb0773afd8ffbab39cddede8a964cf5d6bb292a1f180d6f91d29"
+          ],
+          "metrics": {
+            "retail_stock": {
+              "observed": 20,
+              "minimum": 12,
+              "median": 12.0,
+              "maximum": 12
+            },
+            "retail_backlog": {
+              "observed": 20,
+              "minimum": 0,
+              "median": 0.0,
+              "maximum": 0
+            },
+            "factory_order": {
+              "observed": 20,
+              "minimum": 0,
+              "median": 0.0,
+              "maximum": 0
+            },
+            "in_transit": {
+              "observed": 20,
+              "minimum": 29,
+              "median": 29.0,
+              "maximum": 29
+            },
+            "total_cost": {
+              "observed": 20,
+              "minimum": 3534.0,
+              "median": 3534.0,
+              "maximum": 3534.0
+            },
+            "factory_variance_ratio": {
+              "observed": 20,
+              "minimum": 57.15972222222223,
+              "median": 57.15972222222223,
+              "maximum": 57.15972222222223
+            }
+          }
+        },
+        {
+          "scenario": "shared",
+          "result_hashes_in_seed_order": [
+            "d6a3d4e144fac92038937e25befad79663084ecacaa2e7b3fc8b13262299d255",
+            "a655a8c1b9cce6bf69bd0e45aa22be40b81bfd3ef8e1f1e9d58a2c320da4cdc5",
+            "b355ef6d6174474d81d57895e036bf72e857756bda8deb55b2c8c30cc19bee18",
+            "ef4016b44bec6359b390dfe4c2748a0f26b83865ffd58f8b1d7e4f4a917822c7",
+            "9384939307f107ff7cbd37078d22b149652170d48ecb3c06394c7bdb0d1b7ff5",
+            "4962cf4ee879b6fd543cd737d67df07215aa44ac3b56c2fdc7e166771020a9c3",
+            "639d659a052bf69e37087efec68740244391c3e4c868dd8fccd11b7d18bc408d",
+            "c2b299540fd867578058a455bbeac09288cafd5de6d4160de64109de26eb4147",
+            "37921fc6f077cfc0c7db9e2a98902b9b2caaeaae4ce5f30b83a6113b5836164c",
+            "1967517646a4d46bf1ed0b5065c9944fc93a1961171299ecfbf3cc29722dbff4",
+            "d7ab0a3409c3785007f4e1d064067bbf0b7675722286e3b7dfe9d1914ff0b3e7",
+            "8d31e0388fb6f0e10f7aa5c16276b70bdb93f524e4fd9b22e655ff08685e6373",
+            "90cb1a34fedd60acae15aeff7a20b651786653600d6dba86eab439d2d9f5c55a",
+            "c56cec5c3adf19bcd8bfd10ad354a182db7f666e93bc10cd192931d7ae65c733",
+            "0205061653e1433f0ffac01439f1107606aa4b8d9a396b18b06bf06432c6fc4b",
+            "0098db4650df47555721c3ed8f95086ab0407f405f1d17580c76448262c168df",
+            "935652be5afd63013da30e6164deb675e6d0a4849733ecccb2e0ff0254856fa5",
+            "8fc23a68674f76981d1ecd70d6d3a62851126f5285929627522c6ef28fae22fd",
+            "e20e21736cc13ba688095b7f5142250a63cff04a3a1b3a0ebcbc1e62d85c0bca",
+            "58aae86ab27d4869c04bc500ef62ae78f33ffe012c645b4519472abb6ec66575"
+          ],
+          "metrics": {
+            "retail_stock": {
+              "observed": 20,
+              "minimum": 12,
+              "median": 12.0,
+              "maximum": 12
+            },
+            "retail_backlog": {
+              "observed": 20,
+              "minimum": 0,
+              "median": 0.0,
+              "maximum": 0
+            },
+            "factory_order": {
+              "observed": 20,
+              "minimum": 8,
+              "median": 8.0,
+              "maximum": 8
+            },
+            "in_transit": {
+              "observed": 20,
+              "minimum": 67,
+              "median": 67.0,
+              "maximum": 67
+            },
+            "total_cost": {
+              "observed": 20,
+              "minimum": 1392.0,
+              "median": 1392.0,
+              "maximum": 1392.0
+            },
+            "factory_variance_ratio": {
+              "observed": 20,
+              "minimum": 35.44748263888889,
+              "median": 35.44748263888889,
+              "maximum": 35.44748263888889
+            }
+          }
+        },
+        {
+          "scenario": "shorter",
+          "result_hashes_in_seed_order": [
+            "74aa25c7e405ea37372e44da5fd1577106e8eefc68d0a2df946501f9e828580c",
+            "a9351f447931068d6d74caf1f34a1c2d16c0e15d9a123fbb76beff1d80d2ca15",
+            "d6b5079a54ce54779598fc11497a5e2f46646e99103f85b1b252c07da2614baf",
+            "9c7e05d57df1a85ff96aa3c2743c6296011483f0f79d776acbb0a32517caec97",
+            "02141386983323b8c7d1a7ea13de30b53314baf64819707244ad83bf0171fd06",
+            "2c5b62dd7126b978ebdbe8c6cb1723fb5b05b552f46aac2c9a2ac4878872b5da",
+            "db434004cd38bafc8936fd44d0c31b163cb923485db7e95735f24eed69a1aa91",
+            "1491687f35cc69f4481b98c7f346ef324678ae00a6b0eb27d7647cce63697d51",
+            "11e4409243f008317beb091b1a4acfb28ba0482695f5c0b40f0c4e530fa7713f",
+            "95e084347c9e8672c015699883c99135b91279ae1517463f57b79e1f2fa640dc",
+            "8af2b87f4f09fdfc75c9582341f3c3906738c2dcc125d542a8015b8aef67a4c1",
+            "d1cc42f5ab67f64d4b0f9bde72846e52877aa103cb997730d9f65749ba4c9b14",
+            "c0f126a166f34fe3186e025994bcc5c0af7b2b6401b1a75b7ba396d922afa066",
+            "c3d2425ba8ded2b19aaad52fbdd521767322dfcc78cf8f3f4ba1fad958408875",
+            "3a55ba792b5ba83cecbdb0d0253be21d178b412ec0154c23c2952ee13a530874",
+            "c40b48ea51a4cd084943c957b4792443d2e71b9c0e7413f68cdb2d74aaf01039",
+            "7c1786613d0d7884a9fa8dcadbeef04487e8667154d640f65e422c830b2984fb",
+            "c48d8405b3780285052e05ffb40e3ce60d024d0fb870129a6e20fca6384c2357",
+            "bea52fbddbf5e980afaec3a79df1af2294f8836464d71004ef67c2f4818dd9ef",
+            "454f979f633e35f468635593e4213ce43669c792775247a02129cc80c866ee20"
+          ],
+          "metrics": {
+            "retail_stock": {
+              "observed": 20,
+              "minimum": 12,
+              "median": 12.0,
+              "maximum": 12
+            },
+            "retail_backlog": {
+              "observed": 20,
+              "minimum": 0,
+              "median": 0.0,
+              "maximum": 0
+            },
+            "factory_order": {
+              "observed": 20,
+              "minimum": 8,
+              "median": 8.0,
+              "maximum": 8
+            },
+            "in_transit": {
+              "observed": 20,
+              "minimum": 32,
+              "median": 32.0,
+              "maximum": 32
+            },
+            "total_cost": {
+              "observed": 20,
+              "minimum": 957.5,
+              "median": 957.5,
+              "maximum": 957.5
+            },
+            "factory_variance_ratio": {
+              "observed": 20,
+              "minimum": 16.70138888888889,
+              "median": 16.70138888888889,
+              "maximum": 16.70138888888889
+            }
+          }
+        },
+        {
+          "scenario": "track",
+          "result_hashes_in_seed_order": [
+            "ff10e6d5d48ef2f95f05ea6d918dd10c903d7b70de549b68b0bd039586c83e5c",
+            "edba2a0aa5d8728e58fb6caa7ee9d9ab44a77129b417545b9b95bd7312368622",
+            "91b048a82d468c17cd30d2f6e52658af52d26cf40c5a21f5f49d35c57ddd76ae",
+            "775ea3d8949d217d411a74789e3632dd78dbe9c2ff8a217252b8d6133418fa2a",
+            "d164ac104b6506e6fc688e042bfe52c9dc7b0c4dc2b3c25aa798dc555cd28bd3",
+            "b81434f7999feb38ee24a436d94d1836b10ad912e3ea56460796f596c03ecb9a",
+            "68d0cf269c38fe08cf6ca2faa05d4f5fea4eb71725ec7afbce6a6c005670d436",
+            "aa41493b134a876ddb20113745f9c48052fe1323254797e0d2d1d44ef48bc3d6",
+            "b4466e48ead24ecaa4f6ac416956b69637e52f6aaf7ffebc9c3d21f86ed7c5dd",
+            "eb05ae58c2c3dd0bc03b08531ef9a8778966234fc77da8304859a5c098ec58ac",
+            "9dc0fdb8ff75503b59df9a875be711946252f10d254e58190b205df0927866da",
+            "7bd5a26cba821cee090b4b829046b8fc04afda8d9b97a7e9d366976659b97088",
+            "5fa9275fc5ef71dceb3013ead32bf1f7b886e4a84aadc9e6b7eafb02b2e2cd99",
+            "094612761d1b622c3967188e0b7d948159e3143ebfcb0e63341c9bb7a961a4fd",
+            "f4e2b08e2c60c66becb9f4f8a73bd42be4c1994cd1f70798d48fd26f028ecbaf",
+            "50e8c3228169b92964256480dd9101e4f2c0dbc4ae693abcfebf888ff9a07b90",
+            "4f66d05bf04c7f0e899b493b3a737a0fe3adc1402211194ea8831447b1f20a07",
+            "73621cf506f26fe01a76e248b040044eb5d8abe89f9ba26354d3e29185a05175",
+            "de9415fde29064fd5c9f2d402248668ede1fc867dd5b785fc203455d132f9400",
+            "163cfc5bb832ecbd9c55735c764fd44766237d632dde8192905c27b69ed3dd91"
+          ],
+          "metrics": {
+            "retail_stock": {
+              "observed": 20,
+              "minimum": 12,
+              "median": 12.0,
+              "maximum": 12
+            },
+            "retail_backlog": {
+              "observed": 20,
+              "minimum": 0,
+              "median": 0.0,
+              "maximum": 0
+            },
+            "factory_order": {
+              "observed": 20,
+              "minimum": 8,
+              "median": 8.0,
+              "maximum": 8
+            },
+            "in_transit": {
+              "observed": 20,
+              "minimum": 64,
+              "median": 64.0,
+              "maximum": 64
+            },
+            "total_cost": {
+              "observed": 20,
+              "minimum": 939.0,
+              "median": 939.0,
+              "maximum": 939.0
+            },
+            "factory_variance_ratio": {
+              "observed": 20,
+              "minimum": 11.381944444444445,
+              "median": 11.381944444444445,
+              "maximum": 11.381944444444445
+            }
+          }
+        },
+        {
+          "scenario": "order_up_to",
+          "result_hashes_in_seed_order": [
+            "49792e0e066b85f68e4a407e67c9e6d625020f99b186681c266cfcc7075c49a5",
+            "0b6e7d4755ec2515ff0bf5de97e2473f07e06af031e312710c3c8914a268b39b",
+            "9ef54c7a1b891d6133618f661e28f62760cbddbb55c808d940c4d92f54eded16",
+            "0b11699e17149d2d02c2ccb3d1e6a914bd8c1fc951477f1d6fe942a9f61b1419",
+            "2c0898381ef4ee207fd91f255d1ada0d23dc4db0cb02b9a3c0a551511e9622d8",
+            "ba977495f433e31e66f37605b77765199e641762b0290f5dbb29d7d4a2d98540",
+            "3d013cb59172f2e9102a03f1c9fdeed9a949814cef0fb77ac01b55116b816b3f",
+            "6ececadffbf22bf7940d72cdc3372b8d1f52516726c6fca3dd91e0e067099e9d",
+            "59e532917945b576cfe51717420b1ccedca420fa2ff70e1e2c93e528cb582395",
+            "f3b04cf7f18ae1544c5cfce689bc58064a4533338785e813e02cc1a05b979bdc",
+            "8dbd50f97e0cfaab8b8c36f78ae4fa3d96ff55c896bcbc5a4aacd35ae5aa6ffe",
+            "6f67544a7742a62c81a67c9471a480fba36f2b3a788c56b3879f7898d6988abe",
+            "c59aa3bd85266b75d80251400d04ac93fb25bff5fafb3857cc6f4dc6339c466f",
+            "e60913459b38ea8ff9311b9c311f017d1ee28ac6aa5174fd5eac2467140c9b2b",
+            "f4a42a323c9ae716a055e1c8a03faf1df01d1ff47574dd2b871607d773b9f5e2",
+            "e452966cb8bcfcdc52c995af316e2b6eaddbd5966b807ee5cd47120ad7496b50",
+            "d78d5efa700f3487fd0c4050160248ea4b4f94bf50ed73870b229eedf5316c5e",
+            "1f5d1fe1aea8550acd34c31b352eb9368f7a2e4614c89828644966daabaac823",
+            "23b1fce524b1ab516ddaaa484bd3741264f0f5977c97a9500e8e1e6e2693d70d",
+            "b53c798d49ff5070d82b0d2021185b5e91419941173d7fb25b992e59e5f31556"
+          ],
+          "metrics": {
+            "retail_stock": {
+              "observed": 20,
+              "minimum": 12,
+              "median": 12.0,
+              "maximum": 12
+            },
+            "retail_backlog": {
+              "observed": 20,
+              "minimum": 0,
+              "median": 0.0,
+              "maximum": 0
+            },
+            "factory_order": {
+              "observed": 20,
+              "minimum": 8,
+              "median": 8.0,
+              "maximum": 8
+            },
+            "in_transit": {
+              "observed": 20,
+              "minimum": 64,
+              "median": 64.0,
+              "maximum": 64
+            },
+            "total_cost": {
+              "observed": 20,
+              "minimum": 1062.0,
+              "median": 1062.0,
+              "maximum": 1062.0
+            },
+            "factory_variance_ratio": {
+              "observed": 20,
+              "minimum": 17.07638888888889,
+              "median": 17.07638888888889,
+              "maximum": 17.07638888888889
+            }
+          }
+        }
+      ]
+    },
+    "carbon_market": {
+      "case_version": "1.0.0",
+      "seeds": [
+        2005,
+        2006,
+        2007,
+        2008,
+        2009,
+        2010,
+        2011,
+        2012,
+        2013,
+        2014,
+        2015,
+        2016,
+        2017,
+        2018,
+        2019,
+        2020,
+        2021,
+        2022,
+        2023,
+        2024
+      ],
+      "scenarios": [
+        {
+          "scenario": "baseline",
+          "result_hashes_in_seed_order": [
+            "ae68696513cb4742c04fc052c88d5d919f222d8063354a99839bbbfe80d98e33",
+            "52b39d83800f7876b6c1221cf0478b06d5a32438789ac9e895ce4897e257b835",
+            "96b50d05c2de3b4d58f3323e30db49cd0577be925a9bacaa41386c0b16e0fbfb",
+            "1f1fe6986675a92cfedddf0adbfd9fe0d4501b6bcf32e548f1114d28ca77e0a4",
+            "fa70a1442ebfab3a717bc4e31b606b7e6973dc443d3c865a6b757256973c5f87",
+            "e1fa26bd28792fe7bf2801fac54535f5a36a1060bddf6d4eb4d1f7ca2fcb4014",
+            "4e30de04fe0ac89dbf6e3b4a12623f572376b61dd809570fdf322b09873c23ba",
+            "9ebd7c08e1fb90622d4bf617794f84de66b728c4633defa3ea7cb0320e3a8476",
+            "0b8825201bda5f71643657394d1002d5061d80df28ef2e14628f1002692e7d22",
+            "7a920070d0f3c7eac3fb176dcd71626deeb3001c458c99b957a0b45a1ab1c7da",
+            "f9c99fd59be61427cc818f065894ded968cf9530d74103c02ab703c70e4aa7fa",
+            "1d3abb74bd9bc1ab6e27e629da3da68395d6030d684c005feb4b6ae2cd601523",
+            "1a0ea96fd4efcb5a7d3b0dae124fc584a4480e2e12e91fdd0901c4087a6f1e8e",
+            "a37a9b0042b2485d4a463dc3207120af7df1f5d0c17045bda36836c9895b67cf",
+            "dfff31cd063cccd3c758dea397b022ebd1e7066cc41ce51ffe6d0d9629686cae",
+            "5194c85de7525a297a17f8c957f222a376c0d860b825ae08c02aacdda56d79d0",
+            "26ec239dadac89d4706cfa2cf0145c85f1c2602d74389b4f7c65f30742b223f4",
+            "06308e00a4e114bac255b2253bd2f08934ea72931509d55bb222b647793276ad",
+            "c3c4852052d2daaae1968d3e111e56e1daf0a9042528c7894af8b715cac23390",
+            "eab26fa371a1756e2e923d29a456dd565f62a379e2ac75e913edc513360e0980"
+          ],
+          "metrics": {
+            "cap": {
+              "observed": 20,
+              "minimum": 88,
+              "median": 88.0,
+              "maximum": 88
+            },
+            "planned_emissions": {
+              "observed": 20,
+              "minimum": 88,
+              "median": 88.0,
+              "maximum": 88
+            },
+            "abatement_cost": {
+              "observed": 20,
+              "minimum": 1151.5,
+              "median": 1573.5,
+              "maximum": 2956.0
+            },
+            "price": {
+              "observed": 20,
+              "minimum": 45.0,
+              "median": 52.0,
+              "maximum": 75.0
+            },
+            "permits_moved": {
+              "observed": 20,
+              "minimum": 6,
+              "median": 12.0,
+              "maximum": 19
+            },
+            "surrendered": {
+              "observed": 20,
+              "minimum": 88,
+              "median": 88.0,
+              "maximum": 88
+            }
+          }
+        },
+        {
+          "scenario": "uniform",
+          "result_hashes_in_seed_order": [
+            "3589b445f4e42f6b88e51b4b516a7203c0ac3e9beb1f4151d41060da58931e2a",
+            "4b4afe0b205bad1b1f99132481c00a4f45fe8b0ffc19ae9038116d7b940f494e",
+            "02b18bd31364fe1a596caa3023a3e69ba8279ce3f1b2e91e3873b10a643d0097",
+            "deb4c54a2a77d40d839af38fb11f70dc16b467eb7d36aa183d9ad4c5d6e51e45",
+            "c299a0fc3cf449e0a3b55a15ef561645ac2fd7b7ba30e3cb8916b359f314b504",
+            "ead39e11673b0530671236f466aeef9db7ebafb33601eb1250c9771020b30f8d",
+            "61ce866498e593b9711cdec7933f54fc6cc0ca078acf9e71498b865b7a131223",
+            "e89c32d19d44eed5178c31c392d7e2d11d0a3be3544f1a814e1079010c023d93",
+            "e139b29fd83aa1d4c62c70c350a2b3c4e55632ffaca19ca1c484e4184d3f05c2",
+            "2d0cf33ac9dfb0ac329a6f7980a4d824016704311886e9ac2bb098992e7c02ce",
+            "ff04b95b1187f56d15ae2ddbff742aefb600380b91707a1427516e1e763fa43a",
+            "bbb084d4d0f7c173dc4368681f4a71e4e62bdd0293a419fa69ffe57337e3ff62",
+            "dbf89c17610accc95766d0e3400fd41e020dafa304012d2c985f1848e75bee78",
+            "c2f39140a2fb627e92f31ed71be1e025b50abd3f103583af5160411ef3133a0f",
+            "d98b58c042954deebf5dfa3551be8d1e0aef4e3acba2305d038c9a6d98bc02d1",
+            "1a37df00a6b195e1aa95343452e30ca99f9dc6b00bac93ea38ed58880396ead1",
+            "5a0d57aeee4f6acc6fde9cf7aa5042872751d95d3c1b7668f1df52b1dcfc042e",
+            "b0368051ed03eab8e83b0faded6b435896cbf71fe3e948c9dd1851eb84c614cb",
+            "7ef26d708d76222ee41ecf2602a82478450fe5e5c7d4fed821bca40318c8d22e",
+            "122140ce18a01cc2449a600178aa8e8db6318a333eb9efdacfe7e15d3b6962cf"
+          ],
+          "metrics": {
+            "cap": {
+              "observed": 20,
+              "minimum": 88,
+              "median": 88.0,
+              "maximum": 88
+            },
+            "planned_emissions": {
+              "observed": 20,
+              "minimum": 88,
+              "median": 88.0,
+              "maximum": 88
+            },
+            "abatement_cost": {
+              "observed": 20,
+              "minimum": 1309.5,
+              "median": 1827.5,
+              "maximum": 3366.5
+            },
+            "price": {
+              "observed": 0,
+              "minimum": null,
+              "median": null,
+              "maximum": null
+            },
+            "permits_moved": {
+              "observed": 20,
+              "minimum": 3,
+              "median": 3.0,
+              "maximum": 4
+            },
+            "surrendered": {
+              "observed": 20,
+              "minimum": 88,
+              "median": 88.0,
+              "maximum": 88
+            }
+          }
+        },
+        {
+          "scenario": "redistribute",
+          "result_hashes_in_seed_order": [
+            "efd13dea243ebdf25a79afbc56171185ba90fd2feae49c92cce9cf317aa62f53",
+            "44ce445bc649f8cdf6bb0dea4f3a125cd35bba3a7348b9e5ceaf53f322f247f1",
+            "a8744597e27fb1a882bd062afeef8f25d3d11f660e67bc148d6013d8f25d321b",
+            "995db37fa0b356295d412fd417f3a46692695f229d364a89ae6ed92718eaa4dd",
+            "b6f31623fa8b9699cd26048234cadef967efeded8c30132419f3b357a4c1b83b",
+            "10718f5ee7c5900ccca092d52ee3fb1c30548168dce5ec510c9c05bd2c2fe5c7",
+            "20ef6c0e0f54270e540a8917cf37f8bbee460154e39e389a2da63410956eb66c",
+            "5d2c9a95bef0cdc57a0c0376e25e22e369178d6a8543f079ec2db5d7119f361a",
+            "7c45145e6c60fe7c8b329c2f95c99e5820c977ac2453a43c74a51660e3d9c7cc",
+            "60642a56585d5105c94fcf61fcf0a991778bce4f89495fa45aa89c527b5dcc03",
+            "f3b54ebfd9a289dde053dbae5c07f9763abd2041b19157f302bc28bca3648cd8",
+            "e0872cebc83080cde799ab8f869263bd7fba0b4d5ff831e292fb5512c1632598",
+            "51e6551f9d32510374c3460ab15dc7af3333ba178582910bf687c03242434672",
+            "3367992226c82163acc54643d5d3801536bedfa96fb3c0414c2cf394563235ef",
+            "70633d4d42c7892f26f46019e8a55d1e5331d684466204a20abe851e2aafafcb",
+            "c7f9247e172889b03e0c5a2363dcc63933c682359fe27f62b8baf8c809182a82",
+            "0b2dc60683df2fbc0083ca6616c5aadfda2fb01207d2960f07a3e1bb7e53b8d0",
+            "82a87055f6317527a4bbebbf40d1a00a9b4cb4382d37963d56d491db75ac6e98",
+            "abaebb7f8555008a036842057cc0d7246b80e6f347bd7a3570e7fa08d75b07d2",
+            "4d6849fc18b61843d4cc12fa4dda25f9763727b838cc45eb88aea2d2d56f7c5e"
+          ],
+          "metrics": {
+            "cap": {
+              "observed": 20,
+              "minimum": 88,
+              "median": 88.0,
+              "maximum": 88
+            },
+            "planned_emissions": {
+              "observed": 20,
+              "minimum": 88,
+              "median": 88.0,
+              "maximum": 88
+            },
+            "abatement_cost": {
+              "observed": 20,
+              "minimum": 1151.5,
+              "median": 1573.5,
+              "maximum": 2956.0
+            },
+            "price": {
+              "observed": 20,
+              "minimum": 45.0,
+              "median": 52.0,
+              "maximum": 75.0
+            },
+            "permits_moved": {
+              "observed": 20,
+              "minimum": 8,
+              "median": 13.0,
+              "maximum": 17
+            },
+            "surrendered": {
+              "observed": 20,
+              "minimum": 88,
+              "median": 88.0,
+              "maximum": 88
+            }
+          }
+        },
+        {
+          "scenario": "tighten",
+          "result_hashes_in_seed_order": [
+            "957991bbe22cf31bb8826918dbb75c11c4e6c8a3e2e8a5fc4082a1b1baace138",
+            "9fc2acc83a333eb6966c09530285c4d94b685f0bc31f5ecbf7261b1287ba1296",
+            "c53297550f3e55d21ca74c265a266cf4cb371562cd1551638075943f02d5f4f9",
+            "e25e059ea7762f150a49b8447ffa1b49f6c61fa5b587956813870506ba7ebc4c",
+            "ef052f2e4e2a0c3e665adbab3c4eee4054c3eb20ac54e05edc99dded5746c7b7",
+            "ed0f94e84582b1f887399a3b29e39c18845edc278b657c21fe62926ecf800b4f",
+            "eb00c0c0508bbad05fcd94d650c2db493a19c34484694eca3c77dc6029ad187f",
+            "62926abdd86b3bbbe9fb94638e150a5add41120c6d8526c27861afeb83726e1a",
+            "418b5bf3418c55c8e6c8d52b26ffbeba7e4a026b820c5cb2904e1e62b8f230f8",
+            "9a0871db4def085330e73c6fb34ef21939683c237b0f0c8b615e5a520a01a6c5",
+            "60524e43a4f8445414cc557069c756b6508e111d81fe34597eac5e51b88a2a14",
+            "ad9141af01e3184c3271800a437670429e64d5a43d59270440c23393394e0b87",
+            "82e0e4f0a462772cf3b31f6cbd640855dc9697b5e437c0ee81a6675d8af6d61b",
+            "e88a095725badb1c6d47dc0b8c0fb7544e9098a2bbd1405fe40df4013a228549",
+            "36a7ed96b57060de8842a14cf67fcae057039b99de32e4c8d36676043b260e4a",
+            "8be9264a70a72ed7f37909891a98fe3f479cd76dbc688afca05842a3c25c13b6",
+            "2e61b15da4f3d155d61177a3a3c425adfb401010f4fc789863c5d79550b6e628",
+            "65af4b48c65279c75a73806bacd7bc66e234e4399a6a2dbbc0c55a914be6a2ab",
+            "935fc3d6ead1fcd2a45be38622bd0e8dbda6ce6f411c6f85ee41fe49d2dac387",
+            "aa17e19f8046fa8b52a3c2ccae74c343c73dbd4b8ae680bbc116828039b916fa"
+          ],
+          "metrics": {
+            "cap": {
+              "observed": 20,
+              "minimum": 56,
+              "median": 56.0,
+              "maximum": 56
+            },
+            "planned_emissions": {
+              "observed": 20,
+              "minimum": 56,
+              "median": 56.0,
+              "maximum": 56
+            },
+            "abatement_cost": {
+              "observed": 20,
+              "minimum": 3059.5,
+              "median": 3698.5,
+              "maximum": 5935.0
+            },
+            "price": {
+              "observed": 20,
+              "minimum": 72.5,
+              "median": 85.0,
+              "maximum": 114.0
+            },
+            "permits_moved": {
+              "observed": 20,
+              "minimum": 9,
+              "median": 15.5,
+              "maximum": 22
+            },
+            "surrendered": {
+              "observed": 20,
+              "minimum": 56,
+              "median": 56.0,
+              "maximum": 56
+            }
+          }
+        }
+      ]
+    },
+    "flash_crash": {
+      "case_version": "1.0.0",
+      "seeds": [
+        20100506,
+        20100507,
+        20100508,
+        20100509,
+        20100510,
+        20100511,
+        20100512,
+        20100513,
+        20100514,
+        20100515,
+        20100516,
+        20100517,
+        20100518,
+        20100519,
+        20100520,
+        20100521,
+        20100522,
+        20100523,
+        20100524,
+        20100525
+      ],
+      "scenarios": [
+        {
+          "scenario": "baseline",
+          "result_hashes_in_seed_order": [
+            "ef83a4a3ccbf1ff19884416233af95daf0e7a7ca6af5c8d194563910354092c0",
+            "68db8608aa30edeaf8b91838dbff1e22135bc5a1d87adb268c98f94fec909fa3",
+            "e6c16c5ed171d5c832a2cad356f8a1fc443abbfba57ebb808e39c93e6304f72f",
+            "89a58b5672752e1c2e35f084254e42f0d933fcc952db6ffbcc2a8fa6bd196a38",
+            "c3f862f9c9a4b2c73fa68ee37d3ca32e12ceaf73883d06c5a3539c0b6f7a5b4d",
+            "bab255caa5af507366d365f2a380a2d6099269759c5f7bb8da9bfa72718a6b7c",
+            "d2550e6698533f67f39bcd47c81d67af31aa4e33abadf7d2d3f792f514a0f861",
+            "04b064598a8bd9c9c67bf43774fb98df742c17d01eae8bed26fb929346594843",
+            "f730aa67ef619805e5876533ab615242e5f9063831f5da6263385dcfe2373191",
+            "a3faaaab00d27f1c4430337f7626263999536642491be9d56cbaf57b9ece3903",
+            "a049cc804651042ebd81823631dd66999783898963b75bef9d33286875b2b664",
+            "e8e802e0377a0d827b8ec9ddce809be86365080dd3bf7a62c32f2d3abe8be16f",
+            "5a18fe1c649e34625080690d2a79fe57d15cdf8e15dae0fd79429e6145575223",
+            "d93f7974ae9baa468d32d92b38b22ae8dce92e3c214b83030b5430f76c6f1d8a",
+            "95136cd6045d00f1ffcab81838c0d27ecf13d3796ed53836290fae4893cf44b4",
+            "4fac0b676143f2031a3c4344dba717da4741b7f2edf2620a9609b3c23b989fb2",
+            "1ace14df267f08139624812116b2a506eae62c9d7e0c4fa68973c54e38fb3dbb",
+            "d437d036d6a0a8ed5cff83158ba27a3c09bc847579d2d0a620dcc741278acd41",
+            "8b55f1bd0780c173417cfe95a25bb183d9ded8f0a2709c7da9ddb0c22e82c1c8",
+            "e9b50ea34c99e09487759a9e9f04256ee78bb73e2ccb7d7e1a023ece601e3660"
+          ],
+          "metrics": {
+            "last_price": {
+              "observed": 20,
+              "minimum": 9.82,
+              "median": 9.82,
+              "maximum": 9.82
+            },
+            "low_price": {
+              "observed": 20,
+              "minimum": 8.79,
+              "median": 8.79,
+              "maximum": 8.79
+            },
+            "high_price": {
+              "observed": 20,
+              "minimum": 10.02,
+              "median": 10.02,
+              "maximum": 10.02
+            },
+            "volume": {
+              "observed": 20,
+              "minimum": 193,
+              "median": 198.0,
+              "maximum": 213
+            },
+            "bid_depth": {
+              "observed": 20,
+              "minimum": 18,
+              "median": 18.0,
+              "maximum": 18
+            },
+            "ask_depth": {
+              "observed": 20,
+              "minimum": 67,
+              "median": 67.0,
+              "maximum": 67
+            },
+            "spread": {
+              "observed": 20,
+              "minimum": 0.2,
+              "median": 0.2,
+              "maximum": 0.2
+            },
+            "program_filled": {
+              "observed": 20,
+              "minimum": 190,
+              "median": 195.0,
+              "maximum": 210
+            },
+            "program_queued": {
+              "observed": 20,
+              "minimum": 0,
+              "median": 0.0,
+              "maximum": 0
+            }
+          }
+        },
+        {
+          "scenario": "deeper",
+          "result_hashes_in_seed_order": [
+            "fab553b631c4e7736db1328b065d8866c250091674b8b70967c11e1cb6ecb50e",
+            "04fcd78a053b00fcb0f1dd66c61067385ff0bdcb59393f55e16e4f2a8e6be20c",
+            "e37d7aff7407c52b8b383d78ac38f9fd329a785b14c88747629e806fef6d7a2e",
+            "a6a2c2050010e3af87d1c09d8eac3b73ef95ba9da195eea4b87c9a8cb6289576",
+            "3a414b813b210fb8bbfeebf8894746b3992e1801bb3c64fe246c25f4acecd616",
+            "b130adb5e00bf0e1e611f9a8a4117051a6b8067eaedabef94bca0fde3978faac",
+            "6b4c4cd6a7dc9d12b8f5372b3439e8c86f2fde0257e7ee907c20a78aaac94c78",
+            "50d4a90a60a99d0bac3139757dd5816079d0bd2d194edd044c8e62905458e4b7",
+            "8b8dfb5c8ee17afde9438c098bd56834c9e7d081ed410580799edcfe3a3cb797",
+            "685aeba89800635fef6184ac55aa5c24124efd46ebb0222b23954b9b66fb6738",
+            "83bae3937d97f9d0773cc1da6c00236e2dd61473c3461d0c1a0448db389c4e37",
+            "cff06da4a563b843971806988474c8f24d49cc3ccbeea9c414b27895d09bf635",
+            "bfd1fc91c816c21973a3753ae28f457c0f321d754ad7d6f7cd00bae5e2e40e6b",
+            "6023c0d4f6c79216d1a72e76d8373b7344a61b643a4636f5fc9dbfb427d3e05d",
+            "c51286e88251493389c70a4c435033f753b9d85ba8ca233cc87146015af7a8ed",
+            "c2c139166026b44afbc460b160c3deabb1459273713b6ba47f5e89f2d4067bf2",
+            "ac6c7c2e144484e78dc40a7d2cf9c541aca2a37b42cc709565f77a44a94237c1",
+            "ab778919433135cf09f2812957b6cd9fdd1c6dc48b0259213e27f1df7d7fa040",
+            "62db554a1f1559c61b45c4e140bacd0baa86fecfbc42289bfb904ad76100558e",
+            "71e5f162e91cc8009046030d5866d44a7c25eb1da1ea94d3e81e21ea57332c3b"
+          ],
+          "metrics": {
+            "last_price": {
+              "observed": 20,
+              "minimum": 9.82,
+              "median": 9.82,
+              "maximum": 9.82
+            },
+            "low_price": {
+              "observed": 20,
+              "minimum": 8.79,
+              "median": 8.79,
+              "maximum": 8.79
+            },
+            "high_price": {
+              "observed": 20,
+              "minimum": 10.02,
+              "median": 10.02,
+              "maximum": 10.02
+            },
+            "volume": {
+              "observed": 20,
+              "minimum": 212,
+              "median": 219.0,
+              "maximum": 228
+            },
+            "bid_depth": {
+              "observed": 20,
+              "minimum": 18,
+              "median": 18.0,
+              "maximum": 18
+            },
+            "ask_depth": {
+              "observed": 20,
+              "minimum": 67,
+              "median": 67.0,
+              "maximum": 67
+            },
+            "spread": {
+              "observed": 20,
+              "minimum": 0.2,
+              "median": 0.2,
+              "maximum": 0.2
+            },
+            "program_filled": {
+              "observed": 20,
+              "minimum": 209,
+              "median": 216.0,
+              "maximum": 225
+            },
+            "program_queued": {
+              "observed": 20,
+              "minimum": 0,
+              "median": 0.0,
+              "maximum": 0
+            }
+          }
+        },
+        {
+          "scenario": "no_withdrawal",
+          "result_hashes_in_seed_order": [
+            "8d69cba5b113aba0bad7d161cf0197e0fbddaacd786174ac31f4128fa69035a7",
+            "e4ae9ab57dd140cd2fafeb776c8aa1c0dfffc0f4701ec5b9e8d06aea24fe5ab3",
+            "2e6c98068563cd2e4ac6c907dd644e56c94ee6ec7ccd04e1dcf20caf98a6fe7a",
+            "294447d69218e951d25494018502399711200d51515207ae171493f63e07651b",
+            "779c83532599377e38e5d40456db96af48c6d6568742082014df783aa4f2e912",
+            "2a4be0c3187a33cb0def82409f290e86e5ba7cff50b2f76a8b06b0da0bb8b2bc",
+            "4333d1fd9a5eef317576509667e12a5700411d2e424854f1d3ba3c4843edb002",
+            "4437b4d6033bb9f4fb894102e768643064ad18612050e92b71039b4b5c38b45e",
+            "8ac6fa27dd1445cddd410733e59c860d0095d3c117b086b3ed7d58f1ec225bc5",
+            "8ec89d4798cf3a1783f9cc1ac5946a784d979581a898d069018aea61a5b58b51",
+            "ab5cb20ba4fa078da67793eaae6b1c0ed7cf59b21c2fc5087a800e406132a880",
+            "959424bb2adc16f1454780d0a728d51769e098609530c4222f37f77a7be252bf",
+            "385e678fc944871ef24bc719e3b04dc425fa3c69650d675c63d878ae7581076b",
+            "1efa6ef66213ece3f6c8fe2ee59cd2aa30ef7e209b8a0736895a91e1f79d3e6b",
+            "2b12967bccc7094b7d14ae2096626088300e7ae13d8266f43371f423a57501ab",
+            "2bf80f5fe8bb45f71c9c2859d133b529e8fc6e4face95fc4659c5381ca838f30",
+            "2969ccb94aecf4c6324561dc394a41cc0e90b844f6b2f67e461e6e479df595c3",
+            "816bb465f4b957143538db947c0288c494a06ee754aa697ce5bc3ba87a5b5b8d",
+            "0e4f8a8b7e6abc1739b0805ca1e6e58e4acac63d68cc50ebd219d5372d96a04c",
+            "64e89802ed31e1cdaf6f9d97f390ccb6af37e4c66a7d3ba7714bbddf194d86a1"
+          ],
+          "metrics": {
+            "last_price": {
+              "observed": 20,
+              "minimum": 9.82,
+              "median": 9.82,
+              "maximum": 9.82
+            },
+            "low_price": {
+              "observed": 20,
+              "minimum": 8.79,
+              "median": 8.84,
+              "maximum": 8.89
+            },
+            "high_price": {
+              "observed": 20,
+              "minimum": 10.02,
+              "median": 10.02,
+              "maximum": 10.02
+            },
+            "volume": {
+              "observed": 20,
+              "minimum": 269,
+              "median": 279.0,
+              "maximum": 285
+            },
+            "bid_depth": {
+              "observed": 20,
+              "minimum": 18,
+              "median": 24.0,
+              "maximum": 34
+            },
+            "ask_depth": {
+              "observed": 20,
+              "minimum": 67,
+              "median": 67.0,
+              "maximum": 67
+            },
+            "spread": {
+              "observed": 20,
+              "minimum": 0.2,
+              "median": 0.2,
+              "maximum": 0.2
+            },
+            "program_filled": {
+              "observed": 20,
+              "minimum": 266,
+              "median": 276.0,
+              "maximum": 282
+            },
+            "program_queued": {
+              "observed": 20,
+              "minimum": 0,
+              "median": 0.0,
+              "maximum": 0
+            }
+          }
+        },
+        {
+          "scenario": "pause",
+          "result_hashes_in_seed_order": [
+            "2001ce7494f44eeb4fb749b94c8763ff78e027cec55f590e58d275e9d6938401",
+            "1b380d9dd144a7d93c08c7dcb7580566900f15e701515d22f52f4ef7f33779d8",
+            "e7ed18f324ef4ff727286eddc71ab7f2315ac94b6bf24fe2ed8c1f610292ea9d",
+            "73b5dc4b9fc1b1f98ae0c55474cd0caeaabc62898291644604c077f8cef43e16",
+            "7a786d8cc0e221d8d75964b962e096f8907525e758dab53ccf071d96d36a146f",
+            "9eb3b83e41184c545bdd523aa03c89532033ed4c12664b1cf1d5c66405793723",
+            "bd503d0b30931bf717a58806cffd1d7da53553d93a3b03591bd7ec116ce8778f",
+            "38cddc7c2af0379f763b7aa7df2cdfc9489e86483739909ff95cb5c395972cb5",
+            "baf31191d8cc5f87e738b60e18f5413d3e852fde2d19e594da15b1bfc27e5622",
+            "47bfa7d7e56ffac81f19ac563fd8d093a2555fe9835757583847e34997fbc510",
+            "280550c69b650081e15a4458ce98078e56d86347c7360468c60bee706da617cd",
+            "44d0f2838fc7cf52f10bd8098a05c5ffb6c45950d6e27a0538d7c57dc4034121",
+            "a08076673c06a1ed3ca6c00dbd76686707c809d17748d247d741ac38872d99e7",
+            "54f7bf34e8c87fc94217eb113cf0bff5430f5779a6dfda5c09239baa3c66c49b",
+            "eefc5709669b0e4123c26d7ecfb1ecb996ba35903c299197ea19ecf51465c402",
+            "ce1d1adfbbfaf331fe063031d7efb54249037d12498376301c665e3fccb25680",
+            "51d20898fc68aca6598602ef5746283f5fd3f98a7d7925780e59bf377c8b0532",
+            "48b6ae94a384946ed76f82798519494d21bc7358c5114b702326664c69232fe1",
+            "c6c3f2ced985bf7b9bcadb6ab6b547aea0d8fb434db67afa4355e0889566b33e",
+            "465dfe5d7082a5f1c3b2570c73d0118cb3b633a1776cf4182c08eb9fce4a359a"
+          ],
+          "metrics": {
+            "last_price": {
+              "observed": 20,
+              "minimum": 9.82,
+              "median": 9.82,
+              "maximum": 9.82
+            },
+            "low_price": {
+              "observed": 20,
+              "minimum": 8.79,
+              "median": 8.79,
+              "maximum": 8.79
+            },
+            "high_price": {
+              "observed": 20,
+              "minimum": 10.02,
+              "median": 10.02,
+              "maximum": 10.02
+            },
+            "volume": {
+              "observed": 20,
+              "minimum": 193,
+              "median": 198.0,
+              "maximum": 213
+            },
+            "bid_depth": {
+              "observed": 20,
+              "minimum": 18,
+              "median": 18.0,
+              "maximum": 18
+            },
+            "ask_depth": {
+              "observed": 20,
+              "minimum": 67,
+              "median": 67.0,
+              "maximum": 67
+            },
+            "spread": {
+              "observed": 20,
+              "minimum": 0.2,
+              "median": 0.2,
+              "maximum": 0.2
+            },
+            "program_filled": {
+              "observed": 20,
+              "minimum": 190,
+              "median": 195.0,
+              "maximum": 210
+            },
+            "program_queued": {
+              "observed": 20,
+              "minimum": 0,
+              "median": 0.0,
+              "maximum": 0
+            }
+          }
+        }
+      ]
+    },
+    "gamestop": {
+      "case_version": "1.0.0",
+      "seeds": [
+        202101,
+        202102,
+        202103,
+        202104,
+        202105,
+        202106,
+        202107,
+        202108,
+        202109,
+        202110,
+        202111,
+        202112,
+        202113,
+        202114,
+        202115,
+        202116,
+        202117,
+        202118,
+        202119,
+        202120
+      ],
+      "scenarios": [
+        {
+          "scenario": "baseline",
+          "result_hashes_in_seed_order": [
+            "22e4dbd186c23d4cf5e19451b6d280d2b01f3765604e30abf623ff746a5f5bc5",
+            "7c3e8fa4b5c74a743724639c054ab21a6326d3523ffed333b6307d0538d3f4a8",
+            "663a9d9734ab18917ea0bcd2b298485f699a7b8f494b61129606974672ffbd6b",
+            "fe4dbcf90ea2e0f3b1e83a8916db302f292f993472731b2387d6d5ddfb297532",
+            "29b9b8bac6af6deab10f2e988c9c459d151964659c75b0f7c56055b540958823",
+            "0d21ace777e25c949baedc5e0c070aee0aa2e4a1cc700155fa67e98b16599488",
+            "305585ca66249224838085b476f938117955020f9a5b2915b3292235bd64d0cc",
+            "3012e8c70d9cbbd015edc904b1258178a6d94ef88bfc5e05d2016ec97494b62c",
+            "c55e1b7382f0ce4ffea8ee298682ed314c925915692aadc297886c73cce196c6",
+            "4b43954133cc1ae5969ef06bb05845d4ac9f4e5b82ebf10636c53d061e7f4338",
+            "40850027116813d22584f5ee1cd9e9f8e0923408390851068cd1c19db32e7e21",
+            "befe24cb09c2896c1ba665db53d5afbc52b6842007fcb727fa5ab00786d1601c",
+            "76efa8782fddb7c1cd5f07321839350bebfe74fc58d115d59acbd3d5f431cef9",
+            "f5ca9210127818027e6c35fcb3d9ab9dca26498a164d0866fe49aaacf590aca8",
+            "48bbc68508dd1622e414a3594dea17f537ee42a953146eb702dfe7c1fed6de93",
+            "5795bf2dfad09572081ec8653d1e71bf329336b6e66dc9834060d60b3679eb57",
+            "2993973e0e70be743431dbd70496a0403c809da486b57ddd2ab70faec21dd899",
+            "e17b1af51982f81e408d4584492e87c88cd26d61026d395c304e85ba5bd0d149",
+            "b79146d405018e4ec3069e9c971c709422e1984fb82cf6a8c98f6c09ef28d891",
+            "2b9e526dce69fdce378dd1a240c85d4652708ccfbafb8074b6c9514f6df61802"
+          ],
+          "metrics": {
+            "last_price": {
+              "observed": 20,
+              "minimum": 17.8,
+              "median": 17.8,
+              "maximum": 17.8
+            },
+            "low_price": {
+              "observed": 20,
+              "minimum": 9.95,
+              "median": 9.95,
+              "maximum": 9.95
+            },
+            "high_price": {
+              "observed": 20,
+              "minimum": 17.8,
+              "median": 17.8,
+              "maximum": 17.8
+            },
+            "volume": {
+              "observed": 20,
+              "minimum": 50,
+              "median": 50.0,
+              "maximum": 50
+            },
+            "bid_depth": {
+              "observed": 20,
+              "minimum": 22,
+              "median": 22.0,
+              "maximum": 22
+            },
+            "ask_depth": {
+              "observed": 20,
+              "minimum": 0,
+              "median": 0.0,
+              "maximum": 0
+            },
+            "spread": {
+              "observed": 0,
+              "minimum": null,
+              "median": null,
+              "maximum": null
+            },
+            "short_interest": {
+              "observed": 20,
+              "minimum": 8,
+              "median": 8.0,
+              "maximum": 8
+            },
+            "forced_cover": {
+              "observed": 20,
+              "minimum": 2,
+              "median": 2.0,
+              "maximum": 2
+            },
+            "discretionary_buys": {
+              "observed": 20,
+              "minimum": 38,
+              "median": 38.0,
+              "maximum": 38
+            },
+            "social_buys": {
+              "observed": 20,
+              "minimum": 18,
+              "median": 18.0,
+              "maximum": 18
+            },
+            "reach": {
+              "observed": 20,
+              "minimum": 5,
+              "median": 5.0,
+              "maximum": 5
+            }
+          }
+        },
+        {
+          "scenario": "no_social",
+          "result_hashes_in_seed_order": [
+            "c22a5a6fc323705c248fe8a037a03ff4d95ec3c2b0c3ac6e7c763c5f48e75ac0",
+            "ec1aba3c0f3356fde5f59654b0d9f20ce02548532c31ee79277aacb7d6402f22",
+            "287c5c67693c27844876f3b4fa735fa964e0b228565ace21c8adf8edcbbf4163",
+            "3cc64d8f5efd9946813234a781cc86a6dad0ded41fba08291e46dfb12c56d5ce",
+            "4421df91a6887159e88eb95a3757e04f0cbf007a77b07601a04f5ab19c77187e",
+            "ab0b133ff9846e9e43553c1ecf24b55b674a809293137cbe25523fff5b21df2d",
+            "84c776cba313dd50863dd426c501d66bfaf0b8ba714510d1e5976c333a5518be",
+            "cd42276e1cecbee4e10080925120bd07aee3bf973c9b7fe53a9ab32ba7812cf5",
+            "dd23224cee45cacfbc5a82d78fe5f276a5830f9e5392215af0604dc6671dd5ce",
+            "b1ccce2b1b7f33e799b9f0a236451eacbcebd5eb8c1597d301bc3fa3f341ca83",
+            "c7d7e213404fc3ab295c9311914056cdb52171098f76366aa45d69b8b6aff411",
+            "da8d787c61e022fb7f1381b4bc38ed65f790010768e4d2c8b08fc9844728eaf9",
+            "d0ff420f0481d9b39a0cad7719960a19af14070006cec2176443299a1488d9ff",
+            "30fb5b7ec437ca8a002496d9678ea4f6f2bc605fd9c86ffd146117ae980f0bb7",
+            "62b68454af17338140bd89f950bbb56aec5248c7d6446d9ad0dd75f0cedf323a",
+            "30c5c2c5a60fd18af9f50026f56463ba63145f65ec2451ace7bb2f69d42b40dc",
+            "239ad761c0f013c6938f403e77cad4c2e11248c76b3848591f484cd9b868dd66",
+            "6e6cc0094385a01a25bbacbdef014cf424e0f82fb98f89dabe7bc9051097f40f",
+            "1af305fe1d21f152ce53a69c5723658455cc282accf22d86be7bde587b69c854",
+            "0628a4ffa6810098ec4520de144543b173ce6d283d99df4321cd8bf177b69acf"
+          ],
+          "metrics": {
+            "last_price": {
+              "observed": 20,
+              "minimum": 10.02,
+              "median": 10.02,
+              "maximum": 10.02
+            },
+            "low_price": {
+              "observed": 20,
+              "minimum": 9.95,
+              "median": 9.95,
+              "maximum": 9.95
+            },
+            "high_price": {
+              "observed": 20,
+              "minimum": 10.02,
+              "median": 10.02,
+              "maximum": 10.02
+            },
+            "volume": {
+              "observed": 20,
+              "minimum": 14,
+              "median": 14.0,
+              "maximum": 14
+            },
+            "bid_depth": {
+              "observed": 20,
+              "minimum": 22,
+              "median": 22.0,
+              "maximum": 22
+            },
+            "ask_depth": {
+              "observed": 20,
+              "minimum": 36,
+              "median": 36.0,
+              "maximum": 36
+            },
+            "spread": {
+              "observed": 20,
+              "minimum": 0.5,
+              "median": 0.5,
+              "maximum": 0.5
+            },
+            "short_interest": {
+              "observed": 20,
+              "minimum": 10,
+              "median": 10.0,
+              "maximum": 10
+            },
+            "forced_cover": {
+              "observed": 20,
+              "minimum": 0,
+              "median": 0.0,
+              "maximum": 0
+            },
+            "discretionary_buys": {
+              "observed": 20,
+              "minimum": 4,
+              "median": 4.0,
+              "maximum": 4
+            },
+            "social_buys": {
+              "observed": 20,
+              "minimum": 0,
+              "median": 0.0,
+              "maximum": 0
+            },
+            "reach": {
+              "observed": 20,
+              "minimum": 5,
+              "median": 5.0,
+              "maximum": 5
+            }
+          }
+        },
+        {
+          "scenario": "no_lending",
+          "result_hashes_in_seed_order": [
+            "47e2b5fc08beaaea9eff6fd3fcfccced2d80e5db38752ee5a11cb022601286ee",
+            "ac67f48672d7c52d8b14157e071aa3fd6cfdbd80445ffc366213f47b0984895e",
+            "308c60175d1c2abf65ad4a4a438aed1c6d112180ef7065452aafe7ef63e38931",
+            "6973f5c5f61c7fdfe819441522843f2a196b24e09d5877f47741a3b63f112b64",
+            "d28bedbe63500b55f783356874b3ea9da27275db1b9aa8d1154c4df68a3f2ae8",
+            "920ec24f8d143fa95688cb7b40049c724f1cd30a2c994680745b701157b2e607",
+            "d9f7f52fb1241d949356c04a71b68927174cd84436cf26777ce4d09053bca3b2",
+            "2d8d12a281cef278ed04e1dfe46868d3c669d5fe8b411eda62772f1a483e14fe",
+            "34415365862ed4951e6517b8e7a7a4e265731f16cff3a369b78db381a4ed2b83",
+            "1989ad0f93e132169271906c6b00d9c95c9adf085d8b8b9d192bff0d3e9ef39a",
+            "bbc4f04cf993f76c09063a4c16f7384c5f79b79aed4b8660c981233ce55d2499",
+            "51726643819de9d4205e6e905dbc0f3dafab73e6193f4459b2095dcdc0332317",
+            "40d3fdfff27231a4cb9e67dd5b52cc598a6760bb8593d188f1761ad86a1b6c2e",
+            "dce6ae04fa593784a7f20bbeabcbb8c01e0b5c50ba088894e1a8af9325d4dfd2",
+            "72659340f9168c110003fbba96f00c0310fa80b2c72490c7d154f4302d6b7265",
+            "5d83d28b316455dc3e1708ece9dd98827fb71b6ba7a9e25cd07ab5e6eba2fab4",
+            "fbc8f3110d83eadc267102600195002477171485a573987ed2d5b8f7a3fb93e4",
+            "0cadf14b83a38038eec869c4a1f0d76bd0e62eefbd1456728a5a42fba7d90d7a",
+            "53dbe6650e122b9d376482a67430cfdac30915d3044d6bbb02571074919bceed",
+            "9b4a0ea8b67d8574c2fa0dac202e598683a820fbf51ada48e6f9df7ea46e953f"
+          ],
+          "metrics": {
+            "last_price": {
+              "observed": 20,
+              "minimum": 17.8,
+              "median": 17.8,
+              "maximum": 17.8
+            },
+            "low_price": {
+              "observed": 20,
+              "minimum": 10.02,
+              "median": 10.02,
+              "maximum": 10.02
+            },
+            "high_price": {
+              "observed": 20,
+              "minimum": 17.8,
+              "median": 17.8,
+              "maximum": 17.8
+            },
+            "volume": {
+              "observed": 20,
+              "minimum": 40,
+              "median": 40.0,
+              "maximum": 40
+            },
+            "bid_depth": {
+              "observed": 20,
+              "minimum": 32,
+              "median": 32.0,
+              "maximum": 32
+            },
+            "ask_depth": {
+              "observed": 20,
+              "minimum": 0,
+              "median": 0.0,
+              "maximum": 0
+            },
+            "spread": {
+              "observed": 0,
+              "minimum": null,
+              "median": null,
+              "maximum": null
+            },
+            "short_interest": {
+              "observed": 20,
+              "minimum": 0,
+              "median": 0.0,
+              "maximum": 0
+            },
+            "forced_cover": {
+              "observed": 20,
+              "minimum": 0,
+              "median": 0.0,
+              "maximum": 0
+            },
+            "discretionary_buys": {
+              "observed": 20,
+              "minimum": 40,
+              "median": 40.0,
+              "maximum": 40
+            },
+            "social_buys": {
+              "observed": 20,
+              "minimum": 18,
+              "median": 18.0,
+              "maximum": 18
+            },
+            "reach": {
+              "observed": 20,
+              "minimum": 5,
+              "median": 5.0,
+              "maximum": 5
+            }
+          }
+        },
+        {
+          "scenario": "deeper",
+          "result_hashes_in_seed_order": [
+            "320da4e4775fe29b25b114dbe3f437ec509a26de64814c5d265d719ac1239164",
+            "450004ff64fb2c6a72d45dd359cc7a4fc72dfc72bb4408a28e1462a6efca16b0",
+            "923f0a4775700352b4fbcee02cffbedbd5d8a8c3cd77be738cc690422eb46905",
+            "5f2642748615a1f274e311c355a2a3fa08be8df89e06c4ae96495f47e9fa8b1b",
+            "513bc735c6bece1df4815612da7ad0cb4373ab724effec03bacf46794680423e",
+            "c629719bc428424c1adf5f71dc113a550f0cf3291ca7554b8f24f2705515684f",
+            "5aa7041720e30df036846d01b836d61aa2a627cd36ba4acf087f715b4adced7e",
+            "8c325311cac208d1c3251851c91304c8a524853cbf9db467b9429fc3599c3d4d",
+            "f66ce2df772518d548c99823b27626ad7e71f4ad61d391923b91f391a81ccab7",
+            "1ef4b9997ae9290919c1d595a27d02d76357e04c40681dcf237b59fbd4dceaf3",
+            "f06954b9626524077d57a6f17cf18b731eec0a035be30030e1d9b2046fbe19bc",
+            "195d18764aeaff5f997aa310d47025bd678864acd92fe8e7db53114a4bd14570",
+            "752673805d7b0af15ccbfdcb71b835c373bd62e4872ab27cd5ac9d525e8a240a",
+            "a25af54ae24fdc3bcc93cda96d7f5bca8511aa4122e223de28cfbcffe6927426",
+            "70eba5dc4c1f2e55ac08976c92cc4c0b5d258b4de9bf7e31e306a99acf5b0b24",
+            "8c946d3b189d79454e4ce0d30de093dd1d91e2089192b3e505da77d0ecf7ab60",
+            "9c852d41ec29f69a41c554a8e3f6e6600384cd1bb71eaf338793cc3e144919da",
+            "2896bde1b752b97ab3c65974a545538205d17c20ad239141bca6e8c3831a6a34",
+            "9d19507e1b647b0728dd10158d2b47279eee0622c8a43c21071639060a22549f",
+            "76bfab2847240627a3a71000b44a2a1e18d7f7e8a86b4d22a42d33121c68c8e4"
+          ],
+          "metrics": {
+            "last_price": {
+              "observed": 20,
+              "minimum": 17.8,
+              "median": 17.8,
+              "maximum": 17.8
+            },
+            "low_price": {
+              "observed": 20,
+              "minimum": 9.95,
+              "median": 9.95,
+              "maximum": 9.95
+            },
+            "high_price": {
+              "observed": 20,
+              "minimum": 17.8,
+              "median": 17.8,
+              "maximum": 17.8
+            },
+            "volume": {
+              "observed": 20,
+              "minimum": 90,
+              "median": 90.0,
+              "maximum": 90
+            },
+            "bid_depth": {
+              "observed": 20,
+              "minimum": 22,
+              "median": 22.0,
+              "maximum": 22
+            },
+            "ask_depth": {
+              "observed": 20,
+              "minimum": 0,
+              "median": 0.0,
+              "maximum": 0
+            },
+            "spread": {
+              "observed": 0,
+              "minimum": null,
+              "median": null,
+              "maximum": null
+            },
+            "short_interest": {
+              "observed": 20,
+              "minimum": 0,
+              "median": 0.0,
+              "maximum": 0
+            },
+            "forced_cover": {
+              "observed": 20,
+              "minimum": 10,
+              "median": 10.0,
+              "maximum": 10
+            },
+            "discretionary_buys": {
+              "observed": 20,
+              "minimum": 70,
+              "median": 70.0,
+              "maximum": 70
+            },
+            "social_buys": {
+              "observed": 20,
+              "minimum": 39,
+              "median": 39.0,
+              "maximum": 39
+            },
+            "reach": {
+              "observed": 20,
+              "minimum": 5,
+              "median": 5.0,
+              "maximum": 5
+            }
+          }
+        }
+      ]
+    }
+  }
+}

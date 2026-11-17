@@ -1,0 +1,20 @@
+{
+  "version": "1.0.0-rc.10",
+  "archive_sha256": "a54e6f59f6fb2ac987c9ba1f3f6b87aa502d6aac2f9aabe3234445a34a8f89dc",
+  "source_tree_sha256": "6b4838f2b76b9ac350f2225154b8475593317c0d94004106e00e9fb028d1b857",
+  "archive_files": 221,
+  "clean_install": {
+    "passed": 263,
+    "seconds": 101.27,
+    "dependencies": "locked, offline cache",
+    "environment": "macOS arm64 / Chrome / Python 3.12"
+  },
+  "verified_provenance_assets": 25,
+  "runtime_health": {
+    "status": "ready",
+    "version": "1.0.0-rc.10",
+    "published_cases": 12,
+    "live_configured": true
+  },
+  "live_attempts_total": 9
+}

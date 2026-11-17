@@ -1,0 +1,18 @@
+{
+  "version": "1.0.0-rc.5",
+  "tested_archive_sha256": "6466341419feaeb10dcb35ec996877588f5a393dd2400006f619172017b0c138",
+  "macos_arm64": {
+    "passed": 229,
+    "seconds": 81.88,
+    "python": "3.12.11",
+    "suites": "contracts mechanisms e2e"
+  },
+  "linux_arm64": {
+    "passed": 195,
+    "seconds": 6.68,
+    "python": "3.12.13",
+    "suites": "contracts mechanisms"
+  },
+  "catalog_cases": 12,
+  "deterministic_runs": 41
+}

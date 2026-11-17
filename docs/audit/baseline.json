@@ -1,0 +1,52 @@
+{
+  "head": "585ffcbaaeb292f0addc10331ae7dae0c57ebd84",
+  "tracked_files": 266,
+  "python_files_parsed": 204,
+  "news_rows": 13665,
+  "distinct_normalized": {
+    "event_id": 13665,
+    "title": 5,
+    "raw_text": 5,
+    "source_url": 5
+  },
+  "source_counts": {
+    "mock://news/0": 2733,
+    "mock://news/1": 2733,
+    "mock://news/2": 2733,
+    "mock://news/3": 2733,
+    "mock://news/4": 2733
+  },
+  "demos": {
+    "regulator_stabilization_intervention": {
+      "steps": 12,
+      "narration": 5,
+      "source_fields": [],
+      "agent_fields": []
+    },
+    "rumor_panic_selloff": {
+      "steps": 12,
+      "narration": 5,
+      "source_fields": [],
+      "agent_fields": []
+    },
+    "tax_cut_liquidity_boost": {
+      "steps": 12,
+      "narration": 5,
+      "source_fields": [],
+      "agent_fields": []
+    }
+  },
+  "fills": [
+    3,
+    3
+  ],
+  "fok": "rejected",
+  "ioc": "pending",
+  "ioc_resting": false,
+  "max_tokens_collision": true,
+  "social_fixed_seed_sentiment": {
+    "a": -0.0007315923977781618,
+    "b": -0.0007315923977781618,
+    "c": -0.0007315923977781618
+  }
+}

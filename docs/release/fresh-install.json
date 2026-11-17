@@ -1,0 +1,41 @@
+{
+  "platform": "Mac17,3 arm64 macOS 27.0",
+  "python": "3.12.11",
+  "uv": "0.12.13",
+  "fresh_install_source": "empty extraction directory",
+  "tested_archive_sha256": "a3ebaed7f98b7bfedbd48ff6a0ebc9a45d13c415f1eb26669a2eece9c487d834",
+  "tested_payload_files": 169,
+  "checked_no_git_database_node_modules_or_credentials": true,
+  "commands": [
+    "shasum -a 256 -c install-test.tar.gz.sha256",
+    "python3 -m scripts.package_student_lab --verify",
+    "uv venv --offline --python 3.12 .venv",
+    "uv pip sync --offline --python .venv/bin/python requirements-edu.lock",
+    "uv pip sync --offline --python .venv/bin/python requirements-edu-dev.lock",
+    ".venv/bin/python -m scripts.check_lesson_catalog --milestone m3",
+    "PYTHONPATH=. .venv/bin/python docs/release/check_feedback.py",
+    ".venv/bin/python -m pytest -q tests/contracts tests/mechanisms tests/e2e"
+  ],
+  "run_dependency_packages": 14,
+  "health": {
+    "status": "ready",
+    "version": "1.0.0-rc.1",
+    "published_cases": 12,
+    "live_configured": false
+  },
+  "served_prebuilt_index_js_css": true,
+  "catalog_cases": 12,
+  "catalog_default_runs": 41,
+  "feedback_chains": 6,
+  "tests": {
+    "fresh_extraction": {
+      "passed": 225,
+      "elapsed_seconds": 76.7
+    },
+    "worktree": {
+      "passed": 225,
+      "elapsed_seconds": 75.47
+    }
+  },
+  "prebuilt_frontend_or_executable_changes_since_this_test": "none; acceptance documentation only"
+}

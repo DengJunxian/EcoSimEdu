@@ -1,0 +1,72 @@
+{
+  "platform": "macOS-27.0-arm64-arm-64bit",
+  "architecture": "arm64",
+  "server_cold_health_ms": 249.956,
+  "rule_flash_create_and_run_ms": 36.401,
+  "data": {
+    "default_trajectories": 41,
+    "largest_gzip": {
+      "case_id": "schelling_segregation",
+      "scenario_id": "higher",
+      "events": 154,
+      "gzip_bytes": 42528
+    },
+    "total_gzip_bytes": 325582
+  },
+  "flash_events": 368,
+  "native_flash_seek": {
+    "n": 30,
+    "p50_ms": 3.983,
+    "p95_ms": 4.156
+  },
+  "browser": {
+    "chrome": "157.0.8103.78",
+    "cold_profile_first_interactive": {
+      "n": 30,
+      "p50_ms": 55.663,
+      "p95_ms": 62.805
+    },
+    "warm_case_first_interactive": {
+      "n": 30,
+      "p50_ms": 14.306,
+      "p95_ms": 22.349
+    },
+    "event_keyboard_feedback": {
+      "n": 30,
+      "p50_ms": 2.167,
+      "p95_ms": 6.509
+    },
+    "catalog_filter": {
+      "n": 30,
+      "p50_ms": 2.041,
+      "p95_ms": 2.702
+    },
+    "trace_js_heap_bytes": 24450032
+  },
+  "combined_fixture": {
+    "agents_per_frame": 500,
+    "frames": 300,
+    "events_total": 100000,
+    "unframed_tape_events": 99700,
+    "relations_at_frame_150": 5000,
+    "api_seek": {
+      "n": 30,
+      "p50_ms": 148.92,
+      "p95_ms": 163.754
+    },
+    "shared_trace_ready_ms": 858.947,
+    "initial_relations_open_ms": 138.282,
+    "browser_seek": {
+      "n": 30,
+      "p50_ms": 12.065,
+      "p95_ms": 16.202
+    },
+    "relationship_open": {
+      "n": 30,
+      "p50_ms": 86.304,
+      "p95_ms": 102.298
+    },
+    "visible_relationship_rows_when_opened": 5000
+  },
+  "service_rss_at_end_bytes": 97304576
+}

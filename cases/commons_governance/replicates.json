@@ -1,0 +1,207 @@
+{
+  "case_version": "1.0.0",
+  "action": "1",
+  "stress_case": {
+    "id": "quota_low_growth",
+    "label": "低再生速度下的统一限额",
+    "description": "与统一限额对照，增长参数从 0.55 降至 0.30。",
+    "parameters": {
+      "institution": "quota",
+      "growth_rate": 0.3
+    }
+  },
+  "runs": [
+    {
+      "seed": 2009,
+      "scenario": "baseline",
+      "metrics": {
+        "stock": 0.0,
+        "harvest": 0.0,
+        "growth": 0.0,
+        "income": 660.3477201540051,
+        "monitoring_cost": 0.0
+      },
+      "result_hash": "5bf324fe963efbf40e42fb68178edcca548d564c6cca976365be0ad6487b9eff"
+    },
+    {
+      "seed": 2009,
+      "scenario": "quota",
+      "metrics": {
+        "stock": 206.03253788603217,
+        "harvest": 24.0,
+        "growth": 24.25351605895521,
+        "income": 576.0,
+        "monitoring_cost": 0.0
+      },
+      "result_hash": "6dbb6e01a24b64880eca3b313bc507a284f4bd7d41b0cf276f97449697e0a842"
+    },
+    {
+      "seed": 2009,
+      "scenario": "community",
+      "metrics": {
+        "stock": 185.94863991885148,
+        "harvest": 28.0,
+        "growth": 30.046051099289127,
+        "income": 680.0,
+        "monitoring_cost": 8.0
+      },
+      "result_hash": "dbabc63e7aba3d3634ffac1c4d6241c40058960e17c4ea244bfc7a43cacbc2de"
+    },
+    {
+      "seed": 2009,
+      "scenario": "quota_low_growth",
+      "metrics": {
+        "stock": 100.77448464513543,
+        "harvest": 24.0,
+        "growth": 16.41242179465832,
+        "income": 576.0,
+        "monitoring_cost": 0.0
+      },
+      "result_hash": "31d96fdc5ee5f35b7f2688e70483e54615662ffcbf641b586ba6c09315d4f02c"
+    },
+    {
+      "seed": 2010,
+      "scenario": "baseline",
+      "metrics": {
+        "stock": 0.0,
+        "harvest": 0.0,
+        "growth": 0.0,
+        "income": 586.488648943929,
+        "monitoring_cost": 0.0
+      },
+      "result_hash": "f0fd95c2ea9279e0613c6e52b6fc66b6dcd5a841cf33cd51de92b467ae1df9fd"
+    },
+    {
+      "seed": 2010,
+      "scenario": "quota",
+      "metrics": {
+        "stock": 206.03253788603217,
+        "harvest": 24.0,
+        "growth": 24.25351605895521,
+        "income": 576.0,
+        "monitoring_cost": 0.0
+      },
+      "result_hash": "2698c55366bd781fd18495db4c283a6e9efb33f7f11cb3e31de742413b8b1160"
+    },
+    {
+      "seed": 2010,
+      "scenario": "community",
+      "metrics": {
+        "stock": 170.6263166032225,
+        "harvest": 32.0,
+        "growth": 32.22393223891482,
+        "income": 740.0,
+        "monitoring_cost": 8.0
+      },
+      "result_hash": "4008639d47be8ba40c2830ec8a9d20ac8bec29bf117fb602b354bf764b63f327"
+    },
+    {
+      "seed": 2010,
+      "scenario": "quota_low_growth",
+      "metrics": {
+        "stock": 100.77448464513543,
+        "harvest": 24.0,
+        "growth": 16.41242179465832,
+        "income": 576.0,
+        "monitoring_cost": 0.0
+      },
+      "result_hash": "c58c0cbb912c9557351b06eb6c3298e9d35c275f04933b234fae40fb8c53a620"
+    },
+    {
+      "seed": 2011,
+      "scenario": "baseline",
+      "metrics": {
+        "stock": 0.0,
+        "harvest": 0.0,
+        "growth": 0.0,
+        "income": 674.5953973071257,
+        "monitoring_cost": 0.0
+      },
+      "result_hash": "d7d58caded8c59e2a9a906688328868385284d3b5c03a7695b6b0250c062164c"
+    },
+    {
+      "seed": 2011,
+      "scenario": "quota",
+      "metrics": {
+        "stock": 206.03253788603217,
+        "harvest": 24.0,
+        "growth": 24.25351605895521,
+        "income": 576.0,
+        "monitoring_cost": 0.0
+      },
+      "result_hash": "2e6911f57e0abce70c9839770d392468ae2b36e235a5a3cb83b5644eecb68367"
+    },
+    {
+      "seed": 2011,
+      "scenario": "community",
+      "metrics": {
+        "stock": 195.50397089214985,
+        "harvest": 24.0,
+        "growth": 27.780706284892155,
+        "income": 646.0,
+        "monitoring_cost": 8.0
+      },
+      "result_hash": "6609fc57bc35cedc76adec97d31e8aa9da4d736f04ac9beac025ff91281ddf47"
+    },
+    {
+      "seed": 2011,
+      "scenario": "quota_low_growth",
+      "metrics": {
+        "stock": 100.77448464513543,
+        "harvest": 24.0,
+        "growth": 16.41242179465832,
+        "income": 576.0,
+        "monitoring_cost": 0.0
+      },
+      "result_hash": "64e7c763b4d938d57032beb922c626a547764b186167326e4c90f904be66b49e"
+    },
+    {
+      "seed": 2012,
+      "scenario": "baseline",
+      "metrics": {
+        "stock": 0.0,
+        "harvest": 0.0,
+        "growth": 0.0,
+        "income": 560.6899730603128,
+        "monitoring_cost": 0.0
+      },
+      "result_hash": "24890eb0101c2a40d33988daaa36e0157625b333d5755736dc562db7e86ee5b4"
+    },
+    {
+      "seed": 2012,
+      "scenario": "quota",
+      "metrics": {
+        "stock": 206.03253788603217,
+        "harvest": 24.0,
+        "growth": 24.25351605895521,
+        "income": 576.0,
+        "monitoring_cost": 0.0
+      },
+      "result_hash": "5fc799133fa6e39238469cf53ae8665d8c649eed06e3a799b38e65d1980b2e04"
+    },
+    {
+      "seed": 2012,
+      "scenario": "community",
+      "metrics": {
+        "stock": 180.77484114284186,
+        "harvest": 28.0,
+        "growth": 30.96333671722878,
+        "income": 706.0,
+        "monitoring_cost": 8.0
+      },
+      "result_hash": "50fbae4b16506b8111ee49d664ce30a0507a1d49eae869644b71345016ee05ab"
+    },
+    {
+      "seed": 2012,
+      "scenario": "quota_low_growth",
+      "metrics": {
+        "stock": 100.77448464513543,
+        "harvest": 24.0,
+        "growth": 16.41242179465832,
+        "income": 576.0,
+        "monitoring_cost": 0.0
+      },
+      "result_hash": "386482677670082dfaf580ca358bc454fedfc2f37e83d9d402340a3cfa231664"
+    }
+  ]
+}

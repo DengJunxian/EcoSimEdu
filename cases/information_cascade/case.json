@@ -1,0 +1,88 @@
+{
+  "case_id": "information_cascade",
+  "version": "1.0.0",
+  "title": "信息级联",
+  "subtitle": "许多人做了同一个选择，留下了几份证据？",
+  "identity": "academic_experiment",
+  "identity_label": "学术实验",
+  "minutes": "20–30 分钟",
+  "intro": "12 人依序猜测抽样来自 A 箱还是 B 箱。每个人都收到一份自己的线索，也可能看见前人的选择。你是第 3 人，前两人都选了 B，你手中的线索却偏向 A。",
+  "background": "Anderson 与 Holt 让实验参与者按顺序预测隐藏的容器，并观察私人抽样如何通过公开选择传递。本课用贝叶斯规则生成实验轨迹，每个行动都保留了当时可见的证据。",
+  "goals": ["按行动策略推断公开选择的证据强度", "从私人抽样追踪到选择、后验与后续行动", "比较隐藏行动和加入公共核验的结果"],
+  "seed": 3,
+  "private_accuracy": "2/3",
+  "verification_accuracy": "5/6",
+  "action": {
+    "label": "为第 3 人选择行动策略",
+    "default": "bayes",
+    "options": [
+      {"id": "bayes", "label": "参考贝叶斯策略，平局跟随私信号"},
+      {"id": "private_signal", "label": "跟随自己的私信号"},
+      {"id": "force_a", "label": "公开预先固定为 A"},
+      {"id": "force_b", "label": "公开预先固定为 B"}
+    ]
+  },
+  "minimum_evidence": 2,
+  "evidence_types": ["decision", "verification", "reveal"],
+  "checkpoint": {
+    "event_type": "decision",
+    "message": "首位参与者已选。检查这一选择在 A、B 两种真实状态下出现的概率。"
+  },
+  "lessons": [
+    {"id": "intro", "title": "进入猜箱实验", "prompt": "两个箱子被选中的机会相等。想一想，怎样从别人公布的选择，判断他们原来手里的线索？"},
+    {"id": "predict", "title": "认识私人抽样", "prompt": "每个人各有一次条件独立抽样。真实为 A 时，平均每 3 次中有 2 次得到 A 线索。基准中，你收到 A 线索，并看到第 1、2 人都选 B。"},
+    {"id": "bid", "title": "设定第 3 人策略", "prompt": "先选择规则，再查看它对本场的影响。后续参与者知晓你采用哪种规则。固定 A 或 B 的选项用于实验干预，策略本身公开。"},
+    {"id": "observe", "title": "追踪公开行动", "prompt": "先看第 1、2 人怎样改变公共信念。跳到第 3 人，展开行动字段，比较两种假设抽样是否导向同一行动。"},
+    {"id": "explain", "title": "解释级联", "prompt": "把一条行动的两种可能性放在一起。如果两种私信号都导向同一选择，单凭这一选择，后续的人还能学到什么？"},
+    {"id": "compare", "title": "改变观察条件", "prompt": "保留同一组抽样和同一第 3 人策略，比较隐藏公开行动与第 7 人前加入共同核验。检查级联起点和最终正确率。"},
+    {"id": "notebook", "title": "写实验笔记", "prompt": "从最早的选择与后续行动中各找一笔证据，说明何时选择透露私信号，并把推断方法迁移到现实场景。"}
+  ],
+  "questions": {
+    "prediction": {
+      "prompt": "前两人均选 B，本场是否仍可能抽自 A 箱？",
+      "options": {"yes": "可能", "no": "不能", "unknown": "不确定"}
+    },
+    "explain": {
+      "prompt": "若第 5 人在 A、B 两种私信号下都会选 B，这次公开选择会降低 A 箱的公共后验吗？",
+      "options": {"yes": "会", "no": "不会"},
+      "answer": "no",
+      "feedback": "这次选 B 在两种真实箱状态下都必然发生，行动的似然比为 1。后续参与者看到相同选择，公共后验保持原来的数值。"
+    },
+    "transfer": {
+      "prompt": "十条校园商品好评中有九条转述同一测评。你会怎样整理证据？",
+      "rubric": "指出转述的共同出处，区分独立实测和转述，再说明怎样利用一份独立测评检验原来的判断。"
+    }
+  },
+  "glossary": [
+    {"term": "私人信号", "definition": "只有本轮参与者看见的抽样。两个参与者各自独立抽到同一字母，仍各有一个抽样编号。"},
+    {"term": "公共后验", "definition": "利用截至当前时点公开的行动与核验线索更新的 A 箱概率。一个行动提供多少信息，取决于产生行动的规则。"},
+    {"term": "信息级联", "definition": "在已知公开历史的条件下，参考策略对两种私人抽样给出同一行动。"},
+    {"term": "共同核验", "definition": "全体看到的一份新抽样。后续角色共享它的出处，贝叶斯更新只纳入一次。"}
+  ],
+  "scenarios": [
+    {"id": "baseline", "label": "公开行动", "description": "可见前序行动，每人独立收到私人抽样。", "parameters": {"observe_actions": true, "verification_turn": null}},
+    {"id": "private", "label": "隐藏前序行动", "description": "每人可利用自己的私信号，前序行动对后续参与者隐藏。", "parameters": {"observe_actions": false, "verification_turn": null}},
+    {"id": "verified", "label": "加入公共核验", "description": "保持公开行动，在第 7 人行动前引入一份准确率为 5/6 的独立共同核验。", "parameters": {"observe_actions": true, "verification_turn": 7}}
+  ],
+  "metrics": [
+    {"id": "public_a_pct", "label": "A 箱公共后验", "unit": "%"},
+    {"id": "cascade_decisions", "label": "级联决策累计", "unit": "人"},
+    {"id": "cascade_start", "label": "首个级联行动", "unit": "位次"},
+    {"id": "revealing_decisions", "label": "改变公共后验的行动", "unit": "次"},
+    {"id": "correct_pct", "label": "最终猜对比例", "unit": "%"}
+  ],
+  "sources": [
+    {
+      "id": "S07",
+      "title": "Anderson & Holt, Information Cascades in the Laboratory (1997)",
+      "url": "https://econweb.ucsd.edu/~jandreoni/Econ264/papers/Holt%20Anderson%20AER%201997.pdf",
+      "supports": "私人容器抽样、顺序预测、可能错误的信息级联与实验设计。"
+    },
+    {
+      "id": "BHW92",
+      "title": "Bikhchandani, Hirshleifer & Welch, A Theory of Fads, Fashion, Custom, and Cultural Change as Informational Cascades (1992)",
+      "url": "https://doi.org/10.1086/261849",
+      "supports": "信息级联的理论定义，以及新公共消息改变级联的条件。"
+    }
+  ]
+}

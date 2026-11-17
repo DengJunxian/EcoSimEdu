@@ -1,0 +1,10 @@
+{
+  "version": "1.0.0-rc.3",
+  "platform": "macOS 27.0 ARM64",
+  "python": "3.12.11",
+  "tested_archive_sha256": "dad7eb47725c1916e3d7798975b3da8beab2e4f3e18f903f4cbedb23bbf00e30",
+  "passed": 227,
+  "seconds": 82.13,
+  "catalog_cases": 12,
+  "deterministic_runs": 41
+}

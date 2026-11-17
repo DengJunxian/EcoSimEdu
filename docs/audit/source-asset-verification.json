@@ -1,0 +1,51 @@
+{
+  "checked_at": "2026-11-17",
+  "upstream_head": "585ffcbaaeb292f0addc10331ae7dae0c57ebd84",
+  "case_count": 12,
+  "sources": {
+    "count": 20,
+    "access": {
+      "original_full_text": 14,
+      "original_page": 6
+    },
+    "rights_evidence_status": {
+      "copyright_notice": 5,
+      "stated_terms": 14,
+      "unconfirmed": 1
+    },
+    "main_resource_hashes": 17,
+    "supplementary_resource_hashes": 1,
+    "without_main_resource_hash": [
+      "S12",
+      "S10",
+      "S11"
+    ],
+    "underlying_data_acquisition": {
+      "not_acquired": 11,
+      "not_applicable": 9
+    }
+  },
+  "asset_inventory_count": 25,
+  "inventory_hashes": {
+    "cases/sources.json": "ca125f887ceba4cdbde813dbdea5edeea596b0a303a97e309eff26fb649e5c25",
+    "cases/data-assets.json": "129935857add266ab95dc104b56447943fedfbf64791f3c5756c1752fd9afaab"
+  },
+  "rc9_archive": {
+    "file": "Civitas_Economica_Student_Lab_1.0.0-rc.9.tar.gz",
+    "sha256": "f80ca125dbf26dcfc91ce9fc867e9384ea0706fdce6a6b3960655788a0649140",
+    "checked_files": 212
+  },
+  "local_reproduction": {
+    "auction_presets": 4,
+    "m2_runs": 18,
+    "m3_runs": 41,
+    "boundary_cases_reproduced_twice": 12,
+    "seed_scenario_combinations_reproduced_twice": 820,
+    "replicate_tests_passed": 2,
+    "contract_and_mechanism_tests_passed": 212
+  },
+  "saved_live_result_hashes_verified_read_only": 8,
+  "model_attempts": 8,
+  "new_provider_calls": 0,
+  "browser_tests_run": false
+}

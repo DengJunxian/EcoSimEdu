@@ -1,0 +1,36 @@
+{
+  "version": "1.0.0-rc.9",
+  "audit_date": "2026-11-17",
+  "archive_sha256": "f80ca125dbf26dcfc91ce9fc867e9384ea0706fdce6a6b3960655788a0649140",
+  "verified_archive_files": 212,
+  "source_tree_sha256": "ee8489a2b2105b68c9284d5841c52a8edd88d56268fcac2aed8e12eb36032911",
+  "platform": "Darwin 27.0.0 arm64",
+  "python": "Python 3.12.11",
+  "chrome": "Google Chrome 157.0.8103.78",
+  "tests": [
+    {
+      "environment": "workspace",
+      "passed": 262,
+      "seconds": 116.36
+    },
+    {
+      "environment": "clean_archive",
+      "passed": 262,
+      "seconds": 117.69
+    }
+  ],
+  "browser_boundary_courses": 12,
+  "auction_browser_origins": [
+    "offline_simulation",
+    "precomputed_simulation"
+  ],
+  "prior_frozen_scenarios_verified": 41,
+  "prior_seed_scenario_combinations_reproduced_twice": 820,
+  "historical_model_attempts_before_and_after": 8,
+  "runtime_health": {
+    "status": "ready",
+    "version": "1.0.0-rc.9",
+    "published_cases": 12,
+    "live_configured": true
+  }
+}

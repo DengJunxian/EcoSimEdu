@@ -1,0 +1,242 @@
+{
+  "browser": "msedge",
+  "version": "152.0.4191.53",
+  "axe": "4.14.0",
+  "records": [
+    {
+      "case": "double_auction",
+      "width": 390,
+      "stage": "intro",
+      "violations": [],
+      "manual_review_rules": [
+        "aria-prohibited-attr",
+        "color-contrast",
+        "label-content-name-mismatch"
+      ],
+      "horizontal_overflow": false
+    },
+    {
+      "case": "double_auction",
+      "width": 390,
+      "stage": "prediction",
+      "violations": [],
+      "manual_review_rules": [],
+      "horizontal_overflow": false
+    },
+    {
+      "case": "double_auction",
+      "width": 390,
+      "stage": "action",
+      "violations": [],
+      "manual_review_rules": [],
+      "horizontal_overflow": false
+    },
+    {
+      "case": "double_auction",
+      "width": 390,
+      "stage": "observation",
+      "violations": [],
+      "manual_review_rules": [
+        "color-contrast"
+      ],
+      "horizontal_overflow": false
+    },
+    {
+      "case": "double_auction",
+      "width": 390,
+      "stage": "observation_data_table",
+      "violations": [],
+      "manual_review_rules": [
+        "color-contrast"
+      ],
+      "horizontal_overflow": false
+    },
+    {
+      "case": "double_auction",
+      "width": 390,
+      "stage": "explanation",
+      "violations": [],
+      "manual_review_rules": [
+        "color-contrast"
+      ],
+      "horizontal_overflow": false
+    },
+    {
+      "case": "double_auction",
+      "width": 390,
+      "stage": "comparison",
+      "violations": [],
+      "manual_review_rules": [],
+      "horizontal_overflow": false
+    },
+    {
+      "case": "double_auction",
+      "width": 390,
+      "stage": "notes",
+      "violations": [],
+      "manual_review_rules": [],
+      "horizontal_overflow": false
+    },
+    {
+      "case": "schelling_segregation",
+      "width": 390,
+      "stage": "intro",
+      "violations": [],
+      "manual_review_rules": [
+        "color-contrast",
+        "label-content-name-mismatch"
+      ],
+      "horizontal_overflow": false
+    },
+    {
+      "case": "schelling_segregation",
+      "width": 390,
+      "stage": "prediction",
+      "violations": [],
+      "manual_review_rules": [],
+      "horizontal_overflow": false
+    },
+    {
+      "case": "schelling_segregation",
+      "width": 390,
+      "stage": "action",
+      "violations": [],
+      "manual_review_rules": [],
+      "horizontal_overflow": false
+    },
+    {
+      "case": "schelling_segregation",
+      "width": 390,
+      "stage": "action_coordinates",
+      "violations": [],
+      "manual_review_rules": [
+        "target-size"
+      ],
+      "horizontal_overflow": false
+    },
+    {
+      "case": "schelling_segregation",
+      "width": 390,
+      "stage": "observation",
+      "violations": [],
+      "manual_review_rules": [
+        "color-contrast",
+        "target-size"
+      ],
+      "horizontal_overflow": false
+    },
+    {
+      "case": "schelling_segregation",
+      "width": 390,
+      "stage": "observation_data_table",
+      "violations": [],
+      "manual_review_rules": [
+        "color-contrast",
+        "target-size"
+      ],
+      "horizontal_overflow": false
+    },
+    {
+      "case": "schelling_segregation",
+      "width": 390,
+      "stage": "explanation",
+      "violations": [],
+      "manual_review_rules": [
+        "target-size"
+      ],
+      "horizontal_overflow": false
+    },
+    {
+      "case": "schelling_segregation",
+      "width": 390,
+      "stage": "comparison",
+      "violations": [],
+      "manual_review_rules": [
+        "color-contrast",
+        "target-size"
+      ],
+      "horizontal_overflow": false
+    },
+    {
+      "case": "schelling_segregation",
+      "width": 390,
+      "stage": "notes",
+      "violations": [],
+      "manual_review_rules": [],
+      "horizontal_overflow": false
+    },
+    {
+      "case": "svb_run",
+      "width": 390,
+      "stage": "intro",
+      "violations": [],
+      "manual_review_rules": [
+        "color-contrast",
+        "label-content-name-mismatch"
+      ],
+      "horizontal_overflow": false
+    },
+    {
+      "case": "svb_run",
+      "width": 390,
+      "stage": "prediction",
+      "violations": [],
+      "manual_review_rules": [],
+      "horizontal_overflow": false
+    },
+    {
+      "case": "svb_run",
+      "width": 390,
+      "stage": "action",
+      "violations": [],
+      "manual_review_rules": [],
+      "horizontal_overflow": false
+    },
+    {
+      "case": "svb_run",
+      "width": 390,
+      "stage": "observation",
+      "violations": [],
+      "manual_review_rules": [
+        "color-contrast"
+      ],
+      "horizontal_overflow": false
+    },
+    {
+      "case": "svb_run",
+      "width": 390,
+      "stage": "observation_data_table",
+      "violations": [],
+      "manual_review_rules": [
+        "color-contrast"
+      ],
+      "horizontal_overflow": false
+    },
+    {
+      "case": "svb_run",
+      "width": 390,
+      "stage": "explanation",
+      "violations": [],
+      "manual_review_rules": [],
+      "horizontal_overflow": false
+    },
+    {
+      "case": "svb_run",
+      "width": 390,
+      "stage": "comparison",
+      "violations": [],
+      "manual_review_rules": [
+        "color-contrast"
+      ],
+      "horizontal_overflow": false
+    },
+    {
+      "case": "svb_run",
+      "width": 390,
+      "stage": "notes",
+      "violations": [],
+      "manual_review_rules": [],
+      "horizontal_overflow": false
+    }
+  ]
+}

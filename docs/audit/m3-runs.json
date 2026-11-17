@@ -1,0 +1,1013 @@
+{
+  "double_auction": [
+    {
+      "scenario": "baseline",
+      "seed": 1962,
+      "action": 96,
+      "intervention": {
+        "demand_shift": 0,
+        "fee": 0
+      },
+      "events": 148,
+      "citable": 6,
+      "engine": "double-auction/1",
+      "root_hash": "5b712cd33007e8fe2f84e42ab2fb2bc015ac0308b54be23560ac7bd2ba43b93f",
+      "initial_hash": "5b712cd33007e8fe2f84e42ab2fb2bc015ac0308b54be23560ac7bd2ba43b93f",
+      "result_hash": "a9139897c22f03c6c771d3c10157966917376352857e116969c1281befd96649",
+      "metrics": {
+        "volume": 6,
+        "price_min": 95,
+        "price_max": 97,
+        "surplus": 180,
+        "ceiling": 291,
+        "efficiency": 0.6185567010309279,
+        "platform_cash": 0,
+        "participant_surplus": 180,
+        "price_band": [
+          99,
+          101
+        ]
+      }
+    },
+    {
+      "scenario": "demand",
+      "seed": 1962,
+      "action": 96,
+      "intervention": {
+        "demand_shift": 12,
+        "fee": 0
+      },
+      "events": 147,
+      "citable": 7,
+      "engine": "double-auction/1",
+      "root_hash": "5b712cd33007e8fe2f84e42ab2fb2bc015ac0308b54be23560ac7bd2ba43b93f",
+      "initial_hash": "a441018f3484b78f6d2014a4f07fcb948e22eedc95c2db730a5481732163b6ea",
+      "result_hash": "3c988e04dfd44ed8910c19d4a016e686c40debc0b491789cbc685f702e14e93a",
+      "metrics": {
+        "volume": 7,
+        "price_min": 95,
+        "price_max": 97,
+        "surplus": 272,
+        "ceiling": 439,
+        "efficiency": 0.6195899772209568,
+        "platform_cash": 0,
+        "participant_surplus": 272,
+        "price_band": [
+          103,
+          105
+        ]
+      }
+    },
+    {
+      "scenario": "fee",
+      "seed": 1962,
+      "action": 96,
+      "intervention": {
+        "demand_shift": 0,
+        "fee": 6
+      },
+      "events": 150,
+      "citable": 4,
+      "engine": "double-auction/1",
+      "root_hash": "5b712cd33007e8fe2f84e42ab2fb2bc015ac0308b54be23560ac7bd2ba43b93f",
+      "initial_hash": "5b712cd33007e8fe2f84e42ab2fb2bc015ac0308b54be23560ac7bd2ba43b93f",
+      "result_hash": "fe83f31175476b41dc26b37aa0255b0c9ce28d594910ff64d27f8e14e2728ee1",
+      "metrics": {
+        "volume": 4,
+        "price_min": 95,
+        "price_max": 97,
+        "surplus": 137,
+        "ceiling": 291,
+        "efficiency": 0.47079037800687284,
+        "platform_cash": 48,
+        "participant_surplus": 89,
+        "price_band": [
+          99,
+          101
+        ]
+      }
+    }
+  ],
+  "schelling_segregation": [
+    {
+      "scenario": "baseline",
+      "seed": 1971,
+      "action": "stay",
+      "intervention": {
+        "threshold": 30
+      },
+      "events": 105,
+      "citable": 103,
+      "engine": "schelling/1",
+      "root_hash": "c0029f678d7366ddac9068b7bb1b5a865adcbd5e60f86c14dc2fab376221aa55",
+      "initial_hash": "c0029f678d7366ddac9068b7bb1b5a865adcbd5e60f86c14dc2fab376221aa55",
+      "result_hash": "1fd6d63c3fdefeb65e96e5080bb1cfa9ad990a6bc78d3f2a8968ca44673dbab0",
+      "metrics": {
+        "satisfied": 100.0,
+        "similarity": 81.11,
+        "moves": 99,
+        "remaining": 0
+      }
+    },
+    {
+      "scenario": "zero",
+      "seed": 1971,
+      "action": "stay",
+      "intervention": {
+        "threshold": 0
+      },
+      "events": 4,
+      "citable": 2,
+      "engine": "schelling/1",
+      "root_hash": "c0029f678d7366ddac9068b7bb1b5a865adcbd5e60f86c14dc2fab376221aa55",
+      "initial_hash": "c0029f678d7366ddac9068b7bb1b5a865adcbd5e60f86c14dc2fab376221aa55",
+      "result_hash": "a117cf5d32257355f7924b03d2cf85624948ef178110f4b14213e7b0d2cb9532",
+      "metrics": {
+        "satisfied": 100.0,
+        "similarity": 50.33,
+        "moves": 0,
+        "remaining": 0
+      }
+    },
+    {
+      "scenario": "higher",
+      "seed": 1971,
+      "action": "stay",
+      "intervention": {
+        "threshold": 50
+      },
+      "events": 154,
+      "citable": 152,
+      "engine": "schelling/1",
+      "root_hash": "c0029f678d7366ddac9068b7bb1b5a865adcbd5e60f86c14dc2fab376221aa55",
+      "initial_hash": "c0029f678d7366ddac9068b7bb1b5a865adcbd5e60f86c14dc2fab376221aa55",
+      "result_hash": "a771fccb8832bcef8824e002103e4f93ef054297580241a43d612659d05be62d",
+      "metrics": {
+        "satisfied": 100.0,
+        "similarity": 91.59,
+        "moves": 147,
+        "remaining": 0
+      }
+    }
+  ],
+  "svb_run": [
+    {
+      "scenario": "baseline",
+      "seed": 20230309,
+      "action": "withdraw_now",
+      "intervention": {
+        "cash_reallocation": 0,
+        "network": "concentrated"
+      },
+      "events": 54,
+      "citable": 51,
+      "engine": "svb/1",
+      "root_hash": "f86cda66df0d2d696b115022281375118c35fb4c27c4ce4074a3191919f5e1ac",
+      "initial_hash": "f86cda66df0d2d696b115022281375118c35fb4c27c4ce4074a3191919f5e1ac",
+      "result_hash": "8a461afe22eb913ca1e4feb7bdee0104f27c307cb71e2ae8d6ef85f2c5bc885b",
+      "metrics": {
+        "cash": 0,
+        "requested": 1517,
+        "paid": 1260,
+        "queued": 257,
+        "equity": -280,
+        "sale_loss": 510
+      }
+    },
+    {
+      "scenario": "liquidity_buffer",
+      "seed": 20230309,
+      "action": "withdraw_now",
+      "intervention": {
+        "cash_reallocation": 400,
+        "network": "concentrated"
+      },
+      "events": 53,
+      "citable": 50,
+      "engine": "svb/1",
+      "root_hash": "f86cda66df0d2d696b115022281375118c35fb4c27c4ce4074a3191919f5e1ac",
+      "initial_hash": "81264f7082fc0bca757bc79c82c937388adfdbd55c07892e51d4b3d0e106007c",
+      "result_hash": "41838ed513fff6d14d8fbe18fbe972ae738d7415bae81143eb7f24eb869d3d4b",
+      "metrics": {
+        "cash": 0,
+        "requested": 1517,
+        "paid": 1420,
+        "queued": 97,
+        "equity": -120,
+        "sale_loss": 390
+      }
+    },
+    {
+      "scenario": "network",
+      "seed": 20230309,
+      "action": "withdraw_now",
+      "intervention": {
+        "cash_reallocation": 0,
+        "network": "distributed"
+      },
+      "events": 68,
+      "citable": 65,
+      "engine": "svb/1",
+      "root_hash": "f86cda66df0d2d696b115022281375118c35fb4c27c4ce4074a3191919f5e1ac",
+      "initial_hash": "d0c4e7496edf29a74d47d65c40e517d188f03eb20c0716b02fd00e3c51ff7a87",
+      "result_hash": "068f50e4c54a6269a880cb9839a36924c0899ded13c31d60de41835ea60d1406",
+      "metrics": {
+        "cash": 0,
+        "requested": 1477,
+        "paid": 1260,
+        "queued": 217,
+        "equity": -280,
+        "sale_loss": 510
+      }
+    }
+  ],
+  "information_cascade": [
+    {
+      "scenario": "baseline",
+      "seed": 3,
+      "action": "bayes",
+      "intervention": {
+        "observe_actions": true,
+        "verification_turn": null
+      },
+      "events": 14,
+      "citable": 13,
+      "engine": "information-cascade/1",
+      "root_hash": "f9d3bbebd882500d8e9436b3f67ca8fc1eeb1920d490a5bacf76699c8328bd31",
+      "initial_hash": "f9d3bbebd882500d8e9436b3f67ca8fc1eeb1920d490a5bacf76699c8328bd31",
+      "result_hash": "7d836d613fd3349545fa95c075ea30cfcb3dac7a66350610d6f23afd1527ebb5",
+      "metrics": {
+        "public_a_pct": 20.0,
+        "cascade_decisions": 10,
+        "cascade_start": 3,
+        "revealing_decisions": 2,
+        "correct_pct": 0.0
+      }
+    },
+    {
+      "scenario": "private",
+      "seed": 3,
+      "action": "bayes",
+      "intervention": {
+        "observe_actions": false,
+        "verification_turn": null
+      },
+      "events": 14,
+      "citable": 13,
+      "engine": "information-cascade/1",
+      "root_hash": "f9d3bbebd882500d8e9436b3f67ca8fc1eeb1920d490a5bacf76699c8328bd31",
+      "initial_hash": "f9d3bbebd882500d8e9436b3f67ca8fc1eeb1920d490a5bacf76699c8328bd31",
+      "result_hash": "416ab39472249a9a63b62140456a77d72d6f3b56e188e36b20e8a40320421c81",
+      "metrics": {
+        "public_a_pct": 50.0,
+        "cascade_decisions": 0,
+        "cascade_start": null,
+        "revealing_decisions": 0,
+        "correct_pct": 50.0
+      }
+    },
+    {
+      "scenario": "verified",
+      "seed": 3,
+      "action": "bayes",
+      "intervention": {
+        "observe_actions": true,
+        "verification_turn": 7
+      },
+      "events": 15,
+      "citable": 14,
+      "engine": "information-cascade/1",
+      "root_hash": "f9d3bbebd882500d8e9436b3f67ca8fc1eeb1920d490a5bacf76699c8328bd31",
+      "initial_hash": "f9d3bbebd882500d8e9436b3f67ca8fc1eeb1920d490a5bacf76699c8328bd31",
+      "result_hash": "093684dc352fee24d7e9cb3b2c03dae88d649879feac3e0c16ab4dedf83ae3d8",
+      "metrics": {
+        "public_a_pct": 23.8095,
+        "cascade_decisions": 8,
+        "cascade_start": 3,
+        "revealing_decisions": 4,
+        "correct_pct": 0.0
+      }
+    }
+  ],
+  "public_goods": [
+    {
+      "scenario": "baseline",
+      "seed": 2000,
+      "action": "10",
+      "intervention": {
+        "unit_cost": null
+      },
+      "events": 21,
+      "citable": 20,
+      "engine": "public-goods/1",
+      "root_hash": "1d2b9b5226723a06f078757db4491a64c8343eb8481d201374e761b636997ccb",
+      "initial_hash": "79af04a3f9f4729e2a7edddfcb919455aa5470b0ffc0e57b7dcea353f1b8de05",
+      "result_hash": "2dfeb3534e4e79a25b1f3735c2f355d3ba9ead4132bb36b8fee092f3c3e9e375",
+      "metrics": {
+        "contributions": 40,
+        "total_contributions": 379,
+        "net_income": 1027.4,
+        "sanction_cost": 0.0
+      }
+    },
+    {
+      "scenario": "low_cost",
+      "seed": 2000,
+      "action": "10",
+      "intervention": {
+        "unit_cost": 1
+      },
+      "events": 21,
+      "citable": 20,
+      "engine": "public-goods/1",
+      "root_hash": "1d2b9b5226723a06f078757db4491a64c8343eb8481d201374e761b636997ccb",
+      "initial_hash": "79af04a3f9f4729e2a7edddfcb919455aa5470b0ffc0e57b7dcea353f1b8de05",
+      "result_hash": "d4a15f8bf40deff9de2ee35f84ed1cc90719522f986fc0f9ef58086baec9d4d6",
+      "metrics": {
+        "contributions": 43,
+        "total_contributions": 405,
+        "net_income": 963.0,
+        "sanction_cost": 80.0
+      }
+    },
+    {
+      "scenario": "high_cost",
+      "seed": 2000,
+      "action": "10",
+      "intervention": {
+        "unit_cost": 4
+      },
+      "events": 21,
+      "citable": 20,
+      "engine": "public-goods/1",
+      "root_hash": "1d2b9b5226723a06f078757db4491a64c8343eb8481d201374e761b636997ccb",
+      "initial_hash": "79af04a3f9f4729e2a7edddfcb919455aa5470b0ffc0e57b7dcea353f1b8de05",
+      "result_hash": "986179311eb7c3a1b7b786335b9ff0a7ea7679cfa1866d8c3c672f4063043fcb",
+      "metrics": {
+        "contributions": 43,
+        "total_contributions": 405,
+        "net_income": 973.0,
+        "sanction_cost": 70.0
+      }
+    }
+  ],
+  "commons_governance": [
+    {
+      "scenario": "baseline",
+      "seed": 2009,
+      "action": "1",
+      "intervention": {
+        "institution": "open"
+      },
+      "events": 25,
+      "citable": 24,
+      "engine": "commons-governance/1",
+      "root_hash": "cdec667ec71a2082eb51d155f7069f85edc06d7eea75a9bfc66cfd2193077596",
+      "initial_hash": "c6f542b083234bcb4f791ae0e06e2f251773fe40c500555d023327198b242d87",
+      "result_hash": "5bf324fe963efbf40e42fb68178edcca548d564c6cca976365be0ad6487b9eff",
+      "metrics": {
+        "stock": 0.0,
+        "harvest": 0.0,
+        "growth": 0.0,
+        "income": 660.3477201540051,
+        "monitoring_cost": 0.0
+      }
+    },
+    {
+      "scenario": "quota",
+      "seed": 2009,
+      "action": "1",
+      "intervention": {
+        "institution": "quota"
+      },
+      "events": 25,
+      "citable": 24,
+      "engine": "commons-governance/1",
+      "root_hash": "cdec667ec71a2082eb51d155f7069f85edc06d7eea75a9bfc66cfd2193077596",
+      "initial_hash": "c6f542b083234bcb4f791ae0e06e2f251773fe40c500555d023327198b242d87",
+      "result_hash": "6dbb6e01a24b64880eca3b313bc507a284f4bd7d41b0cf276f97449697e0a842",
+      "metrics": {
+        "stock": 206.03253788603217,
+        "harvest": 24.0,
+        "growth": 24.25351605895521,
+        "income": 576.0,
+        "monitoring_cost": 0.0
+      }
+    },
+    {
+      "scenario": "community",
+      "seed": 2009,
+      "action": "1",
+      "intervention": {
+        "institution": "community"
+      },
+      "events": 25,
+      "citable": 24,
+      "engine": "commons-governance/1",
+      "root_hash": "cdec667ec71a2082eb51d155f7069f85edc06d7eea75a9bfc66cfd2193077596",
+      "initial_hash": "c6f542b083234bcb4f791ae0e06e2f251773fe40c500555d023327198b242d87",
+      "result_hash": "dbabc63e7aba3d3634ffac1c4d6241c40058960e17c4ea244bfc7a43cacbc2de",
+      "metrics": {
+        "stock": 185.94863991885148,
+        "harvest": 28.0,
+        "growth": 30.046051099289127,
+        "income": 680.0,
+        "monitoring_cost": 8.0
+      }
+    }
+  ],
+  "lemons_market": [
+    {
+      "scenario": "baseline",
+      "seed": 1970,
+      "action": "list",
+      "intervention": {
+        "information": "pooled",
+        "certification_fee": 0
+      },
+      "events": 6,
+      "citable": 5,
+      "engine": "lemons-market/1",
+      "root_hash": "7de6eff5b3e085e2b0a4fc26f6f7ab5870c73e76bee9e009be7bfa74edbbb2fc",
+      "initial_hash": "7de6eff5b3e085e2b0a4fc26f6f7ab5870c73e76bee9e009be7bfa74edbbb2fc",
+      "result_hash": "4261c1cda6b39eec9f03a141dab37515361b61ea36e5fb5a8bdd8b8b6d59ef3b",
+      "metrics": {
+        "quoted_pool_price": 1.2,
+        "willing_quality": 1.0,
+        "willing_supply": 6,
+        "traded": 6,
+        "certification_cost": 0.0,
+        "net_surplus": 1.2
+      }
+    },
+    {
+      "scenario": "informed",
+      "seed": 1970,
+      "action": "list",
+      "intervention": {
+        "information": "informed",
+        "certification_fee": 0
+      },
+      "events": 3,
+      "citable": 2,
+      "engine": "lemons-market/1",
+      "root_hash": "7de6eff5b3e085e2b0a4fc26f6f7ab5870c73e76bee9e009be7bfa74edbbb2fc",
+      "initial_hash": "7de6eff5b3e085e2b0a4fc26f6f7ab5870c73e76bee9e009be7bfa74edbbb2fc",
+      "result_hash": "58168e39efcdde252b9bd54e1ff9f092b27f7a70fc3499796172f823fa024239",
+      "metrics": {
+        "quoted_pool_price": null,
+        "willing_quality": 3.0,
+        "willing_supply": 30,
+        "traded": 30,
+        "certification_cost": 0.0,
+        "net_surplus": 18.0
+      }
+    },
+    {
+      "scenario": "certified",
+      "seed": 1970,
+      "action": "list",
+      "intervention": {
+        "information": "certified",
+        "certification_fee": 0.5
+      },
+      "events": 5,
+      "citable": 4,
+      "engine": "lemons-market/1",
+      "root_hash": "7de6eff5b3e085e2b0a4fc26f6f7ab5870c73e76bee9e009be7bfa74edbbb2fc",
+      "initial_hash": "7de6eff5b3e085e2b0a4fc26f6f7ab5870c73e76bee9e009be7bfa74edbbb2fc",
+      "result_hash": "1b63b08d0846b915e44b9973d9e1a7164c6e345bcbb3ab7574d85631f633e092",
+      "metrics": {
+        "quoted_pool_price": 1.2,
+        "willing_quality": 3.25,
+        "willing_supply": 24,
+        "traded": 24,
+        "certification_cost": 9.0,
+        "net_surplus": 6.6
+      }
+    }
+  ],
+  "school_matching": [
+    {
+      "scenario": "baseline",
+      "seed": 2005,
+      "action": "truthful",
+      "intervention": {
+        "mechanism": "deferred",
+        "extra_a_seats": 0
+      },
+      "events": 12,
+      "citable": 11,
+      "engine": "school-matching/1",
+      "root_hash": "f0a44e1e173b9111a6e1e008acac155d003e470995f1630564c1c9d5cbb24719",
+      "initial_hash": "efb46874fb16f02537763d052d289a3fb398d3e65f40c5286fe2384f20982021",
+      "result_hash": "cb29deb06aef8861c0b9c1c7d0789bfd3efbd2008862a6deb93328373c12519d",
+      "metrics": {
+        "applications": 16,
+        "rejections": 4,
+        "first_true_choice": 9,
+        "student_true_rank": 2,
+        "submitted_blocking_pairs": 0,
+        "true_blocking_pairs": 0
+      }
+    },
+    {
+      "scenario": "immediate",
+      "seed": 2005,
+      "action": "truthful",
+      "intervention": {
+        "mechanism": "immediate",
+        "extra_a_seats": 0
+      },
+      "events": 8,
+      "citable": 7,
+      "engine": "school-matching/1",
+      "root_hash": "f0a44e1e173b9111a6e1e008acac155d003e470995f1630564c1c9d5cbb24719",
+      "initial_hash": "efb46874fb16f02537763d052d289a3fb398d3e65f40c5286fe2384f20982021",
+      "result_hash": "61d23ab7b1d76559bb43a6fd6c37182b1bf8482fe3dc3da2d3a2d53f57fc5ba0",
+      "metrics": {
+        "applications": 14,
+        "rejections": 2,
+        "first_true_choice": 11,
+        "student_true_rank": 3,
+        "submitted_blocking_pairs": 1,
+        "true_blocking_pairs": 1
+      }
+    },
+    {
+      "scenario": "expanded",
+      "seed": 2005,
+      "action": "truthful",
+      "intervention": {
+        "mechanism": "deferred",
+        "extra_a_seats": 1
+      },
+      "events": 4,
+      "citable": 3,
+      "engine": "school-matching/1",
+      "root_hash": "f0a44e1e173b9111a6e1e008acac155d003e470995f1630564c1c9d5cbb24719",
+      "initial_hash": "a39c1b58f811505a61c48e0f476bef9ae33ea5eacca1990cad34d40be21d3dcb",
+      "result_hash": "64b889011970e03c56d03677acc533e8e214c7971947af7a9ce5649e89281f16",
+      "metrics": {
+        "applications": 12,
+        "rejections": 0,
+        "first_true_choice": 12,
+        "student_true_rank": 1,
+        "submitted_blocking_pairs": 0,
+        "true_blocking_pairs": 0
+      }
+    }
+  ],
+  "beer_game": [
+    {
+      "scenario": "baseline",
+      "seed": 1989,
+      "action": "12",
+      "intervention": {
+        "delay": 2,
+        "share_demand": false,
+        "policy": "heuristic"
+      },
+      "events": 41,
+      "citable": 40,
+      "engine": "beer/1",
+      "root_hash": "59d9e959a5011486f0973076b2e7d0bb8a20abed8e8e60ce95b700ab047acaab",
+      "initial_hash": "b4dc540a7d02b62c2346f18d16fdc655af9fea7d5d30b43f02b2a4ee28986c96",
+      "result_hash": "57cb37a903003158156fbafd322a28a5967a064999b161bafcfaff547dde0dce",
+      "metrics": {
+        "retail_stock": 12,
+        "retail_backlog": 0,
+        "factory_order": 0,
+        "in_transit": 29,
+        "total_cost": 3534.0,
+        "factory_variance_ratio": 57.15972222222223
+      }
+    },
+    {
+      "scenario": "shared",
+      "seed": 1989,
+      "action": "12",
+      "intervention": {
+        "delay": 2,
+        "share_demand": true,
+        "policy": "heuristic"
+      },
+      "events": 41,
+      "citable": 40,
+      "engine": "beer/1",
+      "root_hash": "59d9e959a5011486f0973076b2e7d0bb8a20abed8e8e60ce95b700ab047acaab",
+      "initial_hash": "b4dc540a7d02b62c2346f18d16fdc655af9fea7d5d30b43f02b2a4ee28986c96",
+      "result_hash": "d6a3d4e144fac92038937e25befad79663084ecacaa2e7b3fc8b13262299d255",
+      "metrics": {
+        "retail_stock": 12,
+        "retail_backlog": 0,
+        "factory_order": 8,
+        "in_transit": 67,
+        "total_cost": 1392.0,
+        "factory_variance_ratio": 35.44748263888889
+      }
+    },
+    {
+      "scenario": "shorter",
+      "seed": 1989,
+      "action": "12",
+      "intervention": {
+        "delay": 1,
+        "share_demand": false,
+        "policy": "heuristic"
+      },
+      "events": 41,
+      "citable": 40,
+      "engine": "beer/1",
+      "root_hash": "59d9e959a5011486f0973076b2e7d0bb8a20abed8e8e60ce95b700ab047acaab",
+      "initial_hash": "8963147ff20f8cb5b7d7f0997696500830618006a902492744ecf5c14fee041c",
+      "result_hash": "74aa25c7e405ea37372e44da5fd1577106e8eefc68d0a2df946501f9e828580c",
+      "metrics": {
+        "retail_stock": 12,
+        "retail_backlog": 0,
+        "factory_order": 8,
+        "in_transit": 32,
+        "total_cost": 957.5,
+        "factory_variance_ratio": 16.70138888888889
+      }
+    },
+    {
+      "scenario": "track",
+      "seed": 1989,
+      "action": "12",
+      "intervention": {
+        "delay": 2,
+        "share_demand": false,
+        "policy": "track_orders"
+      },
+      "events": 41,
+      "citable": 40,
+      "engine": "beer/1",
+      "root_hash": "59d9e959a5011486f0973076b2e7d0bb8a20abed8e8e60ce95b700ab047acaab",
+      "initial_hash": "b4dc540a7d02b62c2346f18d16fdc655af9fea7d5d30b43f02b2a4ee28986c96",
+      "result_hash": "ff10e6d5d48ef2f95f05ea6d918dd10c903d7b70de549b68b0bd039586c83e5c",
+      "metrics": {
+        "retail_stock": 12,
+        "retail_backlog": 0,
+        "factory_order": 8,
+        "in_transit": 64,
+        "total_cost": 939.0,
+        "factory_variance_ratio": 11.381944444444445
+      }
+    },
+    {
+      "scenario": "order_up_to",
+      "seed": 1989,
+      "action": "12",
+      "intervention": {
+        "delay": 2,
+        "share_demand": false,
+        "policy": "order_up_to"
+      },
+      "events": 41,
+      "citable": 40,
+      "engine": "beer/1",
+      "root_hash": "59d9e959a5011486f0973076b2e7d0bb8a20abed8e8e60ce95b700ab047acaab",
+      "initial_hash": "b4dc540a7d02b62c2346f18d16fdc655af9fea7d5d30b43f02b2a4ee28986c96",
+      "result_hash": "49792e0e066b85f68e4a407e67c9e6d625020f99b186681c266cfcc7075c49a5",
+      "metrics": {
+        "retail_stock": 12,
+        "retail_backlog": 0,
+        "factory_order": 8,
+        "in_transit": 64,
+        "total_cost": 1062.0,
+        "factory_variance_ratio": 17.07638888888889
+      }
+    }
+  ],
+  "carbon_market": [
+    {
+      "scenario": "baseline",
+      "seed": 2005,
+      "action": "3",
+      "intervention": {
+        "policy": "trade",
+        "cap": 88,
+        "allocation": "emissions"
+      },
+      "events": 18,
+      "citable": 18,
+      "engine": "carbon/1",
+      "root_hash": "2d66712b71c09ca639b652a8c5404b68a8c10c7e49ef8488ba7e4217c9419428",
+      "initial_hash": "900ccc30687cc91c188b122fad1f1449334fd08654277cae1362d68c7fecf1b0",
+      "result_hash": "ae68696513cb4742c04fc052c88d5d919f222d8063354a99839bbbfe80d98e33",
+      "metrics": {
+        "cap": 88,
+        "planned_emissions": 88,
+        "abatement_cost": 1318.5,
+        "price": 46.5,
+        "permits_moved": 14,
+        "surrendered": 88
+      }
+    },
+    {
+      "scenario": "uniform",
+      "seed": 2005,
+      "action": "3",
+      "intervention": {
+        "policy": "uniform",
+        "cap": 88,
+        "allocation": "emissions"
+      },
+      "events": 13,
+      "citable": 13,
+      "engine": "carbon/1",
+      "root_hash": "2d66712b71c09ca639b652a8c5404b68a8c10c7e49ef8488ba7e4217c9419428",
+      "initial_hash": "900ccc30687cc91c188b122fad1f1449334fd08654277cae1362d68c7fecf1b0",
+      "result_hash": "3589b445f4e42f6b88e51b4b516a7203c0ac3e9beb1f4151d41060da58931e2a",
+      "metrics": {
+        "cap": 88,
+        "planned_emissions": 88,
+        "abatement_cost": 1577.5,
+        "price": null,
+        "permits_moved": 3,
+        "surrendered": 88
+      }
+    },
+    {
+      "scenario": "redistribute",
+      "seed": 2005,
+      "action": "3",
+      "intervention": {
+        "policy": "trade",
+        "cap": 88,
+        "allocation": "cost"
+      },
+      "events": 17,
+      "citable": 17,
+      "engine": "carbon/1",
+      "root_hash": "2d66712b71c09ca639b652a8c5404b68a8c10c7e49ef8488ba7e4217c9419428",
+      "initial_hash": "3a32b410367f6e326f16697b8ce944304ee86e418439c64970cd727584d09942",
+      "result_hash": "efd13dea243ebdf25a79afbc56171185ba90fd2feae49c92cce9cf317aa62f53",
+      "metrics": {
+        "cap": 88,
+        "planned_emissions": 88,
+        "abatement_cost": 1318.5,
+        "price": 46.5,
+        "permits_moved": 10,
+        "surrendered": 88
+      }
+    },
+    {
+      "scenario": "tighten",
+      "seed": 2005,
+      "action": "3",
+      "intervention": {
+        "policy": "trade",
+        "cap": 56,
+        "allocation": "emissions"
+      },
+      "events": 19,
+      "citable": 19,
+      "engine": "carbon/1",
+      "root_hash": "2d66712b71c09ca639b652a8c5404b68a8c10c7e49ef8488ba7e4217c9419428",
+      "initial_hash": "60f7d51cae1b56ee492bf73f03dd980eb8f9def8b10820da483bedbb2d87985f",
+      "result_hash": "957991bbe22cf31bb8826918dbb75c11c4e6c8a3e2e8a5fc4082a1b1baace138",
+      "metrics": {
+        "cap": 56,
+        "planned_emissions": 56,
+        "abatement_cost": 3357.0,
+        "price": 84.0,
+        "permits_moved": 17,
+        "surrendered": 56
+      }
+    }
+  ],
+  "flash_crash": [
+    {
+      "scenario": "baseline",
+      "seed": 20100506,
+      "action": "tight",
+      "intervention": {
+        "depth_multiplier": 1,
+        "withdraw_on_inventory": true,
+        "pause_steps": 0
+      },
+      "events": 368,
+      "citable": 57,
+      "engine": "flash-crash/1",
+      "root_hash": "fe32f4239312a27de8046def62817562efb4bc5c2cdf069a418c9f0c97dfb182",
+      "initial_hash": "fe32f4239312a27de8046def62817562efb4bc5c2cdf069a418c9f0c97dfb182",
+      "result_hash": "ef83a4a3ccbf1ff19884416233af95daf0e7a7ca6af5c8d194563910354092c0",
+      "metrics": {
+        "last_price": 9.82,
+        "low_price": 8.79,
+        "high_price": 10.02,
+        "volume": 195,
+        "bid_depth": 18,
+        "ask_depth": 67,
+        "spread": 0.2,
+        "program_filled": 192,
+        "program_queued": 0
+      }
+    },
+    {
+      "scenario": "deeper",
+      "seed": 20100506,
+      "action": "tight",
+      "intervention": {
+        "depth_multiplier": 2,
+        "withdraw_on_inventory": true,
+        "pause_steps": 0
+      },
+      "events": 368,
+      "citable": 57,
+      "engine": "flash-crash/1",
+      "root_hash": "fe32f4239312a27de8046def62817562efb4bc5c2cdf069a418c9f0c97dfb182",
+      "initial_hash": "fe32f4239312a27de8046def62817562efb4bc5c2cdf069a418c9f0c97dfb182",
+      "result_hash": "fab553b631c4e7736db1328b065d8866c250091674b8b70967c11e1cb6ecb50e",
+      "metrics": {
+        "last_price": 9.82,
+        "low_price": 8.79,
+        "high_price": 10.02,
+        "volume": 217,
+        "bid_depth": 18,
+        "ask_depth": 67,
+        "spread": 0.2,
+        "program_filled": 214,
+        "program_queued": 0
+      }
+    },
+    {
+      "scenario": "no_withdrawal",
+      "seed": 20100506,
+      "action": "tight",
+      "intervention": {
+        "depth_multiplier": 1,
+        "withdraw_on_inventory": false,
+        "pause_steps": 0
+      },
+      "events": 362,
+      "citable": 51,
+      "engine": "flash-crash/1",
+      "root_hash": "fe32f4239312a27de8046def62817562efb4bc5c2cdf069a418c9f0c97dfb182",
+      "initial_hash": "fe32f4239312a27de8046def62817562efb4bc5c2cdf069a418c9f0c97dfb182",
+      "result_hash": "8d69cba5b113aba0bad7d161cf0197e0fbddaacd786174ac31f4128fa69035a7",
+      "metrics": {
+        "last_price": 9.82,
+        "low_price": 8.79,
+        "high_price": 10.02,
+        "volume": 281,
+        "bid_depth": 22,
+        "ask_depth": 67,
+        "spread": 0.2,
+        "program_filled": 278,
+        "program_queued": 0
+      }
+    },
+    {
+      "scenario": "pause",
+      "seed": 20100506,
+      "action": "tight",
+      "intervention": {
+        "depth_multiplier": 1,
+        "withdraw_on_inventory": true,
+        "pause_steps": 15
+      },
+      "events": 364,
+      "citable": 56,
+      "engine": "flash-crash/1",
+      "root_hash": "fe32f4239312a27de8046def62817562efb4bc5c2cdf069a418c9f0c97dfb182",
+      "initial_hash": "fe32f4239312a27de8046def62817562efb4bc5c2cdf069a418c9f0c97dfb182",
+      "result_hash": "2001ce7494f44eeb4fb749b94c8763ff78e027cec55f590e58d275e9d6938401",
+      "metrics": {
+        "last_price": 9.82,
+        "low_price": 8.79,
+        "high_price": 10.02,
+        "volume": 195,
+        "bid_depth": 18,
+        "ask_depth": 67,
+        "spread": 0.2,
+        "program_filled": 192,
+        "program_queued": 0
+      }
+    }
+  ],
+  "gamestop": [
+    {
+      "scenario": "baseline",
+      "seed": 202101,
+      "action": "buy",
+      "intervention": {
+        "social_weight": 1,
+        "loan_supply": 10,
+        "offer_depth": 1
+      },
+      "events": 208,
+      "citable": 63,
+      "engine": "gamestop/1",
+      "root_hash": "feb853e672f0a0ea28a2b3ff6285a18463c85b77160589972718fb354a753ada",
+      "initial_hash": "3a4e18e2985fc455335eb17cfb54be298604ad47c6166dbb8d33254c0ea7624b",
+      "result_hash": "22e4dbd186c23d4cf5e19451b6d280d2b01f3765604e30abf623ff746a5f5bc5",
+      "metrics": {
+        "last_price": 17.8,
+        "low_price": 9.95,
+        "high_price": 17.8,
+        "volume": 50,
+        "bid_depth": 22,
+        "ask_depth": 0,
+        "spread": null,
+        "short_interest": 8,
+        "forced_cover": 2,
+        "discretionary_buys": 38,
+        "social_buys": 18,
+        "reach": 5
+      }
+    },
+    {
+      "scenario": "no_social",
+      "seed": 202101,
+      "action": "buy",
+      "intervention": {
+        "social_weight": 0,
+        "loan_supply": 10,
+        "offer_depth": 1
+      },
+      "events": 66,
+      "citable": 22,
+      "engine": "gamestop/1",
+      "root_hash": "feb853e672f0a0ea28a2b3ff6285a18463c85b77160589972718fb354a753ada",
+      "initial_hash": "3a4e18e2985fc455335eb17cfb54be298604ad47c6166dbb8d33254c0ea7624b",
+      "result_hash": "c22a5a6fc323705c248fe8a037a03ff4d95ec3c2b0c3ac6e7c763c5f48e75ac0",
+      "metrics": {
+        "last_price": 10.02,
+        "low_price": 9.95,
+        "high_price": 10.02,
+        "volume": 14,
+        "bid_depth": 22,
+        "ask_depth": 36,
+        "spread": 0.5,
+        "short_interest": 10,
+        "forced_cover": 0,
+        "discretionary_buys": 4,
+        "social_buys": 0,
+        "reach": 5
+      }
+    },
+    {
+      "scenario": "no_lending",
+      "seed": 202101,
+      "action": "buy",
+      "intervention": {
+        "social_weight": 1,
+        "loan_supply": 0,
+        "offer_depth": 1
+      },
+      "events": 185,
+      "citable": 55,
+      "engine": "gamestop/1",
+      "root_hash": "feb853e672f0a0ea28a2b3ff6285a18463c85b77160589972718fb354a753ada",
+      "initial_hash": "919cbd06e2244cdeedb0d271ab6800dec1b7011bef9699c19b0e17438dbac500",
+      "result_hash": "47e2b5fc08beaaea9eff6fd3fcfccced2d80e5db38752ee5a11cb022601286ee",
+      "metrics": {
+        "last_price": 17.8,
+        "low_price": 10.02,
+        "high_price": 17.8,
+        "volume": 40,
+        "bid_depth": 32,
+        "ask_depth": 0,
+        "spread": null,
+        "short_interest": 0,
+        "forced_cover": 0,
+        "discretionary_buys": 40,
+        "social_buys": 18,
+        "reach": 5
+      }
+    },
+    {
+      "scenario": "deeper",
+      "seed": 202101,
+      "action": "buy",
+      "intervention": {
+        "social_weight": 1,
+        "loan_supply": 10,
+        "offer_depth": 2
+      },
+      "events": 210,
+      "citable": 81,
+      "engine": "gamestop/1",
+      "root_hash": "feb853e672f0a0ea28a2b3ff6285a18463c85b77160589972718fb354a753ada",
+      "initial_hash": "3a4e18e2985fc455335eb17cfb54be298604ad47c6166dbb8d33254c0ea7624b",
+      "result_hash": "320da4e4775fe29b25b114dbe3f437ec509a26de64814c5d265d719ac1239164",
+      "metrics": {
+        "last_price": 17.8,
+        "low_price": 9.95,
+        "high_price": 17.8,
+        "volume": 90,
+        "bid_depth": 22,
+        "ask_depth": 0,
+        "spread": null,
+        "short_interest": 0,
+        "forced_cover": 10,
+        "discretionary_buys": 70,
+        "social_buys": 39,
+        "reach": 5
+      }
+    }
+  ]
+}

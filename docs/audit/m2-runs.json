@@ -1,0 +1,419 @@
+{
+  "double_auction": [
+    {
+      "scenario": "baseline",
+      "seed": 1962,
+      "action": 96,
+      "intervention": {
+        "demand_shift": 0,
+        "fee": 0
+      },
+      "events": 148,
+      "citable": 6,
+      "engine": "double-auction/1",
+      "root_hash": "5b712cd33007e8fe2f84e42ab2fb2bc015ac0308b54be23560ac7bd2ba43b93f",
+      "initial_hash": "5b712cd33007e8fe2f84e42ab2fb2bc015ac0308b54be23560ac7bd2ba43b93f",
+      "result_hash": "a9139897c22f03c6c771d3c10157966917376352857e116969c1281befd96649",
+      "metrics": {
+        "volume": 6,
+        "price_min": 95,
+        "price_max": 97,
+        "surplus": 180,
+        "ceiling": 291,
+        "efficiency": 0.6185567010309279,
+        "platform_cash": 0,
+        "participant_surplus": 180,
+        "price_band": [
+          99,
+          101
+        ]
+      }
+    },
+    {
+      "scenario": "demand",
+      "seed": 1962,
+      "action": 96,
+      "intervention": {
+        "demand_shift": 12,
+        "fee": 0
+      },
+      "events": 147,
+      "citable": 7,
+      "engine": "double-auction/1",
+      "root_hash": "5b712cd33007e8fe2f84e42ab2fb2bc015ac0308b54be23560ac7bd2ba43b93f",
+      "initial_hash": "a441018f3484b78f6d2014a4f07fcb948e22eedc95c2db730a5481732163b6ea",
+      "result_hash": "3c988e04dfd44ed8910c19d4a016e686c40debc0b491789cbc685f702e14e93a",
+      "metrics": {
+        "volume": 7,
+        "price_min": 95,
+        "price_max": 97,
+        "surplus": 272,
+        "ceiling": 439,
+        "efficiency": 0.6195899772209568,
+        "platform_cash": 0,
+        "participant_surplus": 272,
+        "price_band": [
+          103,
+          105
+        ]
+      }
+    },
+    {
+      "scenario": "fee",
+      "seed": 1962,
+      "action": 96,
+      "intervention": {
+        "demand_shift": 0,
+        "fee": 6
+      },
+      "events": 150,
+      "citable": 4,
+      "engine": "double-auction/1",
+      "root_hash": "5b712cd33007e8fe2f84e42ab2fb2bc015ac0308b54be23560ac7bd2ba43b93f",
+      "initial_hash": "5b712cd33007e8fe2f84e42ab2fb2bc015ac0308b54be23560ac7bd2ba43b93f",
+      "result_hash": "fe83f31175476b41dc26b37aa0255b0c9ce28d594910ff64d27f8e14e2728ee1",
+      "metrics": {
+        "volume": 4,
+        "price_min": 95,
+        "price_max": 97,
+        "surplus": 137,
+        "ceiling": 291,
+        "efficiency": 0.47079037800687284,
+        "platform_cash": 48,
+        "participant_surplus": 89,
+        "price_band": [
+          99,
+          101
+        ]
+      }
+    }
+  ],
+  "schelling_segregation": [
+    {
+      "scenario": "baseline",
+      "seed": 1971,
+      "action": "stay",
+      "intervention": {
+        "threshold": 30
+      },
+      "events": 105,
+      "citable": 103,
+      "engine": "schelling/1",
+      "root_hash": "c0029f678d7366ddac9068b7bb1b5a865adcbd5e60f86c14dc2fab376221aa55",
+      "initial_hash": "c0029f678d7366ddac9068b7bb1b5a865adcbd5e60f86c14dc2fab376221aa55",
+      "result_hash": "1fd6d63c3fdefeb65e96e5080bb1cfa9ad990a6bc78d3f2a8968ca44673dbab0",
+      "metrics": {
+        "satisfied": 100.0,
+        "similarity": 81.11,
+        "moves": 99,
+        "remaining": 0
+      }
+    },
+    {
+      "scenario": "zero",
+      "seed": 1971,
+      "action": "stay",
+      "intervention": {
+        "threshold": 0
+      },
+      "events": 4,
+      "citable": 2,
+      "engine": "schelling/1",
+      "root_hash": "c0029f678d7366ddac9068b7bb1b5a865adcbd5e60f86c14dc2fab376221aa55",
+      "initial_hash": "c0029f678d7366ddac9068b7bb1b5a865adcbd5e60f86c14dc2fab376221aa55",
+      "result_hash": "a117cf5d32257355f7924b03d2cf85624948ef178110f4b14213e7b0d2cb9532",
+      "metrics": {
+        "satisfied": 100.0,
+        "similarity": 50.33,
+        "moves": 0,
+        "remaining": 0
+      }
+    },
+    {
+      "scenario": "higher",
+      "seed": 1971,
+      "action": "stay",
+      "intervention": {
+        "threshold": 50
+      },
+      "events": 154,
+      "citable": 152,
+      "engine": "schelling/1",
+      "root_hash": "c0029f678d7366ddac9068b7bb1b5a865adcbd5e60f86c14dc2fab376221aa55",
+      "initial_hash": "c0029f678d7366ddac9068b7bb1b5a865adcbd5e60f86c14dc2fab376221aa55",
+      "result_hash": "a771fccb8832bcef8824e002103e4f93ef054297580241a43d612659d05be62d",
+      "metrics": {
+        "satisfied": 100.0,
+        "similarity": 91.59,
+        "moves": 147,
+        "remaining": 0
+      }
+    }
+  ],
+  "svb_run": [
+    {
+      "scenario": "baseline",
+      "seed": 20230309,
+      "action": "withdraw_now",
+      "intervention": {
+        "cash_reallocation": 0,
+        "network": "concentrated"
+      },
+      "events": 54,
+      "citable": 51,
+      "engine": "svb/1",
+      "root_hash": "f86cda66df0d2d696b115022281375118c35fb4c27c4ce4074a3191919f5e1ac",
+      "initial_hash": "f86cda66df0d2d696b115022281375118c35fb4c27c4ce4074a3191919f5e1ac",
+      "result_hash": "8a461afe22eb913ca1e4feb7bdee0104f27c307cb71e2ae8d6ef85f2c5bc885b",
+      "metrics": {
+        "cash": 0,
+        "requested": 1517,
+        "paid": 1260,
+        "queued": 257,
+        "equity": -280,
+        "sale_loss": 510
+      }
+    },
+    {
+      "scenario": "liquidity_buffer",
+      "seed": 20230309,
+      "action": "withdraw_now",
+      "intervention": {
+        "cash_reallocation": 400,
+        "network": "concentrated"
+      },
+      "events": 53,
+      "citable": 50,
+      "engine": "svb/1",
+      "root_hash": "f86cda66df0d2d696b115022281375118c35fb4c27c4ce4074a3191919f5e1ac",
+      "initial_hash": "81264f7082fc0bca757bc79c82c937388adfdbd55c07892e51d4b3d0e106007c",
+      "result_hash": "41838ed513fff6d14d8fbe18fbe972ae738d7415bae81143eb7f24eb869d3d4b",
+      "metrics": {
+        "cash": 0,
+        "requested": 1517,
+        "paid": 1420,
+        "queued": 97,
+        "equity": -120,
+        "sale_loss": 390
+      }
+    },
+    {
+      "scenario": "network",
+      "seed": 20230309,
+      "action": "withdraw_now",
+      "intervention": {
+        "cash_reallocation": 0,
+        "network": "distributed"
+      },
+      "events": 68,
+      "citable": 65,
+      "engine": "svb/1",
+      "root_hash": "f86cda66df0d2d696b115022281375118c35fb4c27c4ce4074a3191919f5e1ac",
+      "initial_hash": "d0c4e7496edf29a74d47d65c40e517d188f03eb20c0716b02fd00e3c51ff7a87",
+      "result_hash": "068f50e4c54a6269a880cb9839a36924c0899ded13c31d60de41835ea60d1406",
+      "metrics": {
+        "cash": 0,
+        "requested": 1477,
+        "paid": 1260,
+        "queued": 217,
+        "equity": -280,
+        "sale_loss": 510
+      }
+    }
+  ],
+  "information_cascade": [
+    {
+      "scenario": "baseline",
+      "seed": 3,
+      "action": "bayes",
+      "intervention": {
+        "observe_actions": true,
+        "verification_turn": null
+      },
+      "events": 14,
+      "citable": 13,
+      "engine": "information-cascade/1",
+      "root_hash": "f9d3bbebd882500d8e9436b3f67ca8fc1eeb1920d490a5bacf76699c8328bd31",
+      "initial_hash": "f9d3bbebd882500d8e9436b3f67ca8fc1eeb1920d490a5bacf76699c8328bd31",
+      "result_hash": "7d836d613fd3349545fa95c075ea30cfcb3dac7a66350610d6f23afd1527ebb5",
+      "metrics": {
+        "public_a_pct": 20.0,
+        "cascade_decisions": 10,
+        "cascade_start": 3,
+        "revealing_decisions": 2,
+        "correct_pct": 0.0
+      }
+    },
+    {
+      "scenario": "private",
+      "seed": 3,
+      "action": "bayes",
+      "intervention": {
+        "observe_actions": false,
+        "verification_turn": null
+      },
+      "events": 14,
+      "citable": 13,
+      "engine": "information-cascade/1",
+      "root_hash": "f9d3bbebd882500d8e9436b3f67ca8fc1eeb1920d490a5bacf76699c8328bd31",
+      "initial_hash": "f9d3bbebd882500d8e9436b3f67ca8fc1eeb1920d490a5bacf76699c8328bd31",
+      "result_hash": "416ab39472249a9a63b62140456a77d72d6f3b56e188e36b20e8a40320421c81",
+      "metrics": {
+        "public_a_pct": 50.0,
+        "cascade_decisions": 0,
+        "cascade_start": null,
+        "revealing_decisions": 0,
+        "correct_pct": 50.0
+      }
+    },
+    {
+      "scenario": "verified",
+      "seed": 3,
+      "action": "bayes",
+      "intervention": {
+        "observe_actions": true,
+        "verification_turn": 7
+      },
+      "events": 15,
+      "citable": 14,
+      "engine": "information-cascade/1",
+      "root_hash": "f9d3bbebd882500d8e9436b3f67ca8fc1eeb1920d490a5bacf76699c8328bd31",
+      "initial_hash": "f9d3bbebd882500d8e9436b3f67ca8fc1eeb1920d490a5bacf76699c8328bd31",
+      "result_hash": "093684dc352fee24d7e9cb3b2c03dae88d649879feac3e0c16ab4dedf83ae3d8",
+      "metrics": {
+        "public_a_pct": 23.8095,
+        "cascade_decisions": 8,
+        "cascade_start": 3,
+        "revealing_decisions": 4,
+        "correct_pct": 0.0
+      }
+    }
+  ],
+  "public_goods": [
+    {
+      "scenario": "baseline",
+      "seed": 2000,
+      "action": "10",
+      "intervention": {
+        "unit_cost": null
+      },
+      "events": 21,
+      "citable": 20,
+      "engine": "public-goods/1",
+      "root_hash": "1d2b9b5226723a06f078757db4491a64c8343eb8481d201374e761b636997ccb",
+      "initial_hash": "79af04a3f9f4729e2a7edddfcb919455aa5470b0ffc0e57b7dcea353f1b8de05",
+      "result_hash": "2dfeb3534e4e79a25b1f3735c2f355d3ba9ead4132bb36b8fee092f3c3e9e375",
+      "metrics": {
+        "contributions": 40,
+        "total_contributions": 379,
+        "net_income": 1027.4,
+        "sanction_cost": 0.0
+      }
+    },
+    {
+      "scenario": "low_cost",
+      "seed": 2000,
+      "action": "10",
+      "intervention": {
+        "unit_cost": 1
+      },
+      "events": 21,
+      "citable": 20,
+      "engine": "public-goods/1",
+      "root_hash": "1d2b9b5226723a06f078757db4491a64c8343eb8481d201374e761b636997ccb",
+      "initial_hash": "79af04a3f9f4729e2a7edddfcb919455aa5470b0ffc0e57b7dcea353f1b8de05",
+      "result_hash": "d4a15f8bf40deff9de2ee35f84ed1cc90719522f986fc0f9ef58086baec9d4d6",
+      "metrics": {
+        "contributions": 43,
+        "total_contributions": 405,
+        "net_income": 963.0,
+        "sanction_cost": 80.0
+      }
+    },
+    {
+      "scenario": "high_cost",
+      "seed": 2000,
+      "action": "10",
+      "intervention": {
+        "unit_cost": 4
+      },
+      "events": 21,
+      "citable": 20,
+      "engine": "public-goods/1",
+      "root_hash": "1d2b9b5226723a06f078757db4491a64c8343eb8481d201374e761b636997ccb",
+      "initial_hash": "79af04a3f9f4729e2a7edddfcb919455aa5470b0ffc0e57b7dcea353f1b8de05",
+      "result_hash": "986179311eb7c3a1b7b786335b9ff0a7ea7679cfa1866d8c3c672f4063043fcb",
+      "metrics": {
+        "contributions": 43,
+        "total_contributions": 405,
+        "net_income": 973.0,
+        "sanction_cost": 70.0
+      }
+    }
+  ],
+  "commons_governance": [
+    {
+      "scenario": "baseline",
+      "seed": 2009,
+      "action": "1",
+      "intervention": {
+        "institution": "open"
+      },
+      "events": 25,
+      "citable": 24,
+      "engine": "commons-governance/1",
+      "root_hash": "cdec667ec71a2082eb51d155f7069f85edc06d7eea75a9bfc66cfd2193077596",
+      "initial_hash": "c6f542b083234bcb4f791ae0e06e2f251773fe40c500555d023327198b242d87",
+      "result_hash": "5bf324fe963efbf40e42fb68178edcca548d564c6cca976365be0ad6487b9eff",
+      "metrics": {
+        "stock": 0.0,
+        "harvest": 0.0,
+        "growth": 0.0,
+        "income": 660.3477201540051,
+        "monitoring_cost": 0.0
+      }
+    },
+    {
+      "scenario": "quota",
+      "seed": 2009,
+      "action": "1",
+      "intervention": {
+        "institution": "quota"
+      },
+      "events": 25,
+      "citable": 24,
+      "engine": "commons-governance/1",
+      "root_hash": "cdec667ec71a2082eb51d155f7069f85edc06d7eea75a9bfc66cfd2193077596",
+      "initial_hash": "c6f542b083234bcb4f791ae0e06e2f251773fe40c500555d023327198b242d87",
+      "result_hash": "6dbb6e01a24b64880eca3b313bc507a284f4bd7d41b0cf276f97449697e0a842",
+      "metrics": {
+        "stock": 206.03253788603217,
+        "harvest": 24.0,
+        "growth": 24.25351605895521,
+        "income": 576.0,
+        "monitoring_cost": 0.0
+      }
+    },
+    {
+      "scenario": "community",
+      "seed": 2009,
+      "action": "1",
+      "intervention": {
+        "institution": "community"
+      },
+      "events": 25,
+      "citable": 24,
+      "engine": "commons-governance/1",
+      "root_hash": "cdec667ec71a2082eb51d155f7069f85edc06d7eea75a9bfc66cfd2193077596",
+      "initial_hash": "c6f542b083234bcb4f791ae0e06e2f251773fe40c500555d023327198b242d87",
+      "result_hash": "dbabc63e7aba3d3634ffac1c4d6241c40058960e17c4ea244bfc7a43cacbc2de",
+      "metrics": {
+        "stock": 185.94863991885148,
+        "harvest": 28.0,
+        "growth": 30.046051099289127,
+        "income": 680.0,
+        "monitoring_cost": 8.0
+      }
+    }
+  ]
+}

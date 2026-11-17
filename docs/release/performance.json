@@ -1,0 +1,62 @@
+{
+  "platform": "macOS-27.0-arm64-arm-64bit",
+  "architecture": "arm64",
+  "server_cold_health_ms": 235.781,
+  "rule_flash_create_and_run_ms": 36.658,
+  "data": {
+    "default_trajectories": 41,
+    "largest_gzip": {
+      "case_id": "schelling_segregation",
+      "scenario_id": "higher",
+      "events": 154,
+      "gzip_bytes": 42528
+    },
+    "total_gzip_bytes": 325582
+  },
+  "flash_events": 368,
+  "native_flash_seek": {
+    "n": 30,
+    "p50_ms": 3.913,
+    "p95_ms": 4.763
+  },
+  "browser": {
+    "chrome": "157.0.8103.78",
+    "cold_profile_first_interactive": {
+      "n": 30,
+      "p50_ms": 52.501,
+      "p95_ms": 60.206
+    },
+    "warm_case_first_interactive": {
+      "n": 30,
+      "p50_ms": 14.906,
+      "p95_ms": 18.859
+    },
+    "event_keyboard_feedback": {
+      "n": 30,
+      "p50_ms": 2.256,
+      "p95_ms": 7.407
+    },
+    "trace_js_heap_bytes": 23532132
+  },
+  "fixture_500_agents_300_frames": {
+    "stored_bytes": 5366482,
+    "events": 300,
+    "agents_per_frame": 500,
+    "seek": {
+      "n": 30,
+      "p50_ms": 70.045,
+      "p95_ms": 72.809
+    }
+  },
+  "fixture_100000_events": {
+    "stored_bytes": 11656511,
+    "events": 100000,
+    "agents_per_frame": 0,
+    "seek": {
+      "n": 30,
+      "p50_ms": 122.934,
+      "p95_ms": 133.96
+    }
+  },
+  "service_rss_at_end_bytes": 417841152
+}

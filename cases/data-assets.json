@@ -1,0 +1,774 @@
+{
+  "schema_version": 1,
+  "content_release": "1.0.0-rc.9",
+  "courses": [
+    {
+      "case_id": "double_auction",
+      "case_version": "1.0.0",
+      "source_ids": [
+        "S02",
+        "S03"
+      ],
+      "seed": 1962,
+      "engine_version": "double-auction/1",
+      "engine_path": "services/simulation/auction.py",
+      "engine_sha256": "e4b734b35416759a9c7817191d0abcd3161e25e4c7f369bcf7b24dd4027105d6",
+      "historical_dataset": null,
+      "records": [
+        "cases/catalog.json",
+        "cases/boundaries.json",
+        "cases/double_auction/case.json",
+        "cases/double_auction/presets.json.gz",
+        "docs/audit/m2-runs.json",
+        "docs/audit/m3-runs.json",
+        "docs/release/seed-matrix.json",
+        "docs/release/rc9-boundaries.json"
+      ]
+    },
+    {
+      "case_id": "schelling_segregation",
+      "case_version": "1.0.0",
+      "source_ids": [
+        "S04",
+        "S04-N"
+      ],
+      "seed": 1971,
+      "engine_version": "schelling/1",
+      "engine_path": "services/simulation/schelling.py",
+      "engine_sha256": "819ca71a388e7ffd0f8f130ed21f29b1c094648733d00843be68dc24905aeb46",
+      "historical_dataset": null,
+      "records": [
+        "cases/catalog.json",
+        "cases/boundaries.json",
+        "cases/schelling_segregation/case.json",
+        "docs/audit/m2-runs.json",
+        "docs/audit/m3-runs.json",
+        "docs/release/seed-matrix.json",
+        "docs/release/rc9-boundaries.json"
+      ]
+    },
+    {
+      "case_id": "svb_run",
+      "case_version": "1.0.0",
+      "source_ids": [
+        "S01",
+        "SVB-RESOLUTION",
+        "S29"
+      ],
+      "seed": 20230309,
+      "engine_version": "svb/1",
+      "engine_path": "services/simulation/svb.py",
+      "engine_sha256": "81d463826a85919942a25be163f867dd902837e003fa141d927389f60d449dd7",
+      "historical_dataset": null,
+      "records": [
+        "cases/catalog.json",
+        "cases/boundaries.json",
+        "cases/svb_run/case.json",
+        "docs/audit/m2-runs.json",
+        "docs/audit/m3-runs.json",
+        "docs/release/seed-matrix.json",
+        "docs/release/rc9-boundaries.json",
+        "docs/audit/wp08-real-canary.json",
+        "docs/release/real-api-receipt.json",
+        "docs/release/backup-and-replay.json",
+        "docs/release/rc3-saved-events.json"
+      ]
+    },
+    {
+      "case_id": "information_cascade",
+      "case_version": "1.0.0",
+      "source_ids": [
+        "S07",
+        "BHW92"
+      ],
+      "seed": 3,
+      "engine_version": "information-cascade/1",
+      "engine_path": "services/simulation/cascade.py",
+      "engine_sha256": "697719f3b8cb3f5359a8a65189c52bc1e40e2c19b22fb0c179042ec52e781821",
+      "historical_dataset": null,
+      "records": [
+        "cases/catalog.json",
+        "cases/boundaries.json",
+        "cases/information_cascade/case.json",
+        "docs/audit/m2-runs.json",
+        "docs/audit/m3-runs.json",
+        "docs/release/seed-matrix.json",
+        "docs/release/rc9-boundaries.json",
+        "docs/audit/wp08-real-canary.json",
+        "docs/release/real-api-receipt.json",
+        "docs/release/backup-and-replay.json",
+        "docs/release/rc3-saved-events.json"
+      ]
+    },
+    {
+      "case_id": "public_goods",
+      "case_version": "1.0.0",
+      "source_ids": [
+        "S05"
+      ],
+      "seed": 2000,
+      "engine_version": "public-goods/1",
+      "engine_path": "services/simulation/public_goods.py",
+      "engine_sha256": "b7d64aa97c8290bfc1168b3b041d2d4105faf94cffb50c5a387b430a38e5cbff",
+      "historical_dataset": null,
+      "records": [
+        "cases/catalog.json",
+        "cases/boundaries.json",
+        "cases/public_goods/case.json",
+        "cases/public_goods/replicates.json",
+        "docs/audit/m2-runs.json",
+        "docs/audit/m3-runs.json",
+        "docs/release/seed-matrix.json",
+        "docs/release/rc9-boundaries.json",
+        "docs/audit/wp08-real-canary.json",
+        "docs/release/real-api-receipt.json",
+        "docs/release/backup-and-replay.json",
+        "docs/release/rc3-saved-events.json"
+      ]
+    },
+    {
+      "case_id": "commons_governance",
+      "case_version": "1.0.0",
+      "source_ids": [
+        "S06"
+      ],
+      "seed": 2009,
+      "engine_version": "commons-governance/1",
+      "engine_path": "services/simulation/commons.py",
+      "engine_sha256": "8308e3a46bee139857a49e85f78d98e1001f4492240f0040435c00fac861f3bf",
+      "historical_dataset": null,
+      "records": [
+        "cases/catalog.json",
+        "cases/boundaries.json",
+        "cases/commons_governance/case.json",
+        "cases/commons_governance/replicates.json",
+        "docs/audit/m2-runs.json",
+        "docs/audit/m3-runs.json",
+        "docs/release/seed-matrix.json",
+        "docs/release/rc9-boundaries.json"
+      ]
+    },
+    {
+      "case_id": "lemons_market",
+      "case_version": "1.0.0",
+      "source_ids": [
+        "S08"
+      ],
+      "seed": 1970,
+      "engine_version": "lemons-market/1",
+      "engine_path": "services/simulation/lemons.py",
+      "engine_sha256": "88e2dd7fa51796ba0a981d2d2688645cb86c6a7e6df2e192f82d31371a61ed85",
+      "historical_dataset": null,
+      "records": [
+        "cases/catalog.json",
+        "cases/boundaries.json",
+        "cases/lemons_market/case.json",
+        "docs/audit/m3-runs.json",
+        "docs/release/seed-matrix.json",
+        "docs/release/rc9-boundaries.json"
+      ]
+    },
+    {
+      "case_id": "school_matching",
+      "case_version": "1.0.0",
+      "source_ids": [
+        "S09",
+        "GS62"
+      ],
+      "seed": 2005,
+      "engine_version": "school-matching/1",
+      "engine_path": "services/simulation/matching.py",
+      "engine_sha256": "9940b65c6a30fe20594c550b5087d334d02e6a3ecd63a4f334529a8150ac3305",
+      "historical_dataset": null,
+      "records": [
+        "cases/catalog.json",
+        "cases/boundaries.json",
+        "cases/school_matching/case.json",
+        "docs/audit/m3-runs.json",
+        "docs/release/seed-matrix.json",
+        "docs/release/rc9-boundaries.json"
+      ]
+    },
+    {
+      "case_id": "beer_game",
+      "case_version": "1.0.0",
+      "source_ids": [
+        "S12",
+        "S13"
+      ],
+      "seed": 1989,
+      "engine_version": "beer/1",
+      "engine_path": "services/simulation/beer.py",
+      "engine_sha256": "32a986d6ab96acb93043dd6ef728d6876adcab9b639effbe128fef6452cbd0b7",
+      "historical_dataset": null,
+      "records": [
+        "cases/catalog.json",
+        "cases/boundaries.json",
+        "cases/beer_game/case.json",
+        "docs/audit/m3-runs.json",
+        "docs/release/seed-matrix.json",
+        "docs/release/rc9-boundaries.json"
+      ]
+    },
+    {
+      "case_id": "carbon_market",
+      "case_version": "1.0.0",
+      "source_ids": [
+        "S14",
+        "S14-CN"
+      ],
+      "seed": 2005,
+      "engine_version": "carbon/1",
+      "engine_path": "services/simulation/carbon.py",
+      "engine_sha256": "923b33ecc249fe6fed83f0e3ce90669add09a89b8c2428145b32bf02990b9255",
+      "historical_dataset": null,
+      "records": [
+        "cases/catalog.json",
+        "cases/boundaries.json",
+        "cases/carbon_market/case.json",
+        "docs/audit/m3-runs.json",
+        "docs/release/seed-matrix.json",
+        "docs/release/rc9-boundaries.json"
+      ]
+    },
+    {
+      "case_id": "flash_crash",
+      "case_version": "1.0.0",
+      "source_ids": [
+        "S10"
+      ],
+      "seed": 20100506,
+      "engine_version": "flash-crash/1",
+      "engine_path": "services/simulation/flash_crash.py",
+      "engine_sha256": "98e7f00d1ac694083ed137b34c96ccfb6b8a3b84c1166dbaffa1c773219ed6fb",
+      "historical_dataset": null,
+      "records": [
+        "cases/catalog.json",
+        "cases/boundaries.json",
+        "cases/flash_crash/case.json",
+        "docs/audit/m3-runs.json",
+        "docs/release/seed-matrix.json",
+        "docs/release/rc9-boundaries.json"
+      ]
+    },
+    {
+      "case_id": "gamestop",
+      "case_version": "1.0.0",
+      "source_ids": [
+        "S11"
+      ],
+      "seed": 202101,
+      "engine_version": "gamestop/1",
+      "engine_path": "services/simulation/gamestop.py",
+      "engine_sha256": "569c823debb7fd666e7af23090691b040b252950990f0837b34a74eac197d846",
+      "historical_dataset": null,
+      "records": [
+        "cases/catalog.json",
+        "cases/boundaries.json",
+        "cases/gamestop/case.json",
+        "docs/audit/m3-runs.json",
+        "docs/release/seed-matrix.json",
+        "docs/release/rc9-boundaries.json",
+        "docs/audit/wp08-real-canary.json",
+        "docs/release/real-api-receipt.json",
+        "docs/release/backup-and-replay.json",
+        "docs/release/rc3-saved-events.json"
+      ]
+    }
+  ],
+  "files": [
+    {
+      "path": "cases/catalog.json",
+      "kind": "teaching_input",
+      "version": "RC9",
+      "cases": [
+        "double_auction",
+        "schelling_segregation",
+        "svb_run",
+        "information_cascade",
+        "public_goods",
+        "commons_governance",
+        "lemons_market",
+        "school_matching",
+        "beer_game",
+        "carbon_market",
+        "flash_crash",
+        "gamestop"
+      ],
+      "grain": "每门发布课一个 ID",
+      "method": "项目维护的课程序列",
+      "verify": null,
+      "bytes": 235,
+      "sha256": "f252fb1e4228c24d32ee68e6b6db1170a5f852a5e6ff794b776882f275c4135a",
+      "distribution": "included_in_local_teaching_package",
+      "license_status": "project_public_license_unconfirmed"
+    },
+    {
+      "path": "cases/boundaries.json",
+      "kind": "teaching_input",
+      "version": "RC9",
+      "cases": [
+        "double_auction",
+        "schelling_segregation",
+        "svb_run",
+        "information_cascade",
+        "public_goods",
+        "commons_governance",
+        "lemons_market",
+        "school_matching",
+        "beer_game",
+        "carbon_market",
+        "flash_crash",
+        "gamestop"
+      ],
+      "grain": "每课一个固定边界输入",
+      "method": "项目手工定义的动作及规则参数",
+      "verify": "python -m scripts.check_boundaries",
+      "bytes": 4077,
+      "sha256": "7503a9a669924b18a91f29df1fa635c8dd941157ca77b507278bad4d847c6481",
+      "distribution": "included_in_local_teaching_package",
+      "license_status": "project_public_license_unconfirmed"
+    },
+    {
+      "path": "cases/double_auction/case.json",
+      "kind": "teaching_input",
+      "version": "1.0.0",
+      "cases": [
+        "double_auction"
+      ],
+      "grain": "每课一份定义",
+      "method": "项目编写的教学文案、动作、规则参数和固定种子",
+      "verify": "python -m scripts.check_lesson_catalog --milestone m3",
+      "bytes": 4354,
+      "sha256": "e9280008a3efbe62a4be4863317407724f0fde78b0578b20cb3b7489631c8626",
+      "distribution": "included_in_local_teaching_package",
+      "license_status": "project_public_license_unconfirmed"
+    },
+    {
+      "path": "cases/schelling_segregation/case.json",
+      "kind": "teaching_input",
+      "version": "1.0.0",
+      "cases": [
+        "schelling_segregation"
+      ],
+      "grain": "每课一份定义",
+      "method": "项目编写的教学文案、动作、规则参数和固定种子",
+      "verify": "python -m scripts.check_lesson_catalog --milestone m3",
+      "bytes": 4893,
+      "sha256": "52b0bd6f21f14465fc7055c41db5a232601a043d7c850028e0d707019bd5738e",
+      "distribution": "included_in_local_teaching_package",
+      "license_status": "project_public_license_unconfirmed"
+    },
+    {
+      "path": "cases/svb_run/case.json",
+      "kind": "teaching_input",
+      "version": "1.0.0",
+      "cases": [
+        "svb_run"
+      ],
+      "grain": "每课一份定义",
+      "method": "项目编写的教学文案、动作、规则参数和固定种子",
+      "verify": "python -m scripts.check_lesson_catalog --milestone m3",
+      "bytes": 6873,
+      "sha256": "623d3582ca494507cd5781ef7c01a96a94ccd384c349c465450869e37e713f1c",
+      "distribution": "included_in_local_teaching_package",
+      "license_status": "project_public_license_unconfirmed"
+    },
+    {
+      "path": "cases/information_cascade/case.json",
+      "kind": "teaching_input",
+      "version": "1.0.0",
+      "cases": [
+        "information_cascade"
+      ],
+      "grain": "每课一份定义",
+      "method": "项目编写的教学文案、动作、规则参数和固定种子",
+      "verify": "python -m scripts.check_lesson_catalog --milestone m3",
+      "bytes": 6354,
+      "sha256": "8abe341c01635ebacaf48cbdb50d889726d7ca77ca950fcb656de9f122debd22",
+      "distribution": "included_in_local_teaching_package",
+      "license_status": "project_public_license_unconfirmed"
+    },
+    {
+      "path": "cases/public_goods/case.json",
+      "kind": "teaching_input",
+      "version": "1.0.0",
+      "cases": [
+        "public_goods"
+      ],
+      "grain": "每课一份定义",
+      "method": "项目编写的教学文案、动作、规则参数和固定种子",
+      "verify": "python -m scripts.check_lesson_catalog --milestone m3",
+      "bytes": 4332,
+      "sha256": "73f796f515c1baa520a9a923dc9791b9442cadc8c8d6d9fcbf39f2a482fca509",
+      "distribution": "included_in_local_teaching_package",
+      "license_status": "project_public_license_unconfirmed"
+    },
+    {
+      "path": "cases/commons_governance/case.json",
+      "kind": "teaching_input",
+      "version": "1.0.0",
+      "cases": [
+        "commons_governance"
+      ],
+      "grain": "每课一份定义",
+      "method": "项目编写的教学文案、动作、规则参数和固定种子",
+      "verify": "python -m scripts.check_lesson_catalog --milestone m3",
+      "bytes": 4398,
+      "sha256": "28d7ac757699f6fde07fc83f980e63703d248032f6c431ab8589df9969a41fb6",
+      "distribution": "included_in_local_teaching_package",
+      "license_status": "project_public_license_unconfirmed"
+    },
+    {
+      "path": "cases/lemons_market/case.json",
+      "kind": "teaching_input",
+      "version": "1.0.0",
+      "cases": [
+        "lemons_market"
+      ],
+      "grain": "每课一份定义",
+      "method": "项目编写的教学文案、动作、规则参数和固定种子",
+      "verify": "python -m scripts.check_lesson_catalog --milestone m3",
+      "bytes": 5459,
+      "sha256": "9e5d6d88fcdc05e235b3307b3134d6a5beb7b9400a961fa040ccf070d3f7173e",
+      "distribution": "included_in_local_teaching_package",
+      "license_status": "project_public_license_unconfirmed"
+    },
+    {
+      "path": "cases/school_matching/case.json",
+      "kind": "teaching_input",
+      "version": "1.0.0",
+      "cases": [
+        "school_matching"
+      ],
+      "grain": "每课一份定义",
+      "method": "项目编写的教学文案、动作、规则参数和固定种子",
+      "verify": "python -m scripts.check_lesson_catalog --milestone m3",
+      "bytes": 5825,
+      "sha256": "063d681b81c163728c401670d6ce92b38c33c2f231a18fc6d28d3237c066c442",
+      "distribution": "included_in_local_teaching_package",
+      "license_status": "project_public_license_unconfirmed"
+    },
+    {
+      "path": "cases/beer_game/case.json",
+      "kind": "teaching_input",
+      "version": "1.0.0",
+      "cases": [
+        "beer_game"
+      ],
+      "grain": "每课一份定义",
+      "method": "项目编写的教学文案、动作、规则参数和固定种子",
+      "verify": "python -m scripts.check_lesson_catalog --milestone m3",
+      "bytes": 5813,
+      "sha256": "95a9e7f8163410eac402b6abaedac5458d36dc1bee68103455cd64d58cef432e",
+      "distribution": "included_in_local_teaching_package",
+      "license_status": "project_public_license_unconfirmed"
+    },
+    {
+      "path": "cases/carbon_market/case.json",
+      "kind": "teaching_input",
+      "version": "1.0.0",
+      "cases": [
+        "carbon_market"
+      ],
+      "grain": "每课一份定义",
+      "method": "项目编写的教学文案、动作、规则参数和固定种子",
+      "verify": "python -m scripts.check_lesson_catalog --milestone m3",
+      "bytes": 5795,
+      "sha256": "b4675383b2f6e05ae848405e8c74a2bc1bdc29b3f4efe532414887f0f2d3fb7b",
+      "distribution": "included_in_local_teaching_package",
+      "license_status": "project_public_license_unconfirmed"
+    },
+    {
+      "path": "cases/flash_crash/case.json",
+      "kind": "teaching_input",
+      "version": "1.0.0",
+      "cases": [
+        "flash_crash"
+      ],
+      "grain": "每课一份定义",
+      "method": "项目编写的教学文案、动作、规则参数和固定种子",
+      "verify": "python -m scripts.check_lesson_catalog --milestone m3",
+      "bytes": 7108,
+      "sha256": "ea7cd4b64e0e6e084b3ae14215dce557de22fbbccb523acab0455895eef4afa9",
+      "distribution": "included_in_local_teaching_package",
+      "license_status": "project_public_license_unconfirmed"
+    },
+    {
+      "path": "cases/gamestop/case.json",
+      "kind": "teaching_input",
+      "version": "1.0.0",
+      "cases": [
+        "gamestop"
+      ],
+      "grain": "每课一份定义",
+      "method": "项目编写的教学文案、动作、规则参数和固定种子",
+      "verify": "python -m scripts.check_lesson_catalog --milestone m3",
+      "bytes": 6293,
+      "sha256": "fea1d49f3fe369f030e5ac87c73ce7ec3608e20dddab8b065c2f90a6a055fe53",
+      "distribution": "included_in_local_teaching_package",
+      "license_status": "project_public_license_unconfirmed"
+    },
+    {
+      "path": "cases/double_auction/presets.json.gz",
+      "kind": "precomputed_simulation",
+      "version": "RC9 / double-auction/1",
+      "cases": [
+        "double_auction"
+      ],
+      "grain": "每个冻结情景一条含事件、快照与指标的轨迹",
+      "method": "从课件种子和固定报价运行撮合模型，按情景键封装为确定性 gzip",
+      "verify": "python -m scripts.generate_auction_presets --check",
+      "bytes": 26541,
+      "sha256": "c327da80b61d316a6c43d92d8724a08005b5c18cffad3a0d7b9554fb5c0b51e6",
+      "distribution": "included_in_local_teaching_package",
+      "license_status": "project_public_license_unconfirmed"
+    },
+    {
+      "path": "cases/public_goods/replicates.json",
+      "kind": "computed_rule_receipt",
+      "version": "1.0.0",
+      "cases": [
+        "public_goods"
+      ],
+      "grain": "每种子与情景一组期末指标及结果哈希",
+      "method": "按文件所列种子、动作与情景重跑课程模型，保存指标和运行哈希",
+      "verify": "python -m pytest -q tests/mechanisms/test_public_goods_lesson.py -k regenerated",
+      "bytes": 9013,
+      "sha256": "4f9456348ffc88857d1ea33bfdfd61c9437746c3ead3f27b018f6c926129aa4e",
+      "distribution": "included_in_local_teaching_package",
+      "license_status": "project_public_license_unconfirmed"
+    },
+    {
+      "path": "cases/commons_governance/replicates.json",
+      "kind": "computed_rule_receipt",
+      "version": "1.0.0",
+      "cases": [
+        "commons_governance"
+      ],
+      "grain": "每种子与情景一组期末指标及结果哈希",
+      "method": "按文件所列种子、动作与情景重跑课程模型，保存指标和运行哈希",
+      "verify": "python -m pytest -q tests/mechanisms/test_commons_lesson.py -k regenerated",
+      "bytes": 5626,
+      "sha256": "0395f7490dd3985e3ed631909f9053022ef1573f9c92e711b94b2e01e4bd7ed7",
+      "distribution": "included_in_local_teaching_package",
+      "license_status": "project_public_license_unconfirmed"
+    },
+    {
+      "path": "docs/audit/m2-runs.json",
+      "kind": "computed_rule_receipt",
+      "version": "M2 frozen",
+      "cases": [
+        "double_auction",
+        "schelling_segregation",
+        "svb_run",
+        "information_cascade",
+        "public_goods",
+        "commons_governance"
+      ],
+      "grain": "每课每个必做情景一组结果摘要",
+      "method": "固定种子、默认动作和配对条件下计算",
+      "verify": "python -m scripts.check_lesson_catalog --milestone m2",
+      "bytes": 12592,
+      "sha256": "4786c7e60113ece977fe1fcc39a9497af0601c012bb50e314bb86d88d2e6393f",
+      "distribution": "included_in_local_teaching_package",
+      "license_status": "project_public_license_unconfirmed"
+    },
+    {
+      "path": "docs/audit/m3-runs.json",
+      "kind": "computed_rule_receipt",
+      "version": "M3 frozen",
+      "cases": [
+        "double_auction",
+        "schelling_segregation",
+        "svb_run",
+        "information_cascade",
+        "public_goods",
+        "commons_governance",
+        "lemons_market",
+        "school_matching",
+        "beer_game",
+        "carbon_market",
+        "flash_crash",
+        "gamestop"
+      ],
+      "grain": "每课每个发布对照情景一组指标和哈希",
+      "method": "固定种子、默认动作和配对条件下计算",
+      "verify": "python -m scripts.check_lesson_catalog --milestone m3",
+      "bytes": 30649,
+      "sha256": "519c3ceac4ebc89a76f496e31d8b7f74fc6352101e0739eddd28d72a0fa5c42f",
+      "distribution": "included_in_local_teaching_package",
+      "license_status": "project_public_license_unconfirmed"
+    },
+    {
+      "path": "docs/release/seed-matrix.json",
+      "kind": "computed_rule_receipt",
+      "version": "M3 / 20-seed matrix",
+      "cases": [
+        "double_auction",
+        "schelling_segregation",
+        "svb_run",
+        "information_cascade",
+        "public_goods",
+        "commons_governance",
+        "lemons_market",
+        "school_matching",
+        "beer_game",
+        "carbon_market",
+        "flash_crash",
+        "gamestop"
+      ],
+      "grain": "每课每情景一组跨种子摘要和逐种子哈希",
+      "method": "每课 20 个连续种子，每个情景、种子组合本地计算两次",
+      "verify": "python -m scripts.case_seed_matrix",
+      "bytes": 120906,
+      "sha256": "eb9df1daf2d6d0677f5a922fa7e8a4affd276056fdbbdd6a125e8a2feec98866",
+      "distribution": "included_in_local_teaching_package",
+      "license_status": "project_public_license_unconfirmed"
+    },
+    {
+      "path": "docs/release/rc9-boundaries.json",
+      "kind": "computed_rule_receipt",
+      "version": "RC9",
+      "cases": [
+        "double_auction",
+        "schelling_segregation",
+        "svb_run",
+        "information_cascade",
+        "public_goods",
+        "commons_governance",
+        "lemons_market",
+        "school_matching",
+        "beer_game",
+        "carbon_market",
+        "flash_crash",
+        "gamestop"
+      ],
+      "grain": "每课边界一组结果",
+      "method": "从固定边界参数、种子和动作计算并检查机制断言",
+      "verify": "python -m scripts.check_boundaries",
+      "bytes": 8882,
+      "sha256": "fc2d6e988408e5655c0a705476a12e588849afd046740e5a62a31082f853b14a",
+      "distribution": "included_in_local_teaching_package",
+      "license_status": "project_public_license_unconfirmed"
+    },
+    {
+      "path": "docs/audit/wp08-real-canary.json",
+      "kind": "live_simulation_receipt",
+      "version": "WP08 initial canary",
+      "cases": [
+        "svb_run",
+        "information_cascade",
+        "public_goods",
+        "gamestop"
+      ],
+      "grain": "初次联通的四门课轨迹摘要",
+      "method": "实际的 OpenAI 请求和本地规则结算，保存动作、用量和哈希；供应商原始响应正文只留哈希",
+      "verify": null,
+      "bytes": 6603,
+      "sha256": "4f97d8dd959893e43ccf79a0e3e1cef597e6fdebe9cc380fa6fce6f0c6efca53",
+      "distribution": "included_in_local_teaching_package",
+      "license_status": "project_public_license_unconfirmed"
+    },
+    {
+      "path": "docs/release/real-api-receipt.json",
+      "kind": "live_simulation_receipt",
+      "version": "WP08 release canary",
+      "cases": [
+        "svb_run",
+        "information_cascade",
+        "public_goods",
+        "gamestop"
+      ],
+      "grain": "四课各一条 Live 轨迹摘要",
+      "method": "实际的 OpenAI 请求和本地规则结算，保存动作、用量和哈希；供应商原始响应正文只留哈希",
+      "verify": null,
+      "bytes": 7235,
+      "sha256": "8180d64ee2bc20c3e130d96d10e1427cfe0b2ea001c039dc23a424fd886594a8",
+      "distribution": "included_in_local_teaching_package",
+      "license_status": "project_public_license_unconfirmed"
+    },
+    {
+      "path": "docs/release/backup-and-replay.json",
+      "kind": "local_replay_audit",
+      "version": "WP10 backup replay",
+      "cases": [
+        "svb_run",
+        "information_cascade",
+        "public_goods",
+        "gamestop"
+      ],
+      "grain": "一次 SQLite 恢复与离线回放检查",
+      "method": "验证已保存运行可回放与账本计数；只登记汇总证据",
+      "verify": null,
+      "bytes": 1146,
+      "sha256": "37cad28f6fc684947603b2eace1209801b1a96a505ca3bbecaa687a8926eab03",
+      "distribution": "included_in_local_teaching_package",
+      "license_status": "project_public_license_unconfirmed"
+    },
+    {
+      "path": "docs/release/rc3-saved-events.json",
+      "kind": "local_replay_audit",
+      "version": "RC3 saved events",
+      "cases": [
+        "svb_run",
+        "information_cascade",
+        "public_goods",
+        "gamestop"
+      ],
+      "grain": "一次 SQLite 恢复与离线回放检查",
+      "method": "验证已保存运行可回放与账本计数；只登记汇总证据",
+      "verify": null,
+      "bytes": 158,
+      "sha256": "26fe0af21dc831358a436783681e942e32b210b9b86ac6be160b98450d5643f7",
+      "distribution": "included_in_local_teaching_package",
+      "license_status": "project_public_license_unconfirmed"
+    }
+  ],
+  "runtime_records": [
+    {
+      "kind": "computed_rule",
+      "export_origin": "offline_simulation",
+      "cases": [
+        "double_auction",
+        "schelling_segregation",
+        "svb_run",
+        "information_cascade",
+        "public_goods",
+        "commons_governance",
+        "lemons_market",
+        "school_matching",
+        "beer_game",
+        "carbon_market",
+        "flash_crash",
+        "gamestop"
+      ],
+      "method": "指定版本的课件、引擎、种子、情景和学生动作；运行时计算"
+    },
+    {
+      "kind": "precomputed_simulation",
+      "export_origin": "precomputed_simulation",
+      "cases": [
+        "double_auction"
+      ],
+      "method": "读取已登记的 gzip 预设；保留原结果哈希"
+    },
+    {
+      "kind": "live_simulation",
+      "export_origin": "live_simulation",
+      "cases": [
+        "svb_run",
+        "information_cascade",
+        "public_goods",
+        "gamestop"
+      ],
+      "method": "真实供应商动作与本地结算；读取保存的运行不再请求供应商"
+    }
+  ],
+  "runtime_storage": {
+    "format": "SQLite / canonical-result/1 or legacy JSON",
+    "version": "case_version + engine_version + result_hash",
+    "distribution": "user_local_only; database_not_in_archive",
+    "license_status": "public_reuse_unconfirmed"
+  }
+}

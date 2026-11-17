@@ -1,0 +1,92 @@
+{
+  "version": "1.0.0-rc.10",
+  "tested_on": "2026-11-17",
+  "browser": "Google Chrome",
+  "case_id": "svb_run",
+  "case_version": "1.0.0",
+  "run_id": "4c3d7f61-713b-462a-abfd-4e34182c07fc",
+  "seed": 20230309,
+  "student_action": "withdraw_now",
+  "model_action": "withdraw_unprotected",
+  "rule_default": "hold",
+  "event_seq": 3,
+  "result_hash": "de3ad501035fb4d63d6740fbf0e26f73ee466eeb01fa268db4ee55e71dbc9eef",
+  "reference_hash": "8a461afe22eb913ca1e4feb7bdee0104f27c307cb71e2ae8d6ef85f2c5bc885b",
+  "metrics": [
+    {
+      "id": "cash",
+      "label": "银行现金",
+      "unit": "资金单位",
+      "rule": 0,
+      "advanced": 0
+    },
+    {
+      "id": "requested",
+      "label": "累计申请",
+      "unit": "资金单位",
+      "rule": 1517,
+      "advanced": 1528
+    },
+    {
+      "id": "paid",
+      "label": "累计实付",
+      "unit": "资金单位",
+      "rule": 1260,
+      "advanced": 1260
+    },
+    {
+      "id": "queued",
+      "label": "等待支付",
+      "unit": "资金单位",
+      "rule": 257,
+      "advanced": 268
+    },
+    {
+      "id": "equity",
+      "label": "银行净资产",
+      "unit": "资金单位",
+      "rule": -280,
+      "advanced": -280
+    },
+    {
+      "id": "sale_loss",
+      "label": "累计折价损失",
+      "unit": "资金单位",
+      "rule": 510,
+      "advanced": 510
+    }
+  ],
+  "models": [
+    {
+      "name": "gpt-6-luna",
+      "usage": {
+        "input_tokens": 195,
+        "output_tokens": 15,
+        "cached_input_tokens": 0
+      },
+      "currency": "USD",
+      "estimated_cost": 2.7e-05
+    }
+  ],
+  "provider_attempts_before": 8,
+  "provider_attempts_after_run": 9,
+  "provider_attempts_after_replay": 9,
+  "steps_verified": [
+    "open_from_course",
+    "run_with_real_provider",
+    "download_rule_comparison",
+    "reload_mobile",
+    "open_execution_event"
+  ],
+  "viewports": [
+    1440,
+    390
+  ],
+  "final_layout_verified": {
+    "desktop_width": 1440,
+    "mobile_width": 390,
+    "download_matches_original": true,
+    "opens_saved_event": true,
+    "added_provider_attempts": 0
+  }
+}

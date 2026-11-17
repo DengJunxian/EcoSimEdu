@@ -1,0 +1,62 @@
+{
+  "case_id": "school_matching",
+  "version": "1.0.0",
+  "title": "学校匹配",
+  "subtitle": "如实排序会失去机会吗？",
+  "identity": "institutional_case",
+  "identity_label": "制度案例",
+  "minutes": "25–35 分钟",
+  "intro": "12 名学生要在 3 所学校之间分配。学校按固定优先序处理申请。你是 S01，偏好 A 校、B 校、C 校。可以如实排序，也可以先填优先权较高的 B 校。",
+  "background": "2005 年 7 月，波士顿学校委员会决定以延迟接受替换旧的公校匹配机制。本课使用合成学生、优先序和席位，在同一组数据上观察两种机制怎样处理满额学校。",
+  "goals": ["追踪申请、暂留、拒绝和最终入学", "阅读容量、学校优先序和学生偏好", "分别核对相对提交志愿与真实偏好的阻挡对"],
+  "seed": 2005,
+  "action": {
+    "label": "为 S01 填报志愿",
+    "default": "truthful",
+    "options": [
+      {"id": "truthful", "label": "按真实偏好申报 A > B > C"},
+      {"id": "safe_first", "label": "把有优先优势的 B 放首位，B > A > C"}
+    ]
+  },
+  "minimum_evidence": 2,
+  "evidence_types": ["round_proposals", "round_resolution", "final_assignment"],
+  "checkpoint": {"event_type": "round_resolution", "message": "先看第一轮的拒绝。延迟接受中的暂留可能在后续轮次改变。"},
+  "alignment": {"axis_label": "申请轮次", "field": "round", "event_type": "round_resolution"},
+  "lessons": [
+    {"id": "intro", "title": "走进学校分配", "prompt": "每所学校都有席位上限。先了解学生志愿与学校优先权分别决定什么。"},
+    {"id": "predict", "title": "预测能否录取", "prompt": "S01 更喜欢 A，优先权却在 B 更高。你认为 A 校首轮满额时，S01 就再也不能去 B 吗？"},
+    {"id": "bid", "title": "提交志愿", "prompt": "替 S01 修改提交顺序或如实填写。S01 的真实偏好在各情景保持一致。"},
+    {"id": "observe", "title": "跟踪拒绝与再申请", "prompt": "打开学校优先序和席位名单。点击拒绝事件中的申请链接，确认这份申请出现在哪一轮。"},
+    {"id": "explain", "title": "检查最终分配", "prompt": "查看最终分配和阻挡对。分别用提交志愿和真实偏好检查更想去某校的学生。"},
+    {"id": "compare", "title": "比较两种分配机制", "prompt": "保留同样的志愿与学校优先序，比较即时接受与延迟接受，再查看 A 校多一席的影响。"},
+    {"id": "notebook", "title": "写实验笔记", "prompt": "引用至少两条申请、拒绝或分配记录，解释为什么是否保留改分机会会影响结果。"}
+  ],
+  "questions": {
+    "prediction": {"prompt": "延迟接受中，第一轮被 A 校拒绝后，S01 还可能去 B 校吗？", "options": {"yes": "可能", "no": "不能", "unknown": "不确定"}},
+    "explain": {"prompt": "结果相对提交志愿没有阻挡对，是否意味着相对真实偏好也没有？", "options": {"yes": "必然没有", "no": "需要分别检查"}, "answer": "no", "feedback": "阻挡对用来比较学生当前获得的学校和更想去的学校。改报会改变提交顺序，因而可能改变阻挡对。两种口径在如实申报时一致。"},
+    "transfer": {"prompt": "如果把学校匹配改成实习岗位匹配，哪些条件还能沿用，哪些要重新确认？", "rubric": "指出岗位容量、申请者偏好或岗位优先规则中的至少两项，并说明不同假设下如何判断阻挡对。"}
+  },
+  "glossary": [
+    {"term": "暂留", "definition": "学校在当前轮次为学生保留一个席位，后续可能由优先权更高的学生替代。"},
+    {"term": "即时接受", "definition": "学校按当轮申请者优先序填补剩余位置，之前确认的人继续拥有席位。"},
+    {"term": "阻挡对", "definition": "学生更喜欢某校，且该校有空位或其优先序允许学生替换一名现有学生。"},
+    {"term": "学生提出 DA", "definition": "学生向剩余最心仪的学校申请，学校用固定优先序重新筛选暂留者和新申请者。"}
+  ],
+  "scenarios": [
+    {"id": "baseline", "label": "延迟接受", "description": "暂留席位可以在后续轮次重新分配，每校四席。", "parameters": {"mechanism": "deferred", "extra_a_seats": 0}},
+    {"id": "immediate", "label": "即时接受", "description": "本轮录取立即确认，后续不得替换，每校仍四席。", "parameters": {"mechanism": "immediate", "extra_a_seats": 0}},
+    {"id": "expanded", "label": "A 校增加一席", "description": "继续使用延迟接受，A 校容量提高为五席。", "parameters": {"mechanism": "deferred", "extra_a_seats": 1}}
+  ],
+  "metrics": [
+    {"id": "applications", "label": "累计申请", "unit": "份"},
+    {"id": "rejections", "label": "累计拒绝", "unit": "份"},
+    {"id": "first_true_choice", "label": "获真实第一志愿", "unit": "人"},
+    {"id": "student_true_rank", "label": "S01 获得的真实志愿位次", "unit": "位"},
+    {"id": "submitted_blocking_pairs", "label": "按提交志愿的阻挡对", "unit": "对"},
+    {"id": "true_blocking_pairs", "label": "按真实偏好的阻挡对", "unit": "对"}
+  ],
+  "sources": [
+    {"id": "S09", "title": "Abdulkadiroğlu, Pathak, Roth & Sönmez, Changing the Boston School Choice Mechanism (2006)", "url": "https://www.nber.org/papers/w11965", "supports": "2005 年波士顿改革、原即时处理规则与延迟接受对照、策略及公平考虑。"},
+    {"id": "GS62", "title": "Gale & Shapley, College Admissions and the Stability of Marriage (1962)", "url": "https://doi.org/10.1080/00029890.1962.11989827", "supports": "固定优先序下的延迟接受、稳定性定义及可终止的逐轮过程。"}
+  ]
+}

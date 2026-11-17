@@ -1,0 +1,65 @@
+{
+  "case_id": "gamestop",
+  "version": "1.0.0",
+  "title": "GameStop 交易热潮",
+  "subtitle": "关注、买单和空头回补怎样相互影响？",
+  "identity": "historical_event",
+  "identity_label": "历史事件",
+  "minutes": "30–40 分钟",
+  "intro": "用同一条公开话题观察不同买家。有人按估值交易，有人跟踪价格，还有人响应转发。每笔成交和每次借券交付都可以追溯。",
+  "background": "SEC 工作人员报告记录了 2021 年 1 月 GameStop 的交易热潮。特定时段的空头回补可能助推急涨，整体买量中回补仅占一部分。课内使用 20 个合成账户和 10 轮教学撮合。",
+  "goals": ["区分主动买入、话题触达和强制回补", "按账本核对借券、现金与股票交付", "在相同公开消息下比较社交权重、借券供给和卖方深度"],
+  "seed": 202101,
+  "action": {
+    "label": "用自己的现金选择首轮行动",
+    "default": "buy",
+    "options": [{"id": "buy", "label": "提交 2 股、12 美元限价买单"}, {"id": "observe", "label": "观察并保留现金"}]
+  },
+  "minimum_evidence": 2,
+  "evidence_types": ["message", "forward", "trade", "loan", "loan_blocked", "margin_call", "return"],
+  "checkpoint": {"event_type": "rest", "message": "第一张被动报价入簿。观察订单簿，再跳到消息或借券事件。"},
+  "alignment": {"axis_label": "模型轮次", "field": "time", "event_type": "period_end"},
+  "lessons": [
+    {"id": "intro", "title": "进入教学市场", "prompt": "阅读事件背景，再区分监管报告和本次规则生成的逐笔成交。"},
+    {"id": "predict", "title": "预测关注与购买", "prompt": "转发会增加触达人数。想一想哪些条件会限制成为买单的人数和数量。"},
+    {"id": "bid", "title": "选择学生行动", "prompt": "买单使用你的可用现金，只有与真实挂单匹配时才会改变价格和持仓。"},
+    {"id": "observe", "title": "追踪消息与交易", "prompt": "沿同一条话题的来源追踪转发，再检查估值、趋势、关注买入和强制回补记录。"},
+    {"id": "explain", "title": "解释价格与头寸", "prompt": "观察成交价变化如何影响借券义务的担保要求，区分买入交割与股票归还。"},
+    {"id": "compare", "title": "改变一项市场条件", "prompt": "保持共同话题和你的选择，分别改变社交权重、可借股数和开局卖量。"},
+    {"id": "notebook", "title": "写实验笔记", "prompt": "比较同源转发、普通买入或强制回补事件，说明需要哪些证据判断现实中各机制的贡献。"}
+  ],
+  "questions": {
+    "prediction": {"prompt": "同一消息触达更多人，会保证有人以任意价格买入吗？", "options": {"yes": "会", "no": "不会", "unknown": "先观察"}},
+    "explain": {"prompt": "用现金买入股票并向出借方还股后，借券义务会减少吗？", "options": {"yes": "会", "no": "不会"}, "answer": "yes", "feedback": "成交使现金减少并取得股票。交还这批股票才减少借券义务。普通买入的股票留在自己的账户，两种交易目的可以在事件中区分。"},
+    "transfer": {"prompt": "你会向交易所或研究者请求哪些记录，以核对现实价格上涨中的买入与回补？", "rubric": "指出订单时间、卖空及回补标记、实际成交、消息来源和账户约束。解释同一时点的共同变动怎样与实测因果问题区分。"}
+  },
+  "glossary": [
+    {"term": "同源转发", "definition": "转发保留最初话题编号。每个接收者对同一话题只纳入一次。"},
+    {"term": "可借股数", "definition": "制度允许且出借方能实际划拨的股数。借入先获得股票并记交还义务，账户之后才能卖出。"},
+    {"term": "维持担保", "definition": "教学规则按最近成交价标记交还义务。抵押现金不足该市值的 170% 时，发出回补请求。"},
+    {"term": "回补", "definition": "借券账户买到股票后，把已成交数量交还给出借方，并按相同数量冲减义务。"}
+  ],
+  "scenarios": [
+    {"id": "baseline", "label": "基准社交交易", "description": "转发进入关注策略。出借方初始可交付 10 股。", "parameters": {"social_weight": 1, "loan_supply": 10, "offer_depth": 1}},
+    {"id": "no_social", "label": "取消社交权重", "description": "仍记录消息触达和转发。关注策略不把它们转为买单。", "parameters": {"social_weight": 0, "loan_supply": 10, "offer_depth": 1}},
+    {"id": "no_lending", "label": "无可借股票", "description": "开局禁止借券交付。其他消息、报价和策略继续原设定。", "parameters": {"social_weight": 1, "loan_supply": 0, "offer_depth": 1}},
+    {"id": "deeper", "label": "卖方挂单加倍", "description": "同价位卖量加倍。角色资金、消息和借券规则保持相同。", "parameters": {"social_weight": 1, "loan_supply": 10, "offer_depth": 2}}
+  ],
+  "metrics": [
+    {"id": "last_price", "label": "最近成交价", "unit": "美元/股"},
+    {"id": "low_price", "label": "最低成交价", "unit": "美元/股"},
+    {"id": "high_price", "label": "最高成交价", "unit": "美元/股"},
+    {"id": "volume", "label": "累计成交", "unit": "股"},
+    {"id": "bid_depth", "label": "买方挂单深度", "unit": "股"},
+    {"id": "ask_depth", "label": "卖方挂单深度", "unit": "股"},
+    {"id": "spread", "label": "买卖价差", "unit": "美元/股"},
+    {"id": "short_interest", "label": "待交还股票", "unit": "股"},
+    {"id": "forced_cover", "label": "强制回补成交", "unit": "股"},
+    {"id": "discretionary_buys", "label": "主动买入成交", "unit": "股"},
+    {"id": "social_buys", "label": "关注驱动买入成交", "unit": "股"},
+    {"id": "reach", "label": "话题累计触达", "unit": "人"}
+  ],
+  "sources": [
+    {"id": "S11", "title": "SEC 工作人员报告：2021 年初股票及期权市场结构", "url": "https://www.sec.gov/files/staff-report-equity-options-market-struction-conditions-early-2021.pdf", "supports": "支持 2021 年 1 月 GameStop 的市场背景。正文第 24–26 页讨论卖空和回补，第 26 页与图 6 区分阶段性回补和总体买量。"}
+  ]
+}

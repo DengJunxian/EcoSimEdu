@@ -1,0 +1,60 @@
+{
+  "case_id": "beer_game",
+  "version": "1.0.0",
+  "title": "啤酒游戏",
+  "subtitle": "为什么小幅需求变化会放大成上游震荡？",
+  "identity": "laboratory_experiment",
+  "identity_label": "实验研究",
+  "minutes": "25–35 分钟",
+  "intro": "四个环节各自为缺货做准备。你是零售商，要决定在需求上升当周下多少单，再沿供应链追踪这一指令。",
+  "background": "Sterman 用库存分销实验研究多环节反馈、延迟与订货波动。本课使用同一条四环节结构和一组教学参数。",
+  "goals": ["区分订单、出货、到货和积压", "核对库存位置包含哪些未到货订单", "比较需求共享、交货延迟和订货策略"],
+  "seed": 1989,
+  "action": {
+    "label": "第 5 周终端需求从 4 件升至 8 件。这周你下多少单？",
+    "options": [{"id": "8", "label": "下单 8 件"}, {"id": "12", "label": "下单 12 件"}, {"id": "20", "label": "下单 20 件"}],
+    "default": "12"
+  },
+  "sources": [
+    {"id": "S12", "title": "John D. Sterman（1989），库存分销实验", "url": "https://pubsonline.informs.org/doi/10.1287/mnsc.35.3.321", "supports": "实验报告用反馈、延迟与库存调整解释局部决策如何生成供应链波动。"},
+    {"id": "S13", "title": "MIT System Dynamics Group，The Beer Game", "url": "https://web.mit.edu/jsterman/www/SDG/beergame.html", "supports": "MIT 对生产分销游戏的角色设置与学习用途的说明。"}
+  ],
+  "lessons": [
+    {"id": "intro", "title": "接手零售环节", "prompt": "把零售、批发、分销和工厂看成四个相接的库存账户。"},
+    {"id": "predict", "title": "预测订单波动", "prompt": "终端需求只上升一次，猜猜上游生产的波动会不会更大。"},
+    {"id": "bid", "title": "下达首个订单", "prompt": "你接手时四个环节在开局各有 12 件库存。第 5 周的订货是你唯一直接操作。"},
+    {"id": "observe", "title": "追踪订单与交货", "prompt": "从第 5 周开始，跟踪批发收到订单、发货和零售到货这三个时点。"},
+    {"id": "explain", "title": "解释库存位置", "prompt": "在主体记录里比较在库量、积压和全部已订未到。"},
+    {"id": "compare", "title": "比较订货规则", "prompt": "终端需求完全相同。观察缩短时滞、共享需求和更重视供给线分别改变什么。"},
+    {"id": "notebook", "title": "记录反馈机制", "prompt": "引用两条事件，解释等待中的订单怎样影响下一周决策。"}
+  ],
+  "questions": {
+    "prediction": {"prompt": "基准情景下，工厂启动生产量的周度方差会超过终端需求吗？", "options": {"yes": "会", "no": "不会", "unknown": "不确定"}},
+    "explain": {"prompt": "向批发商下单后，尚未获发的订单也应该计入零售商的已订未到量吗？", "options": {"yes": "应该", "no": "不应该"}, "answer": "yes", "feedback": "未发货订单仍可能在未来到货。库存位置用现有库存加全部已订未到，再减去欠客户的订单；已装车运输只是其中一部分。"},
+    "transfer": {"prompt": "若零售端同时遇到短时囤货和工厂停产，哪些指标能区分两种冲击？", "rubric": "说清终端需求与生产上限从哪个账户进入，引用本课至少一条订单或到货记录，并说明识别所需的外部证据。"}
+  },
+  "glossary": [
+    {"term": "实物在途", "definition": "已发出、尚未到达下一环节的商品批次。"},
+    {"term": "已订未到", "definition": "从下单开始至实际到货的未结数量，含待处理订单、上游积压与实物在途。"},
+    {"term": "牛鞭比", "definition": "从第 1 周截至当前周，工厂实际启动生产量的总体方差除以终端需求总体方差。终端需求方差为 0 时留空。"}
+  ],
+  "scenarios": [
+    {"id": "baseline", "label": "局部需求 · 两周运输", "description": "各级用收到的订单预测，轻量调整已订未到。", "parameters": {"delay": 2, "share_demand": false, "policy": "heuristic"}},
+    {"id": "shared", "label": "全链共享终端需求", "description": "所有环节以同一个终端需求信号更新预测，运输和订货规则沿用基准。", "parameters": {"delay": 2, "share_demand": true, "policy": "heuristic"}},
+    {"id": "shorter", "label": "运输缩短至一周", "description": "运输与生产处理提前期缩短，初始在途队列按新时滞维持开局基准流量。", "parameters": {"delay": 1, "share_demand": false, "policy": "heuristic"}},
+    {"id": "track", "label": "更重视未到货订单", "description": "启发式策略提高已订未到差额的调整权重。", "parameters": {"delay": 2, "share_demand": false, "policy": "track_orders"}},
+    {"id": "order_up_to", "label": "补至目标库存位置", "description": "用预测、提前期和安全库存确定目标位置，再对缺口下单。", "parameters": {"delay": 2, "share_demand": false, "policy": "order_up_to"}}
+  ],
+  "metrics": [
+    {"id": "retail_stock", "label": "零售期末库存", "unit": "件"},
+    {"id": "retail_backlog", "label": "零售期末积压", "unit": "件"},
+    {"id": "factory_order", "label": "工厂本周实际投产", "unit": "件/周"},
+    {"id": "in_transit", "label": "期末实物在途", "unit": "件"},
+    {"id": "total_cost", "label": "全链累计成本", "unit": "代币"},
+    {"id": "factory_variance_ratio", "label": "工厂投产与终端需求方差比", "unit": "倍"}
+  ],
+  "alignment": {"axis_label": "周", "field": "week", "event_type": "week_end"},
+  "minimum_evidence": 2,
+  "evidence_types": ["week_end"],
+  "checkpoint": {"event_type": "week_end", "message": "比较手中的库存、已经下单的数量和本周实际到货。"}
+}

@@ -1,0 +1,225 @@
+{
+  "case_id": "flash_crash",
+  "version": "1.0.0",
+  "title": "闪电崩盘",
+  "subtitle": "成交活跃时，订单簿为什么会变薄？",
+  "identity": "historical_event",
+  "identity_label": "历史事件",
+  "minutes": "25–35 分钟",
+  "intro": "你为一只教学股票提供买单。卖出计划分批进入市场，库存逐步转给做市者。先设定你的撤单阈值，再追踪卖单、成交与剩余买量。",
+  "background": "2010 年 5 月 6 日，美国期货与证券市场出现快速下跌和回升。CFTC 与 SEC 联合报告分析了大额期货卖出、参与者库存和流动性的相互作用。课内使用单资产、40 个合成账户和 200 个模型步，逐笔记录来自教学撮合。",
+  "goals": [
+    "从订单簿区分价差、挂单深度和成交量",
+    "把一次卖出冲击追到成交和做市撤单",
+    "在共同卖出计划下比较深度、撤单规则和暂停"
+  ],
+  "seed": 20100506,
+  "action": {
+    "label": "设置学生做市者的净增库存阈值",
+    "default": "tight",
+    "options": [
+      {
+        "id": "tight",
+        "label": "净增库存达 12 股时撤回余量"
+      },
+      {
+        "id": "patient",
+        "label": "净增库存达 30 股时撤回余量"
+      }
+    ]
+  },
+  "minimum_evidence": 2,
+  "evidence_types": [
+    "trade",
+    "cancel",
+    "inventory_limit",
+    "release",
+    "unfilled",
+    "pause",
+    "resume"
+  ],
+  "checkpoint": {
+    "event_type": "rest",
+    "message": "首张报价已经入簿。记下开局买方深度，再跳到卖出计划。"
+  },
+  "alignment": {
+    "axis_label": "模型步",
+    "field": "time",
+    "event_type": "period_end"
+  },
+  "lessons": [
+    {
+      "id": "intro",
+      "title": "进入市场",
+      "prompt": "先读调查背景，区分真实跨市场事件和下面的单资产实验。"
+    },
+    {
+      "id": "predict",
+      "title": "预测流动性",
+      "prompt": "考虑相同卖出量到达时，订单簿上的买单数量和价格各是什么。"
+    },
+    {
+      "id": "bid",
+      "title": "选择库存阈值",
+      "prompt": "你提供两档买量。净增库存达到所选阈值后，做市规则撤回未成交的买量。"
+    },
+    {
+      "id": "observe",
+      "title": "追踪逐笔成交",
+      "prompt": "在成交和撤单之间切换。观察买方深度、做市者库存与实际成交价。"
+    },
+    {
+      "id": "explain",
+      "title": "解释深度消耗",
+      "prompt": "比较冲击期间的累计成交和仍能承接下一单的买方股数。"
+    },
+    {
+      "id": "compare",
+      "title": "改变市场条件",
+      "prompt": "卖出计划和学生阈值保持一致。比较提高做市深度、保留做市挂单、固定暂停。"
+    },
+    {
+      "id": "notebook",
+      "title": "写实验笔记",
+      "prompt": "引用一笔成交和一个相关事件，解释价格变化及下一笔订单可能面对的条件。"
+    }
+  ],
+  "questions": {
+    "prediction": {
+      "prompt": "成交量增加后，买方深度仍可能下降吗？",
+      "options": {
+        "yes": "有可能",
+        "no": "不会",
+        "unknown": "先观察"
+      }
+    },
+    "explain": {
+      "prompt": "卖单成交与做市者撤回买单都可能减少买方深度吗？",
+      "options": {
+        "yes": "都可能",
+        "no": "只有成交会减少"
+      },
+      "answer": "yes",
+      "feedback": "成交会消耗已经匹配的数量，撤单会移除未成交数量。前者增加成交量，后者只改变挂单深度。没有成交的撤单时点没有新的成交价。"
+    },
+    "transfer": {
+      "prompt": "若把模型扩展到期货和股票两个订单簿，你会再记录哪些事件？",
+      "rubric": "交代两个市场的时钟、价格和数量单位，给出跨市场订单、对冲或暂停传递的可核对证据，并把实测时间线与教学结果分开。"
+    }
+  },
+  "glossary": [
+    {
+      "term": "买方深度",
+      "definition": "当时订单簿上所有有效买单的未成交股数。价格档位决定各股成交的价格。"
+    },
+    {
+      "term": "买卖价差",
+      "definition": "最低有效卖价减去最高有效买价，任一侧无挂单时留空。"
+    },
+    {
+      "term": "库存阈值",
+      "definition": "本案例中做市者允许净增的股数阈值。每批卖单处理完检查一次，达到阈值后撤回余量。"
+    },
+    {
+      "term": "立即成交余量撤销",
+      "definition": "在限价范围内成交，未成交部分当步撤回，并保留失败记录。"
+    }
+  ],
+  "scenarios": [
+    {
+      "id": "baseline",
+      "label": "基准库存撤单",
+      "description": "正常挂单量。库存达到阈值后撤下未成交的做市买量。",
+      "parameters": {
+        "depth_multiplier": 1,
+        "withdraw_on_inventory": true,
+        "pause_steps": 0
+      }
+    },
+    {
+      "id": "deeper",
+      "label": "做市深度加倍",
+      "description": "只将开局每档做市买量加倍。库存撤单规则继续生效。",
+      "parameters": {
+        "depth_multiplier": 2,
+        "withdraw_on_inventory": true,
+        "pause_steps": 0
+      }
+    },
+    {
+      "id": "no_withdrawal",
+      "label": "做市者继续报价",
+      "description": "保持基准开局挂单量。库存阈值不再触发撤回买量。",
+      "parameters": {
+        "depth_multiplier": 1,
+        "withdraw_on_inventory": false,
+        "pause_steps": 0
+      }
+    },
+    {
+      "id": "pause",
+      "label": "首批计划时固定暂停",
+      "description": "自第 55 步起暂停 15 步，计划仍按原时点释放，恢复时集中尝试撮合。",
+      "parameters": {
+        "depth_multiplier": 1,
+        "withdraw_on_inventory": true,
+        "pause_steps": 15
+      }
+    }
+  ],
+  "metrics": [
+    {
+      "id": "last_price",
+      "label": "最近成交价",
+      "unit": "美元/股"
+    },
+    {
+      "id": "low_price",
+      "label": "最低成交价",
+      "unit": "美元/股"
+    },
+    {
+      "id": "high_price",
+      "label": "最高成交价",
+      "unit": "美元/股"
+    },
+    {
+      "id": "volume",
+      "label": "累计成交",
+      "unit": "股"
+    },
+    {
+      "id": "bid_depth",
+      "label": "买方挂单深度",
+      "unit": "股"
+    },
+    {
+      "id": "ask_depth",
+      "label": "卖方挂单深度",
+      "unit": "股"
+    },
+    {
+      "id": "spread",
+      "label": "买卖价差",
+      "unit": "美元/股"
+    },
+    {
+      "id": "program_filled",
+      "label": "计划累计成交",
+      "unit": "股"
+    },
+    {
+      "id": "program_queued",
+      "label": "等待执行计划",
+      "unit": "股"
+    }
+  ],
+  "sources": [
+    {
+      "id": "S10",
+      "title": "CFTC 与 SEC 联合调查：2010 年 5 月 6 日市场事件",
+      "url": "https://www.sec.gov/about/reports-publications/newsstudies2010marketevents-reportpdf",
+      "supports": "支持真实跨市场事件、E-mini 卖出程序及流动性背景。课堂股数、美元报价与时点由教学模型生成。"
+    }
+  ]
+}

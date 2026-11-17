@@ -1,0 +1,117 @@
+{
+  "platform": "macOS-27.0-arm64-arm-64bit",
+  "architecture": "arm64",
+  "server_cold_health_ms": 184.356,
+  "rule_flash_create_and_run_ms": 33.051,
+  "data": {
+    "default_trajectories": 41,
+    "largest_gzip": {
+      "case_id": "schelling_segregation",
+      "scenario_id": "higher",
+      "events": 154,
+      "gzip_bytes": 42528
+    },
+    "total_gzip_bytes": 325582
+  },
+  "flash_events": 368,
+  "native_flash_seek": {
+    "n": 30,
+    "p50_ms": 3.915,
+    "p95_ms": 4.217
+  },
+  "browser": {
+    "chrome": "157.0.8103.78",
+    "cold_profile_first_interactive": {
+      "n": 30,
+      "p50_ms": 56.822,
+      "p95_ms": 65.756
+    },
+    "warm_case_first_interactive": {
+      "n": 30,
+      "p50_ms": 14.498,
+      "p95_ms": 21.723
+    },
+    "event_keyboard_feedback": {
+      "n": 30,
+      "p50_ms": 2.351,
+      "p95_ms": 6.913
+    },
+    "catalog_filter": {
+      "n": 30,
+      "p50_ms": 1.998,
+      "p95_ms": 4.258
+    },
+    "trace_js_heap_bytes": 24230104
+  },
+  "combined_fixture": {
+    "agents_per_frame": 500,
+    "frames": 300,
+    "events_total": 100000,
+    "events_beyond_one_per_frame": 99700,
+    "relations_at_frame_150": 5000,
+    "event_sequence_samples": [
+      0,
+      3448,
+      6896,
+      10344,
+      13792,
+      17241,
+      20689,
+      24137,
+      27585,
+      31034,
+      34482,
+      37930,
+      41378,
+      44827,
+      48275,
+      51723,
+      55171,
+      58620,
+      62068,
+      65516,
+      68964,
+      72413,
+      75861,
+      79309,
+      82757,
+      86206,
+      89654,
+      93102,
+      96550,
+      99999
+    ],
+    "api_event_lookup": {
+      "n": 30,
+      "p50_ms": 6.131,
+      "p95_ms": 6.384
+    },
+    "first_api_event_lookup_ms": 144.772,
+    "event_response_bytes_max": 318,
+    "browser_direct_event_link": {
+      "n": 30,
+      "p50_ms": 16.813,
+      "p95_ms": 41.067
+    },
+    "browser_full_run_requests_on_event_links": 0,
+    "api_seek": {
+      "n": 30,
+      "p50_ms": 146.185,
+      "p95_ms": 149.185
+    },
+    "shared_trace_ready_ms": 842.859,
+    "initial_relations_open_ms": 113.56,
+    "browser_seek": {
+      "n": 30,
+      "p50_ms": 14.327,
+      "p95_ms": 17.792
+    },
+    "relationship_open": {
+      "n": 30,
+      "p50_ms": 83.147,
+      "p95_ms": 97.417
+    },
+    "visible_relationship_rows_when_opened": 5000
+  },
+  "service_rss_at_end_bytes": 156418048
+}

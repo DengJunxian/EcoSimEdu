@@ -1,0 +1,25 @@
+{
+  "version": "1.0.0-rc.2",
+  "macos_arm64": {
+    "passed": 225,
+    "seconds": 79.82,
+    "python": "3.12.11",
+    "tested_archive_sha256": "bbb90ac09f5472c7679ed77ffde133639db16cd958ee85e720154f821bffeb1c"
+  },
+  "linux_arm64": {
+    "passed": 192,
+    "seconds": 8.82,
+    "python": "3.12.13",
+    "tested_archive_sha256": "7e5548fa7ac5007ab240b2a59e71cc9d0dc0eebc15665fe76e44ca10b8963856",
+    "image": "python:3.12-slim",
+    "catalog_cases": 12,
+    "deterministic_runs": 41,
+    "feedback_chains": 6
+  },
+  "tests": {
+    "macos_arm64": "contracts mechanisms e2e",
+    "linux_arm64": "contracts mechanisms"
+  },
+  "saved_live_attempts_after_checks": 8,
+  "model_calls_this_round": 0
+}

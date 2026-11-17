@@ -1,0 +1,56 @@
+{
+  "case_id": "schelling_segregation",
+  "version": "1.0.0",
+  "title": "居住隔离",
+  "subtitle": "局部选择怎样改变整张地图？",
+  "identity": "theoretical_model",
+  "identity_label": "理论模型",
+  "minutes": "15–25 分钟",
+  "intro": "两个群体在同一个社区里居住。每人只看周围几格。试着搬一次家，再沿着迁移事件看看邻居的选择怎样传遍整张图。",
+  "background": "Schelling 用局部迁居规则研究空间分化。这节课使用 20×20 的虚构社区，居民分为 A 和 B 两组，初始空置率为 15%。",
+  "goals": ["读出一个居民搬迁前后的同类邻居比例", "区分居民满意率和整体同类邻接率", "用同一张初始地图比较三个阈值"],
+  "seed": 1971,
+  "action": {
+    "label": "你是 A001。先决定要不要搬到地图为你保留的空位。",
+    "default": "stay",
+    "options": [{"id": "stay", "label": "留在原地"}, {"id": "move", "label": "搬到标记的空格"}]
+  },
+  "metrics": [
+    {"id": "satisfied", "label": "达到本组阈值的居民", "unit": "%"},
+    {"id": "similarity", "label": "同类邻接率", "unit": "%"},
+    {"id": "moves", "label": "累计搬迁", "unit": "次"},
+    {"id": "remaining", "label": "尚未达到阈值", "unit": "人"}
+  ],
+  "minimum_evidence": 2,
+  "evidence_types": ["student_move", "move", "round_end", "market_close"],
+  "checkpoint": {"event_type": "move", "message": "首次自动迁居。比较出发地和目的地的邻居，找到比例改变的居民。"},
+  "scenarios": [
+    {"id": "baseline", "label": "最低比例 30%", "description": "居民需要至少 30% 的已占邻居属于同组。", "parameters": {"threshold": 30}},
+    {"id": "zero", "label": "最低比例 0%", "description": "取消同类邻居比例要求；仍保留学生自己的选择。", "parameters": {"threshold": 0}},
+    {"id": "higher", "label": "最低比例 50%", "description": "将同类邻居比例要求提高到 50%。", "parameters": {"threshold": 50}}
+  ],
+  "lessons": [
+    {"id": "intro", "title": "走进社区", "prompt": "观察局部规则可能怎样改变空间格局。"},
+    {"id": "predict", "title": "预测扩散", "prompt": "你只关心当前邻居。一户搬走后，谁会重新计算满意度？"},
+    {"id": "bid", "title": "选择是否搬家", "prompt": "先决定 A001 的开局动作。相同动作会用于三组实验。"},
+    {"id": "observe", "title": "追踪邻居", "prompt": "在网格上找出迁出与迁入位置。选中事件，看谁的邻接比例发生了变化。"},
+    {"id": "explain", "title": "解释空间格局", "prompt": "比较全图的同类邻接率和达到本组阈值的居民比例。"},
+    {"id": "compare", "title": "改变最低比例", "prompt": "在同一张初始地图上比较 0%、30% 和 50% 的最低比例。"},
+    {"id": "notebook", "title": "写实验笔记", "prompt": "引用两条运行证据，描述一次搬迁怎样改变其他人的选择。"}
+  ],
+  "questions": {
+    "prediction": {"prompt": "一次搬迁有可能让另一个居民从满意变成不满意吗？", "options": {"yes": "可能", "no": "不会", "unknown": "不确定"}},
+    "explain": {"prompt": "所有人都达到自己的阈值时，社区一定充分混居吗？", "options": {"yes": "一定", "no": "不一定"}, "answer": "no", "feedback": "满意率只统计居民是否达到本组阈值。同类邻接率测量空间分布。两项可以同时很高。阈值为 0% 时，每位居民都满意，满意率也无法区分两张地图。"},
+    "transfer": {"prompt": "如果两座城市呈现相似的隔离地图，你还需要什么资料来区分住房价格、搬迁机会与邻里偏好的作用？", "rubric": "描述一个可能机制，给出一项能识别其作用的观察，并指出本课模型适用的条件。"}
+  },
+  "glossary": [
+    {"term": "已占邻居", "definition": "周围最多八格内已经住人的位置。棋盘边缘不连接另一侧。"},
+    {"term": "局部满意", "definition": "同类已占邻居比例达到阈值，或周围没有居民。"},
+    {"term": "同类邻接率", "definition": "同类占用邻接对数除以全部占用邻接对数。每条邻接边只数一次。"},
+    {"term": "顺序更新", "definition": "每次迁居立即改变地图。后续居民根据更新后的邻居行动。"}
+  ],
+  "sources": [
+    {"id": "S04", "title": "Thomas C. Schelling · Dynamic Models of Segregation (1971)", "url": "https://doi.org/10.1080/0022250X.1971.9989794", "supports": "以局部迁居规则研究群体空间分化。"},
+    {"id": "S04-N", "title": "Uri Wilensky · NetLogo Segregation", "url": "https://ccl.northwestern.edu/netlogo/models/Segregation", "supports": "提供阈值、局部迁居及宏观格局的教学示例。本课棋盘边界、迁居规则和指标口径单独定义。"}
+  ]
+}
