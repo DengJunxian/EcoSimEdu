@@ -1,0 +1,300 @@
+{
+  "schema_version": 2,
+  "case_id": "public_goods",
+  "content_version": "2.0.0",
+  "engine_version": "public-goods/1",
+  "source_ids": [
+    "S05"
+  ],
+  "scenes": [
+    {
+      "title": "四个人建一座公共池",
+      "question": "一笔投入带给个人和小组的收益一样吗？",
+      "objective": "跟着一枚代币走过个人余额与公共回报。",
+      "information": [
+        "每轮每人有 20 代币。每人得到公共池总额的 0.4 倍。四人先同时提交，再公开贡献并依规则结算。课堂轨迹由规则生成。"
+      ],
+      "observables": [],
+      "questions": [
+        {
+          "id": "return-incidence",
+          "prompt": "只有我多贡献 1 代币，惩罚前谁的收益发生变化？",
+          "kind": "concept",
+          "options": [
+            {
+              "id": "correct",
+              "label": "自己少 0.6，其他各多 0.4，小组多 0.6",
+              "feedback": "四名参与者都分到 0.4。用自己的投入扣除个人回报后再加总。",
+              "criterion": "correct"
+            },
+            {
+              "id": "wrong",
+              "label": "我获得全部 1.6 回报",
+              "feedback": "把公共回报按每位成员各 0.4 记账，再单列自己的成本。",
+              "criterion": "incorrect"
+            }
+          ]
+        }
+      ],
+      "id": "intro",
+      "legacy_stage": "intro",
+      "action": "intro",
+      "next_scene": "predict"
+    },
+    {
+      "title": "看清首轮的约束",
+      "question": "首轮贡献怎样影响眼前收益与同伴下一轮的选择？",
+      "objective": "确定学生实际能控制的首轮贡献。",
+      "information": [
+        "你是 P1，可投入 0、10 或 20。后续轮次使用既定策略，根据上轮贡献和扣损调整。"
+      ],
+      "observables": [],
+      "questions": [
+        {
+          "id": "sanctions-exist",
+          "prompt": "预计基准情景会实际出现定向惩罚吗？",
+          "kind": "prediction",
+          "selector": {
+            "event_type": "settlement",
+            "fields": [
+              "sanctions"
+            ],
+            "nonempty": "sanctions"
+          },
+          "options": [
+            {
+              "id": "yes",
+              "label": "会出现",
+              "feedback": "结算时看惩罚列表里是否真的有施罚与收罚记录。"
+            },
+            {
+              "id": "no",
+              "label": "不会出现",
+              "feedback": "查基准的制度开关，并核对实际结算列表。"
+            },
+            {
+              "id": "unknown",
+              "label": "不确定",
+              "feedback": "回放可检查完整十轮的惩罚记录。",
+              "criterion": "uncertain"
+            }
+          ]
+        }
+      ],
+      "role": {
+        "actor_id": "P1",
+        "label": "成员 P1",
+        "goal": "用首轮禀赋作贡献，比较自己与小组的净收益。"
+      },
+      "id": "predict",
+      "legacy_stage": "predict",
+      "action": "predict",
+      "next_scene": "bid"
+    },
+    {
+      "title": "作一次首轮贡献",
+      "question": "你的 20 代币中，有多少用于公共池？",
+      "objective": "选定首轮投入并提交本轮实验。",
+      "information": [
+        "这次运行采用原有首轮动作。其余成员的首轮选择在你提交之前保持隐藏。"
+      ],
+      "observables": [
+        "contributions",
+        "public_return"
+      ],
+      "questions": [],
+      "evidence": {
+        "selector": {
+          "event_type": "contributions",
+          "fields": [
+            "round",
+            "contributions",
+            "public_return"
+          ],
+          "actor_id": "P1"
+        },
+        "missing": "公开四人首轮贡献后可看到 P1 的实际投入。"
+      },
+      "id": "bid",
+      "legacy_stage": "bid",
+      "action": "bid",
+      "next_scene": "observe"
+    },
+    {
+      "title": "拆开公共回报和结算",
+      "question": "投入到个人净收益，中间发生了什么？",
+      "objective": "从贡献条进入同轮结算，分别核对个人余额和小组回报。",
+      "information": [
+        "先查看公共池的四笔来款，再看每人公共回报、施罚成本和受罚扣损。"
+      ],
+      "observables": [
+        "public_return",
+        "net",
+        "outgoing",
+        "fines"
+      ],
+      "questions": [
+        {
+          "id": "sanction-incidence",
+          "prompt": "施罚者和受罚者的账变动是否完全相同？",
+          "kind": "concept",
+          "options": [
+            {
+              "id": "correct",
+              "label": "分开核对施罚成本与受罚扣损",
+              "feedback": "结算表逐人列明两项扣除。",
+              "criterion": "correct"
+            },
+            {
+              "id": "wrong",
+              "label": "施罚成本等于收回的罚款",
+              "feedback": "查一笔定向惩罚的成本和扣损。原规则把两项都从小组资源里扣除。",
+              "criterion": "incorrect"
+            }
+          ],
+          "selector": {
+            "event_type": "settlement",
+            "fields": [
+              "round",
+              "net",
+              "gross",
+              "outgoing",
+              "fines"
+            ]
+          }
+        }
+      ],
+      "evidence": {
+        "selector": {
+          "event_type": "settlement",
+          "fields": [
+            "round",
+            "net",
+            "gross",
+            "outgoing",
+            "fines"
+          ]
+        },
+        "missing": "已公开贡献后继续一步，等本轮结算。"
+      },
+      "id": "observe",
+      "legacy_stage": "observe",
+      "action": "observe",
+      "next_scene": "explain"
+    },
+    {
+      "title": "复算一轮小组收益",
+      "question": "为什么贡献上升的组也可能得到较低的净收益？",
+      "objective": "把四人贡献与两种惩罚消耗放进同一式子。",
+      "information": [
+        "可用 80 + 0.6 × 总贡献 − 施罚成本 − 受罚扣损核对每轮小组净收益。把相同轮次的贡献与结算一起引用。"
+      ],
+      "observables": [
+        "gross",
+        "net_income",
+        "sanction_cost"
+      ],
+      "questions": [
+        {
+          "id": "more-contribution",
+          "prompt": "一组贡献更多，净收益就一定更高吗？",
+          "kind": "concept",
+          "options": [
+            {
+              "id": "correct",
+              "label": "还要看施罚和受罚的消耗",
+              "feedback": "比较无惩罚、低成本和高成本三组在同一轮的两个指标。",
+              "criterion": "correct"
+            },
+            {
+              "id": "wrong",
+              "label": "净收益跟贡献一定同方向",
+              "feedback": "各选一轮，将惩罚成本从毛收益里扣除后再比较。",
+              "criterion": "incorrect"
+            }
+          ],
+          "selector": {
+            "event_type": "settlement",
+            "fields": [
+              "round",
+              "net",
+              "gross",
+              "outgoing",
+              "fines"
+            ]
+          }
+        }
+      ],
+      "evidence": {
+        "selector": {
+          "event_type": "settlement",
+          "fields": [
+            "round",
+            "net",
+            "gross",
+            "outgoing",
+            "fines"
+          ]
+        },
+        "missing": "当前位置没有结算。选择一个已结束的轮次。"
+      },
+      "id": "explain",
+      "legacy_stage": "explain",
+      "action": "explain",
+      "next_scene": "compare"
+    },
+    {
+      "title": "改变施罚的代价",
+      "question": "成本不同，哪条作用途径改变了？",
+      "objective": "固定学生首轮行动与组员，比较两项惩罚成本。",
+      "information": [
+        "单位成本会改变策略买得起的点数。先预测净收益，再同步观察贡献量、惩罚消耗和群体净收益。"
+      ],
+      "observables": [
+        "total_contributions",
+        "net_income",
+        "sanction_cost"
+      ],
+      "questions": [
+        {
+          "id": "equal-traces",
+          "prompt": "两种惩罚的贡献路径相同，是否表示制度完全一样？",
+          "kind": "concept",
+          "options": [
+            {
+              "id": "correct",
+              "label": "还需对账施罚点数和收益",
+              "feedback": "核对两组受罚后采用的调整规则，以及实际扣除额。",
+              "criterion": "correct"
+            },
+            {
+              "id": "wrong",
+              "label": "贡献相同足以说明收益相同",
+              "feedback": "查看两侧各自的结算，比较每点成本与小组总扣除。",
+              "criterion": "incorrect"
+            }
+          ]
+        }
+      ],
+      "id": "compare",
+      "legacy_stage": "compare",
+      "action": "compare",
+      "next_scene": "notebook"
+    },
+    {
+      "title": "向小组解释一个取舍",
+      "question": "规则应该提高贡献，还是保护群体净收益？",
+      "objective": "写出你的判断和适用条件，并保存实际结算与对照。",
+      "information": [
+        "挑一个反事实的同期观察点。论证时说明这一结果依赖固定小组、十轮和规则惩罚策略。"
+      ],
+      "observables": [],
+      "questions": [],
+      "rubric": "标出两项不同的经济指标，引用真实运行及同轮结算，并说明策略假设。",
+      "id": "notebook",
+      "legacy_stage": "notebook",
+      "action": "notebook",
+      "next_scene": null
+    }
+  ]
+}

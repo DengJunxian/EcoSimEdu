@@ -1,3 +1,5 @@
+import { lazy, Suspense } from "react";
+import { isFieldFlagship, type FieldFlagship, type FieldLesson } from "./learning/flagship-types";
 import { StrictMode, useEffect, useRef, useState } from "react";
 import { createRoot } from "react-dom/client";
 import lesson from "../../cases/double_auction/case.json";
@@ -6,7 +8,7 @@ import type { MarketEvent, Provider, Run, ScenarioId } from "./contracts";
 import { emptyStudy, fields, readStudy, studyKey, validateRuns, validateStudy } from "./study";
 import type { Study } from "./study";
 import { PriceChart, SupplyDemand } from "./charts";
-import { catalog, CourseLinks, selectedCourse } from "./catalog";
+import { catalog, CourseLinks, legacyCourseHref, selectedCourse } from "./catalog";
 import { LessonApp } from "./lesson";
 import type { Course, LessonRun } from "./lesson-types";
 import { TraceView } from "./lesson-view";
@@ -17,6 +19,9 @@ import { LabTools, teacherEnabled } from "./lab-tools";
 import { EventLookup } from "./event-lookup";
 import { boundaries, BoundaryApp, BoundaryLink } from "./boundary";
 import { ModelLab } from "./model-lab";
+import { AppHeader } from "./app/shell";
+import { auctionStudyKey } from "./cases/auction/auction-study";
+import { CasePage, CasesPage, HomePage, NotesPage, PathsPage } from "./app/pages";
 import "./style.css";
 
 const scenarios = lesson.scenarios as (typeof lesson.scenarios[number] & { id: ScenarioId })[];
@@ -189,7 +194,7 @@ function App() {
         .finally(() => { if (active) setLoading(false); });
     }
     try {
-      const prior = Object.keys(localStorage).some(key => key.startsWith(`civitas/${lesson.case_id}/`) && key !== studyKey);
+      const prior = Object.keys(localStorage).some(key => key.startsWith(`civitas/${lesson.case_id}/`) && key !== studyKey && key !== auctionStudyKey);
       if (prior) setRestoreNotice("此案例版本已更新。旧版本笔记保留在原存储项，请重新确认本版实验。");
     } catch { setStorageError(true); }
     return () => { active = false; };
@@ -276,12 +281,9 @@ function App() {
   const notebookReady = Boolean(base && runs.demand && runs.fee && study.evidence.length >= lesson.minimum_evidence && fields.every(field => study.notes[field].trim()));
 
   return <>
-    <header className="topbar"><div className="container brand-bar">
-      <button className="brand" onClick={() => visit(0)}><span className="brand-mark" aria-hidden="true"/>Civitas <em>Economica</em></button>
-      <a className="topbar-link" href="/?view=model">模型实验</a>
-    </div></header>
+    <AppHeader resetLesson={() => visit(0)} modelCaseId={lesson.case_id}/>
     <div className="container">
-      <main id="main">
+      <main id="main" tabIndex={-1}>
         {error && <div className="error" role="alert">{error} <button onClick={() => setError("")}>关闭</button></div>}
         {storageError && <p className="callout" role="status">浏览器无法保存草稿。请导出学习记录以备份。</p>}
         {restoreNotice && <p className="callout" role="status">{restoreNotice}</p>}
@@ -467,7 +469,7 @@ function SharedTrace({ id, initialTick }: { id: string; initialTick: number }) {
   const [actor, setActor] = useState("");
   const [error, setError] = useState("");
   const course = catalog.find(course => course.case_id === selectedCourse);
-  const courseHref = selectedCourse === lesson.case_id ? "/" : `/?case=${encodeURIComponent(selectedCourse)}`;
+  const courseHref = legacyCourseHref(selectedCourse);
   useEffect(() => {
     let alive = true;
     api<Run | LessonRun>(`/runs/${id}`).then(result => {
@@ -485,7 +487,7 @@ function SharedTrace({ id, initialTick }: { id: string; initialTick: number }) {
   const select = (next: number, person: string) => { setTick(next); setActor(person); };
   const boundary = run?.scenario_id === "boundary" ? boundaries[run.case_id] : undefined;
   const auctionBoundary = boundary && run?.case_id === lesson.case_id ? run as Run : undefined;
-  return <main className="container course-home">
+  return <main id="main" tabIndex={-1} className="container course-home">
     <div className="toolbar"><a href={courseHref}>返回课程</a>
       {boundary && <BoundaryLink caseId={selectedCourse}/>}</div>
     <h1>{course?.title ?? "运行证据"}</h1>
@@ -502,7 +504,9 @@ function SharedTrace({ id, initialTick }: { id: string; initialTick: number }) {
         <details><summary>查看边界供需曲线</summary><SupplyDemand run={auctionBoundary}/></details>
       </>}
     </section>}
-    {error && <p role="alert" className="error">{error}</p>}
+    {error && <div role="alert" className="error">
+      <p>{error}</p><p>请核对运行链接和本机运行数据库。可从<a href="/notes">实验笔记</a>导出已保存的学习记录。</p>
+    </div>}
     {!run && !error && <p role="status">读取运行证据…</p>}
     {run && <p><a href={eventHref(run.case_id, run.run_id, run.result.events[tick].seq)}>按事件序号查看</a></p>}
     {run?.case_id === lesson.case_id && <Market run={run as Run} selection={{ tick, actor }} select={select}/>}
@@ -516,22 +520,95 @@ function SharedTrace({ id, initialTick }: { id: string; initialTick: number }) {
 }
 
 const query = new URLSearchParams(location.search);
+const path = location.pathname.replace(/\/$/, "") || "/";
 const linkedRun = query.get("run");
 const linkedEvent = query.get("event");
 const activeCourse = catalog.find(course => course.case_id === selectedCourse);
+const importCourse = catalog.find(course => path === `/cases/${course.case_id}`);
+const fieldCase = path.startsWith("/learn/") ? path.slice(7) : "";
+const AuctionLesson = lazy(() => import("./cases/auction/auction-lesson").then(module => ({ default: module.AuctionLesson })));
+const FlagshipLesson = lazy(() => import("./learning/flagship-lesson").then(module => ({ default: module.FlagshipLesson })));
+const MultiRolePage = lazy(() => import("./experiments/multi-role").then(module => ({ default: module.MultiRolePage })));
+const ParameterLab = lazy(() => import("./experiments/parameter-lab").then(module => ({ default: module.ParameterLab })));
+const SvbPanel = lazy(() => import("./cases/svb/svb-panel").then(module => ({ default: module.SvbPanel })));
+const SchellingPanel = lazy(() => import("./cases/schelling/schelling-panel").then(module => ({ default: module.SchellingPanel })));
+const CascadePanel = lazy(() => import("./cases/cooperation/panels").then(module => ({ default: module.CascadePanel })));
+const PublicGoodsPanel = lazy(() => import("./cases/cooperation/panels").then(module => ({ default: module.PublicGoodsPanel })));
+const CommonsPanel = lazy(() => import("./cases/cooperation/panels").then(module => ({ default: module.CommonsPanel })));
+const LemonsPanel = lazy(() => import("./cases/allocation/panels").then(module => ({ default: module.LemonsPanel })));
+const MatchingPanel = lazy(() => import("./cases/allocation/panels").then(module => ({ default: module.MatchingPanel })));
+const BeerPanel = lazy(() => import("./cases/allocation/panels").then(module => ({ default: module.BeerPanel })));
+const CarbonPanel = lazy(() => import("./cases/markets/panels").then(module => ({ default: module.CarbonPanel })));
+const FlashCrashPanel = lazy(() => import("./cases/markets/panels").then(module => ({ default: module.FlashCrashPanel })));
+const GameStopPanel = lazy(() => import("./cases/markets/panels").then(module => ({ default: module.GameStopPanel })));
+const classroomPanels: Record<FieldFlagship, Omit<FieldLesson, "caseId">> = {
+  svb_run: { Panel: SvbPanel, defaultActor: "D01" },
+  schelling_segregation: { Panel: SchellingPanel, defaultActor: "A001" },
+  information_cascade: { Panel: CascadePanel, defaultActor: "D03" },
+  public_goods: { Panel: PublicGoodsPanel, defaultActor: "P1" },
+  commons_governance: { Panel: CommonsPanel, defaultActor: "F01" },
+  lemons_market: { Panel: LemonsPanel, defaultActor: "S01" },
+  school_matching: { Panel: MatchingPanel, defaultActor: "S01" },
+  beer_game: { Panel: BeerPanel, defaultActor: "零售商" },
+  carbon_market: { Panel: CarbonPanel, defaultActor: "F01" },
+  flash_crash: { Panel: FlashCrashPanel, defaultActor: "做市者 0（学生）" },
+  gamestop: { Panel: GameStopPanel, defaultActor: "学生投资者" },
+};
+const fieldCourse = isFieldFlagship(fieldCase) ? catalog.find(course => course.case_id === fieldCase) : undefined;
 const boundaryPage = query.get("boundary") === "1" && boundaries[selectedCourse];
-const modelPage = query.get("view") === "model";
-const viewTitle = linkedRun ? (linkedEvent !== null ? "运行事件" : "实验回放")
+const modelPage = path === "/experiments" || query.get("view") === "model";
+const knownQuery = ["case", "run", "event", "tick", "boundary", "view", "model_case"];
+const hasLegacyQuery = knownQuery.some(key => query.has(key));
+const invalidQuery = knownQuery.some(key => query.getAll(key).length > 1) ||
+  ((query.has("event") || query.has("tick")) && !linkedRun) ||
+  (linkedEvent !== null && query.has("tick")) ||
+  (linkedRun !== null && (!linkedRun || modelPage || boundaryPage)) ||
+  (query.has("tick") && !/^\d+$/.test(query.get("tick") ?? "")) ||
+  (query.has("view") && query.get("view") !== "model") ||
+  (query.has("model_case") && !modelPage) ||
+  (query.has("boundary") && (!boundaryPage || modelPage));
+
+function InvalidLink({ error }: { error: string }) {
+  return <><AppHeader/><main id="main" tabIndex={-1} className="container course-home">
+    <h1>{error}</h1>
+    <p>请核对链接中的课程或运行参数，或从案例库重新进入。</p><a href="/cases">返回案例库</a>
+  </main></>;
+}
+
+function Page() {
+  if ((path === "/" && hasLegacyQuery) || path === "/experiments") {
+    if (!activeCourse) return <InvalidLink error="课程不可用"/>;
+    if (invalidQuery) return <InvalidLink error="链接参数无效"/>;
+    if (linkedRun) return <><AppHeader/>{linkedEvent !== null ?
+      <EventLookup runId={linkedRun} requested={linkedEvent}/> :
+      <SharedTrace id={encodeURIComponent(linkedRun)} initialTick={Number(query.get("tick") ?? "0")}/>}</>;
+    if (boundaryPage) return <><AppHeader/><BoundaryApp course={activeCourse}/></>;
+    if (modelPage) return <ModelLab caseId={selectedCourse}/>;
+    return selectedCourse === lesson.case_id ? <App/> : <LessonApp caseId={selectedCourse}/>;
+  }
+  return <>
+    <AppHeader/>
+    {path === "/" ? <HomePage/>
+      : path === "/cases" ? <CasesPage/>
+      : path === "/compare" ? <ParameterLab initialCase={query.get("case")}/>
+      : path === "/experiments/multi-role" ? <MultiRolePage/>
+      : path === "/paths" ? <PathsPage/>
+      : path === "/notes" ? <NotesPage/>
+      : importCourse ? <CasePage course={importCourse}/>
+      : path === "/learn/double_auction" ? <AuctionLesson/>
+      : isFieldFlagship(fieldCase) ? <FlagshipLesson caseId={fieldCase} {...classroomPanels[fieldCase]}/>
+      : <main id="main" tabIndex={-1} className="container course-home"><h1>页面不可用</h1><a href="/cases">返回案例库</a></main>}
+  </>;
+}
+
+const pageTitle = modelPage ? "模型实验" : path === "/" && hasLegacyQuery ? activeCourse?.title :
+  importCourse?.title ?? fieldCourse?.title ?? ({ "/cases": "案例库", "/compare": "参数对照", "/paths": "学习路径", "/notes": "实验笔记",
+    "/experiments": "模型实验", "/experiments/multi-role": "多角色模型实验", "/learn/double_auction": lesson.title } as Record<string, string>)[path];
+const legacyView = linkedRun ? (linkedEvent !== null ? "运行事件" : "实验回放")
   : boundaryPage ? "边界实验" : modelPage ? "模型实验" : null;
-document.title = [viewTitle === "模型实验" ? null : activeCourse?.title ?? "课程不可用",
-  viewTitle, "Civitas Economica"].filter(Boolean).join(" · ");
-const otherCourse = selectedCourse !== lesson.case_id;
-createRoot(document.getElementById("root")!).render(<StrictMode>
-  {linkedRun && linkedEvent !== null ? <EventLookup runId={linkedRun} requested={linkedEvent}/>
-    : linkedRun ? <SharedTrace id={encodeURIComponent(linkedRun)} initialTick={Number(query.get("tick") ?? "0")}/>
-    : activeCourse && boundaryPage ? <BoundaryApp course={activeCourse}/>
-    : activeCourse && modelPage ? <ModelLab caseId={selectedCourse}/>
-    : !activeCourse ? <main className="container course-home"><h1>课程不可用</h1>
-      <p>这个链接中的课程尚未发布或不存在。</p><a href="/">返回案例库</a>
-    </main> : otherCourse ? <LessonApp caseId={selectedCourse}/> : <App/>}
-</StrictMode>);
+document.title = (path === "/" && hasLegacyQuery
+  ? [modelPage ? null : activeCourse?.title ?? "课程不可用", legacyView, "Civitas Economica"]
+  : [pageTitle, "EcoSimEdu", "Civitas Economica"]).filter(Boolean).join(" · ");
+createRoot(document.getElementById("root")!).render(
+  <StrictMode><Suspense fallback={<p className="container" role="status">正在打开课堂…</p>}><Page/></Suspense></StrictMode>,
+);

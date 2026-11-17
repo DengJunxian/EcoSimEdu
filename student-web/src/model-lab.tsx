@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
-import { catalog } from "./catalog";
+import { catalog, legacyCourseHref } from "./catalog";
+import { AppHeader } from "./app/shell";
 import { api } from "./contracts";
 import type { Course } from "./lesson-types";
 import { LivePanel, type LiveCapability } from "./live-panel";
@@ -13,7 +14,7 @@ export function ModelLab({ caseId }: { caseId: string }) {
   const courses = (catalog as Course[]).filter(course => status?.cases.includes(course.case_id));
   const course = courses.find(course => course.case_id === selected) ?? courses[0];
   const action = choice || course?.action.default;
-  const returnHref = caseId === catalog[0].case_id ? "/" : `/?case=${encodeURIComponent(caseId)}`;
+  const returnHref = legacyCourseHref(location.pathname === "/" ? caseId : course?.case_id ?? caseId);
 
   useEffect(() => {
     let active = true;
@@ -24,12 +25,11 @@ export function ModelLab({ caseId }: { caseId: string }) {
   }, [revision]);
 
   return <>
-    <header className="topbar"><div className="container brand-bar">
-      <a className="brand brand-link" href="/"><span className="brand-mark" aria-hidden="true"/>Civitas <em>Economica</em></a>
-      <a className="topbar-link" href={returnHref}>返回课程</a>
-    </div></header>
-    <main className="container course-home model-lab">
+    <AppHeader/>
+    <main id="main" tabIndex={-1} className="container course-home model-lab">
+      <a href={returnHref}>返回课程</a>
       <h1>模型实验</h1>
+      <p><a href="/experiments/multi-role">打开多角色模型实验</a></p>
       <p>选择案例和学生行动，观察模型为一名模拟角色作出的决策。运行后可对照本地规则的期末结果。</p>
       {error && <div role="alert"><p>{error}</p><button onClick={() => {
         setError(""); setRevision(revision + 1);

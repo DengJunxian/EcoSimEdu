@@ -4,6 +4,7 @@ from fractions import Fraction
 from random import Random
 
 from .auction import digest
+from .classroom_policy import choose_actions
 
 ENDOWMENT = 20
 RETURN = Fraction(2, 5)
@@ -54,7 +55,12 @@ def settle_round(contributions, points, cost, multiplier):
     return gross, outgoing, fines, net, edges
 
 
-def simulate(case, scenario_id, seed, action, *, decide=None):
+def simulate(case, scenario_id, seed, action, *, decide=None, contribution_plan=None,
+             rounds=ROUNDS, classroom_policy=None):
+    if type(rounds) is not int or not 1 <= rounds <= ROUNDS:
+        raise ValueError("Invalid public goods round count")
+    if decide is not None and classroom_policy is not None:
+        raise ValueError("Only one model policy may own a round")
     if action not in {item["id"] for item in case["action"]["options"]}:
         raise ValueError("Unknown contribution")
     parameters = next(scenario["parameters"] for scenario in case["scenarios"] if scenario["id"] == scenario_id)
@@ -66,8 +72,10 @@ def simulate(case, scenario_id, seed, action, *, decide=None):
         "P3": {"role": "自利策略", "target": rng.randint(0, 3)},
         "P4": {"role": "规范维护者", "target": rng.randint(13, 18)},
     }
-    noise = [[rng.randint(-2, 2) for _ in PARTICIPANTS] for _ in range(ROUNDS)]
-    initial = {"agents": profiles, "round_endowment": ENDOWMENT, "rounds": ROUNDS}
+    noise = [[rng.randint(-2, 2) for _ in PARTICIPANTS] for _ in range(rounds)]
+    initial = {"agents": profiles, "round_endowment": ENDOWMENT, "rounds": rounds}
+    if contribution_plan:
+        initial["round_contributions"] = contribution_plan
     root_hash = digest({"seed": seed, "initial": initial, "noise": noise})
     balances = dict.fromkeys(PARTICIPANTS, Fraction(0))
     fines = dict.fromkeys(PARTICIPANTS, Fraction(0))
@@ -86,7 +94,7 @@ def simulate(case, scenario_id, seed, action, *, decide=None):
 
     record("start", 0, "四名参与者入组，每轮各有 20 代币。")
     previous = None
-    for index in range(ROUNDS):
+    for index in range(rounds):
         contributions = {}
         for j, actor in enumerate(PARTICIPANTS):
             profile = profiles[actor]
@@ -96,7 +104,9 @@ def simulate(case, scenario_id, seed, action, *, decide=None):
                 target = round((target + peers) / 2) if actor in ("P1", "P2") else target
                 target += (fines[actor] > 0) * 3
             contributions[actor] = max(0, min(ENDOWMENT, target + noise[index][j]))
-        if index == 0:
+        if contribution_plan and str(index + 1) in contribution_plan:
+            contributions["P1"] = contribution_plan[str(index + 1)]
+        elif index == 0:
             contributions["P1"] = int(action)
         if decide is not None and index == 1:
             actor = "P2"
@@ -121,6 +131,34 @@ def simulate(case, scenario_id, seed, action, *, decide=None):
             record("agent_action_selected", index + 1, f"{actor} 提交本轮贡献选择，等待四人同时公开。",
                    actors=[actor], actor_id=actor, stage=stage, action=chosen)
 
+        if classroom_policy is not None:
+            step = index + 1
+            stage = "round_contribution"
+            requests = [{
+                "actor": actor,
+                "stage": stage,
+                "observation": {
+                    "round": step,
+                    "role": profiles[actor]["role"],
+                    "endowment_tokens": ENDOWMENT,
+                    "marginal_return_per_player": float(RETURN),
+                    "players": len(PARTICIPANTS),
+                    "sanction_cost_per_point": cost,
+                    "previous_public_contributions": dict(previous) if previous is not None else {},
+                    "own_cumulative_payoff": float(balances[actor]),
+                    "own_previous_fine": float(fines[actor]),
+                },
+                "allowed": {str(amount): f"投入 {amount} 代币" for amount in range(ENDOWMENT + 1)},
+                "default": str(contributions[actor]),
+            } for actor in PARTICIPANTS[1:]]
+            choices = choose_actions(classroom_policy, step, requests)
+            decision_seqs = {}
+            for actor in PARTICIPANTS[1:]:
+                contributions[actor] = int(choices[actor])
+                decision_seqs[actor] = len(events)
+                record("agent_action_selected", step, f"{actor} 提交本轮贡献选择。",
+                       actors=[actor], actor_id=actor, stage=stage, action=choices[actor])
+
         total = sum(contributions.values())
         metrics["contributions"] = total
         metrics["total_contributions"] += total
@@ -141,6 +179,7 @@ def simulate(case, scenario_id, seed, action, *, decide=None):
             "contributions", index + 1, f"第 {index + 1} 轮同时公开四人的贡献，公共池收到 {total} 代币。",
             contribution_edges, actors=[*PARTICIPANTS, "公共池"], contributions=contributions,
             public_return=float(total * RETURN),
+            **({"agent_action_seqs": decision_seqs} if classroom_policy is not None else {}),
         )
 
         points = {}
@@ -175,7 +214,10 @@ def simulate(case, scenario_id, seed, action, *, decide=None):
             outgoing=outgoing, fines={actor: float(value) for actor, value in fines.items()},
         )
         previous = contributions
+        if classroom_policy is not None:
+            classroom_policy.commit(index + 1, events, snapshots)
     return {
-        "engine_version": "public-goods/1", "initial": initial, "events": events, "snapshots": snapshots, "metrics": dict(metrics),
+        "engine_version": "public-goods/3" if rounds != ROUNDS or classroom_policy is not None
+                          else "public-goods/2" if contribution_plan else "public-goods/1", "initial": initial, "events": events, "snapshots": snapshots, "metrics": dict(metrics),
         "root_hash": root_hash, "initial_hash": digest(initial), "intervention": parameters,
     }

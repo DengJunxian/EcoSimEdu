@@ -1,0 +1,250 @@
+{
+  "schema_version": 2,
+  "case_id": "carbon_market",
+  "content_version": "2.0.0",
+  "engine_version": "carbon/1",
+  "source_ids": [
+    "S14",
+    "S14-CN"
+  ],
+  "scenes": [
+    {
+      "id": "intro",
+      "legacy_stage": "intro",
+      "title": "总量先于清算",
+      "question": "控制全行业排放需要几张配额？",
+      "objective": "区分排放上限和初始免费分配。",
+      "information": [
+        "每张配额覆盖一吨排放。配额先发行，再确定计划减排、结算差额和逐家缴回。"
+      ],
+      "action": "intro",
+      "observables": [],
+      "questions": [],
+      "next_scene": "predict"
+    },
+    {
+      "id": "predict",
+      "legacy_stage": "predict",
+      "title": "为企业分配免费配额",
+      "question": "本次会有企业转移配额吗？",
+      "objective": "预测企业持有量与履约义务之间是否出现缺口。",
+      "information": [
+        "本课由全局边际成本排序确定整数减排计划，再按既定清算规则调配配额。"
+      ],
+      "action": "predict",
+      "observables": [],
+      "questions": [
+        {
+          "id": "carbon-transfer",
+          "prompt": "本次会出现企业间的配额转移吗？",
+          "kind": "prediction",
+          "selector": {
+            "event_type": "transfer",
+            "fields": [
+              "seller",
+              "buyer",
+              "permits",
+              "payment"
+            ]
+          },
+          "options": [
+            {
+              "id": "yes",
+              "label": "会发生",
+              "feedback": "回放时定位首条记录，再核对配额编号和涉及企业。"
+            },
+            {
+              "id": "no",
+              "label": "不会发生",
+              "feedback": "推进至结束，检查事件序列是否支持这个判断。"
+            },
+            {
+              "id": "unknown",
+              "label": "不确定",
+              "criterion": "uncertain",
+              "feedback": "先记录你的判断范围。观察到相应事件后再更新预测。"
+            }
+          ]
+        }
+      ],
+      "next_scene": "bid",
+      "role": {
+        "actor_id": "F01",
+        "label": "F01 的配额协调员",
+        "goal": "选择免费配额调拨，观察本企业的减排、持有与净支付。"
+      }
+    },
+    {
+      "id": "bid",
+      "legacy_stage": "bid",
+      "title": "决定 F01 的免费配额",
+      "question": "给 F01 多分几张，谁的初始权利相应减少？",
+      "objective": "用分配动作追踪净支付和履约。",
+      "information": [
+        "从 F08 调拨 0、3 或 6 张。实际可调数量以 F08 获配量为限，行业总量恒定。"
+      ],
+      "action": "bid",
+      "observables": [],
+      "questions": [],
+      "next_scene": "observe",
+      "role": {
+        "actor_id": "F01",
+        "label": "F01 的配额协调员",
+        "goal": "选择免费配额调拨，观察本企业的减排、持有与净支付。"
+      }
+    },
+    {
+      "id": "observe",
+      "legacy_stage": "observe",
+      "title": "读边际成本和登记簿",
+      "question": "额外减一吨会付出多少成本？",
+      "objective": "读取同一家企业的边际成本、配额和计划排放。",
+      "information": [
+        "选择一家企业。成本函数为 kq²/2，新增第 q 吨的边际成本为 k(q−0.5)。"
+      ],
+      "action": "observe",
+      "observables": [
+        "transfer"
+      ],
+      "questions": [
+        {
+          "id": "carbon-cap",
+          "prompt": "从 F08 给 F01 调拨配额，对发行总量有什么影响？",
+          "kind": "concept",
+          "options": [
+            {
+              "id": "a",
+              "label": "行业总量不变",
+              "criterion": "correct",
+              "feedback": "合计两家调整前后的配额，再对照登记簿。"
+            },
+            {
+              "id": "b",
+              "label": "行业发行量增加",
+              "criterion": "incorrect",
+              "feedback": "调拨在既定发行量内进行。找 F08 与 F01 的免费配额，并复算行业合计。"
+            }
+          ]
+        }
+      ],
+      "next_scene": "explain",
+      "evidence": {
+        "selector": {
+          "event_type": "transfer",
+          "fields": [
+            "seller",
+            "buyer",
+            "permits",
+            "payment"
+          ]
+        },
+        "missing": "回放到清算阶段。若全程没有转移，核对发行和缴回数量。"
+      }
+    },
+    {
+      "id": "explain",
+      "legacy_stage": "explain",
+      "title": "结算谁付钱",
+      "question": "企业净支出和行业资源成本会一起变吗？",
+      "objective": "从转移事件复算数量、付款和缴回。",
+      "information": [
+        "企业间配额净支付相互抵消。统一比例情景由监管调配，清算价格留空。"
+      ],
+      "action": "explain",
+      "observables": [
+        "surrender"
+      ],
+      "questions": [
+        {
+          "id": "carbon-payment",
+          "prompt": "配额买方向卖方支付的资金如何进入行业资源成本？",
+          "kind": "concept",
+          "options": [
+            {
+              "id": "a",
+              "label": "付款重新分配企业的净成本",
+              "criterion": "correct",
+              "feedback": "把买方付款和卖方收入加总，再与减排计划成本对照。"
+            },
+            {
+              "id": "b",
+              "label": "买方付款应全额加到行业减排成本",
+              "criterion": "incorrect",
+              "feedback": "查看这一笔的收付双方。交易对手收入抵消买方付款，行业资源成本来自实际减排。"
+            }
+          ],
+          "selector": {
+            "event_type": "transfer",
+            "fields": [
+              "seller",
+              "buyer",
+              "permits",
+              "payment"
+            ]
+          }
+        }
+      ],
+      "next_scene": "compare",
+      "evidence": {
+        "selector": {
+          "event_type": "surrender",
+          "fields": [
+            "firm",
+            "permits",
+            "emissions"
+          ]
+        },
+        "missing": "推进到缴回阶段后，可用企业的缴回事件对账。"
+      }
+    },
+    {
+      "id": "compare",
+      "legacy_stage": "compare",
+      "title": "比较三种制度调整",
+      "question": "免费分配、减排制度与收紧总量分别改变了什么？",
+      "objective": "沿用同一批企业和调拨决策，逐一比较。",
+      "information": [
+        "看计划排放、资源成本和 F01 净支付。遇到相同的行业总成本时，核对企业间负担分布。"
+      ],
+      "action": "compare",
+      "observables": [],
+      "questions": [
+        {
+          "id": "carbon-free",
+          "prompt": "固定总量与技术后，改变免费分配能改变哪一项？",
+          "kind": "concept",
+          "options": [
+            {
+              "id": "a",
+              "label": "企业的配额净支付",
+              "criterion": "correct",
+              "feedback": "检查相同相位的计划减排和净支付，判断区分是否成立。"
+            },
+            {
+              "id": "b",
+              "label": "全局最小化计算出的减排向量",
+              "criterion": "incorrect",
+              "feedback": "模型用技术成本对减排单元排序。选择免费分配对照后，分别比较计划与净支付。"
+            }
+          ]
+        }
+      ],
+      "next_scene": "notebook"
+    },
+    {
+      "id": "notebook",
+      "legacy_stage": "notebook",
+      "title": "写一页分配备忘",
+      "question": "固定免费分配怎样改变企业负担？",
+      "objective": "引用一笔配额流转和一个同步观察点。",
+      "information": [
+        "将模型假设与实际按发电量分配的制度区分，解释新增产出如何进入核算。"
+      ],
+      "action": "notebook",
+      "observables": [],
+      "questions": [],
+      "next_scene": null,
+      "rubric": "说明吨、张和代币的含义。引用转移或缴回事件，核对数量与支付，再用同步对照区分减排成本和企业负担。"
+    }
+  ]
+}

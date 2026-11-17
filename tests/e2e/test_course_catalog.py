@@ -30,7 +30,7 @@ def test_published_course_completes_offline(local_app, width, case_id, tmp_path,
         page = context.new_page()
         page.set_default_timeout(6500)
         page.on("pageerror", lambda error: errors.append(str(error)))
-        page.goto(local_app)
+        page.goto(local_app + "/?case=double_auction")
         page.get_by_role("navigation", name="课程目录").get_by_role("link", name=course["title"], exact=True).click()
         expect(page.get_by_role("heading", name=course["title"], exact=True)).to_be_visible()
         page.get_by_role("button", name="开始实验").click()

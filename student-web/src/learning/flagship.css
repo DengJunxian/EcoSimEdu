@@ -1,0 +1,42 @@
+.field-lesson { padding-block: 24px 56px; }
+.field-scenes { display: flex; flex-wrap: wrap; gap: 6px; padding-bottom: 15px; border-bottom: 1px solid var(--line); }
+.field-scenes button { font-size: .9rem; padding-inline: 10px; background: transparent; }
+.field-scenes button[aria-current] { color: white; background: var(--primary); border-color: var(--primary); }
+.field-title { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 8px 24px; align-items: baseline; margin-block: 24px 18px; }
+.field-title h1 { font-size: 2.15rem; }
+.field-title p { font-size: 1.1rem; color: var(--muted); }
+.field-workspace { display: grid; grid-template-columns: minmax(180px, 240px) minmax(0, 1fr); align-items: start; gap: 22px; }
+.field-task { padding: 16px; background: #edf0e7; border-radius: 12px; overflow-wrap: anywhere; }
+.field-task h2 { font-size: 1.05rem; }
+.field-action { min-width: 0; }
+.field-action > * + * { margin-top: 18px; }
+.field-input { display: grid; gap: 5px; justify-items: start; }
+.field-scene-picker { display: none; }
+.field-input :is(input, select, textarea) { max-width: 100%; }
+.field-input select { min-width: 0; }
+.field-input :is(input[type="range"], textarea) { width: 100%; }
+.field-input input[type="range"] { min-height: 32px; margin: 0; }
+.field-action-choice, .field-compare-controls { align-items: end; }
+.field-muted { color: var(--muted); }
+.field-feedback p:last-child { margin-bottom: 0; }
+.field-feedback { background: #edf0e7; border-radius: 8px; padding: 12px; margin-top: 10px; }
+.field-playback { border-block: 1px solid var(--line); padding-block: 12px; }
+.field-playback-top { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 8px 16px; }
+.field-playback .field-muted { margin-block: 8px 0; }
+.field-compare details dd { overflow-wrap: anywhere; margin-inline-start: 0; }
+.field-compare > * + *, .field-notes > * + * { margin-top: 14px; }
+.field-compare-table { width: 100%; }
+.field-compare-table td, .field-compare-table th { white-space: normal; }
+.field-notes ul { padding-inline-start: 20px; }
+.field-notes p { overflow-wrap: anywhere; }
+.field-sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); }
+@media (max-width: 1000px) {
+  .field-workspace { grid-template-columns: minmax(0, 1fr); gap: 16px; }
+}
+@media (max-width: 680px) {
+  .field-scenes { display: none; }
+  .field-scene-picker { display: flex; flex-wrap: wrap; gap: 6px 12px; align-items: center; }
+  .field-lesson { width: calc(100% - 28px); }
+  .field-title h1 { font-size: 1.65rem; }
+  .field-task { padding: 12px; }
+}

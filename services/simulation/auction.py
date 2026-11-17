@@ -45,8 +45,10 @@ def initial_agents(seed):
     return agents
 
 
-def run_auction(scenario_id: str, seed: int, bid: int):
+def run_auction(scenario_id: str, seed: int, bid: int, *, parameters=None):
     scenario = BOUNDARIES[CASE["case_id"]]["parameters"] if scenario_id == "boundary" else SCENARIOS[scenario_id]
+    if parameters is not None:
+        scenario = parameters
     root = initial_agents(seed)
     fee = scenario["fee"]
     agents = {key: {**a, "marginals": [

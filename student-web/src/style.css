@@ -177,6 +177,7 @@ footer { border-top: 1px solid var(--line); padding-block: 18px; display: flex; 
 .course-home > p { max-width: 62ch; }
 .course-home > button { margin-block: 12px 30px; }
 .lesson-grid { margin-block: 12px; }
+.grid-pan-note { display: none; }
 .grid-map { display: grid; gap: 1px; background: #ced8ca; width: min(100%, 520px); margin: 9px 0; }
 .grid-map button {
   padding: 0;

@@ -1,0 +1,251 @@
+{
+  "schema_version": 2,
+  "case_id": "flash_crash",
+  "content_version": "2.0.0",
+  "engine_version": "flash-crash/1",
+  "source_ids": [
+    "S10"
+  ],
+  "scenes": [
+    {
+      "id": "intro",
+      "legacy_stage": "intro",
+      "title": "一张单子如何吃掉深度",
+      "question": "卖单进入订单簿后，哪些量会改变？",
+      "objective": "区分挂单深度、成交量和最后成交价。",
+      "information": [
+        "本课使用单资产教学订单簿。报价、股数和时钟来自模型，历史资料提供跨市场背景。"
+      ],
+      "action": "intro",
+      "observables": [],
+      "questions": [],
+      "next_scene": "predict"
+    },
+    {
+      "id": "predict",
+      "legacy_stage": "predict",
+      "title": "预测做市者会不会撤量",
+      "question": "卖出程序冲击下，你会触发库存阈值吗？",
+      "objective": "预测学生做市者达到库存上限的事件。",
+      "information": [
+        "已有买单成交会增加你的库存。库存阈值生效时，模型撤回仍在簿中的买量。"
+      ],
+      "action": "predict",
+      "observables": [],
+      "questions": [
+        {
+          "id": "flash-limit",
+          "prompt": "学生做市者会触发库存阈值吗？",
+          "kind": "prediction",
+          "selector": {
+            "event_type": "inventory_limit",
+            "fields": [
+              "limit",
+              "excess"
+            ],
+            "actor_id": "做市者 0（学生）"
+          },
+          "options": [
+            {
+              "id": "yes",
+              "label": "会发生",
+              "feedback": "回放时定位首条记录，再比较当前库存和设定阈值。"
+            },
+            {
+              "id": "no",
+              "label": "不会发生",
+              "feedback": "推进至结束，检查事件序列是否支持这个判断。"
+            },
+            {
+              "id": "unknown",
+              "label": "不确定",
+              "criterion": "uncertain",
+              "feedback": "先记录你的判断范围。观察到相应事件后再更新预测。"
+            }
+          ]
+        }
+      ],
+      "next_scene": "bid",
+      "role": {
+        "actor_id": "做市者 0（学生）",
+        "label": "做市者 0",
+        "goal": "选择能接受的净增库存，再追踪撤回余量和成交损益的证据。"
+      }
+    },
+    {
+      "id": "bid",
+      "legacy_stage": "bid",
+      "title": "设置库存阈值",
+      "question": "允许净增 12 股还是 30 股？",
+      "objective": "以真实库存约束决定撤回挂单的门槛。",
+      "information": [
+        "阈值提交后整场执行。固定卖出程序照原计划释放批次。"
+      ],
+      "action": "bid",
+      "observables": [],
+      "questions": [],
+      "next_scene": "observe",
+      "role": {
+        "actor_id": "做市者 0（学生）",
+        "label": "做市者 0",
+        "goal": "选择能接受的净增库存，再追踪撤回余量和成交损益的证据。"
+      }
+    },
+    {
+      "id": "observe",
+      "legacy_stage": "observe",
+      "title": "从卖压追到订单簿",
+      "question": "深度在哪一笔成交或撤单中减少？",
+      "objective": "对照事件前后的深度和累计成交。",
+      "information": [
+        "先定位卖出计划、成交或撤单。撤回余量会改变深度，即使这一事件没有新成交。"
+      ],
+      "action": "observe",
+      "observables": [
+        "cancel"
+      ],
+      "questions": [
+        {
+          "id": "flash-depth",
+          "prompt": "撤回 5 股挂单时，会增加累计成交量吗？",
+          "kind": "concept",
+          "options": [
+            {
+              "id": "a",
+              "label": "成交量保持原值",
+              "criterion": "correct",
+              "feedback": "用撤单前后两栏复算深度和成交量。"
+            },
+            {
+              "id": "b",
+              "label": "成交量增加 5 股",
+              "criterion": "incorrect",
+              "feedback": "定位撤单记录。未成交股数离开订单簿，累计成交仍取决于实际撮合。"
+            }
+          ],
+          "selector": {
+            "event_type": "cancel",
+            "fields": [
+              "order_id",
+              "quantity"
+            ]
+          }
+        }
+      ],
+      "next_scene": "explain",
+      "evidence": {
+        "selector": {
+          "event_type": "cancel",
+          "fields": [
+            "order_id",
+            "quantity"
+          ]
+        },
+        "missing": "当前还没有撤单记录。继续到库存事件，或用成交核对深度和成交量。"
+      }
+    },
+    {
+      "id": "explain",
+      "legacy_stage": "explain",
+      "title": "看清暂停与恢复",
+      "question": "释放、排队和尝试撮合在同一个时点吗？",
+      "objective": "把待执行卖量、已成交与价格变动分别写进解释。",
+      "information": [
+        "暂停情景按规则推迟卖出程序的尝试撮合。恢复时，等待量进入撮合，仍可能留下未成交余量。"
+      ],
+      "action": "explain",
+      "observables": [
+        "pause"
+      ],
+      "questions": [
+        {
+          "id": "flash-price",
+          "prompt": "撤单后看见原来那一笔价格，怎样解释它？",
+          "kind": "concept",
+          "options": [
+            {
+              "id": "a",
+              "label": "最后成交价仍来自上一笔成交",
+              "criterion": "correct",
+              "feedback": "按事件顺序找到最近一笔 trade 记录。"
+            },
+            {
+              "id": "b",
+              "label": "此刻已产生新成交价",
+              "criterion": "incorrect",
+              "feedback": "检查本事件是否有新的成交与交割。没有新撮合时，价格字段仍指向上一笔成交。"
+            }
+          ],
+          "selector": {
+            "event_type": "trade",
+            "fields": [
+              "quantity",
+              "purpose",
+              "price_cents"
+            ]
+          }
+        }
+      ],
+      "next_scene": "compare",
+      "evidence": {
+        "selector": {
+          "event_type": "pause",
+          "fields": [
+            "pause_steps",
+            "time"
+          ]
+        },
+        "missing": "本次没有暂停记录。可在固定暂停的对照中查释放、排队与恢复。"
+      }
+    },
+    {
+      "id": "compare",
+      "legacy_stage": "compare",
+      "title": "比较深度、撤回和执行延迟",
+      "question": "末笔价格相同时，路径是否也相同？",
+      "objective": "固定种子与学生阈值，在同一个模型步比较。",
+      "information": [
+        "已有对照分别改变初始深度、自动撤量和程序暂停。观察计划已成交、买方深度与排队量。"
+      ],
+      "action": "compare",
+      "observables": [],
+      "questions": [
+        {
+          "id": "flash-pause",
+          "prompt": "程序暂停后，预定释放的批次会怎样？",
+          "kind": "concept",
+          "options": [
+            {
+              "id": "a",
+              "label": "按时释放并进入等待队列",
+              "criterion": "correct",
+              "feedback": "在暂停对照定位 release、resume 并核对排队股数。"
+            },
+            {
+              "id": "b",
+              "label": "所有计划永远取消",
+              "criterion": "incorrect",
+              "feedback": "用相同模型步对齐，检查暂停期间释放量和恢复时尝试撮合的量。"
+            }
+          ]
+        }
+      ],
+      "next_scene": "notebook"
+    },
+    {
+      "id": "notebook",
+      "legacy_stage": "notebook",
+      "title": "把作证范围写下来",
+      "question": "扩展到现货与期货需要补哪些时间标记？",
+      "objective": "用实际撤单或成交说明一次深度变化。",
+      "information": [
+        "若解释跨市场传递，还需两个市场的订单时间、交易记录和共同冲击。"
+      ],
+      "action": "notebook",
+      "observables": [],
+      "questions": [],
+      "next_scene": null,
+      "rubric": "引用一笔成交或撤单及一个对照观察点，区分股数、美元每股与模型步，写出单资产情景的适用范围。"
+    }
+  ]
+}

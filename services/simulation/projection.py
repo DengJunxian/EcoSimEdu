@@ -34,6 +34,9 @@ def checkpoints(case, run):
     maximum = case["rounds"] - 1 if case["case_id"] == "double_auction" else None
     ticks = {}
     for event in run["result"]["events"]:
+        # SVB closes after its final settlement round and carries that same round number.
+        if case["case_id"] == "svb_run" and event["event_type"] == "closing":
+            continue
         value = event.get(settings["field"])
         if type(value) is not int or value < minimum or (maximum is not None and value > maximum):
             continue

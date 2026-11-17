@@ -1,0 +1,308 @@
+{
+  "schema_version": 2,
+  "case_id": "commons_governance",
+  "content_version": "2.0.0",
+  "engine_version": "commons-governance/1",
+  "source_ids": [
+    "S06"
+  ],
+  "scenes": [
+    {
+      "title": "水域里的共同资源",
+      "question": "每个人按自己的能力取用，水域下一期会剩多少？",
+      "objective": "区分申请、实际取用与下一期存量。",
+      "information": [
+        "24 位使用者共享可自然再生的水域。先结算本期取用，再由取用后的余量进入再生方程。每期可发生比例缩减。"
+      ],
+      "observables": [],
+      "questions": [
+        {
+          "id": "stock-v-flow",
+          "prompt": "期初存量与本期取用量如何相连？",
+          "kind": "concept",
+          "options": [
+            {
+              "id": "correct",
+              "label": "实际取用先从期初存量扣除",
+              "feedback": "用事件里的期初和余量相减，得到已分配的资源流量。",
+              "criterion": "correct"
+            },
+            {
+              "id": "wrong",
+              "label": "期初存量等于每个人计划取用的总额",
+              "feedback": "存量是水域可用资源。对照计划总量和实际获准的分配。",
+              "criterion": "incorrect"
+            }
+          ]
+        }
+      ],
+      "id": "intro",
+      "legacy_stage": "intro",
+      "action": "intro",
+      "next_scene": "predict"
+    },
+    {
+      "title": "为 F01 制定首期计划",
+      "question": "首期取用之后，水域还有自然再生吗？",
+      "objective": "在提交计划前预测是否有正再生事件。",
+      "information": [
+        "你只能为 F01 设定首期的计划，实际分配取决于同一期的申请和资源存量。"
+      ],
+      "observables": [],
+      "questions": [
+        {
+          "id": "growth-occurs",
+          "prompt": "预计基准运行会记录至少一次正再生吗？",
+          "kind": "prediction",
+          "selector": {
+            "event_type": "growth",
+            "fields": [
+              "remaining_stock",
+              "growth",
+              "next_stock"
+            ],
+            "metric_positive": "growth"
+          },
+          "options": [
+            {
+              "id": "yes",
+              "label": "会出现",
+              "feedback": "找一条增长大于零的再生事件，检查对应的取用后余量。"
+            },
+            {
+              "id": "no",
+              "label": "不会出现",
+              "feedback": "逐期检查。零余量的增长为零，有正余量时还要看是否处于承载量以内。"
+            },
+            {
+              "id": "unknown",
+              "label": "不确定",
+              "feedback": "保留判断，等取用和再生两个事件都出现后再核对。",
+              "criterion": "uncertain"
+            }
+          ]
+        }
+      ],
+      "role": {
+        "actor_id": "F01",
+        "label": "资源使用者 F01",
+        "goal": "选择首期计划取用量，核对自己的申请、实取和水域余量。"
+      },
+      "id": "predict",
+      "legacy_stage": "predict",
+      "action": "predict",
+      "next_scene": "bid"
+    },
+    {
+      "title": "设置取用计划",
+      "question": "自己的计划量会全部变成实际取用吗？",
+      "objective": "用真实模型给出的 0、1、4 三种计划运行。",
+      "information": [
+        "同一期资源不足时，每位申请按相同比例缩减。统一限额则会在比例分配前先限制获准申请。"
+      ],
+      "observables": [
+        "plans",
+        "requests",
+        "allocations"
+      ],
+      "questions": [],
+      "evidence": {
+        "selector": {
+          "event_type": "withdrawal",
+          "fields": [
+            "period",
+            "start_stock",
+            "remaining_stock",
+            "plans",
+            "requests",
+            "allocations"
+          ],
+          "actor_id": "F01"
+        },
+        "missing": "待模型记录首期取用后，查看 F01 的申请和实取。"
+      },
+      "id": "bid",
+      "legacy_stage": "bid",
+      "action": "bid",
+      "next_scene": "observe"
+    },
+    {
+      "title": "追踪存量的两步变化",
+      "question": "从本期期初到下期期初，哪些资源流入或流出？",
+      "objective": "选择同一期取用和再生，检查数量平衡。",
+      "information": [
+        "把期初、已取、余量、再生与下期期初依序核对。将当前未结算的再生留作待观察。"
+      ],
+      "observables": [
+        "stock",
+        "harvest",
+        "growth"
+      ],
+      "questions": [
+        {
+          "id": "regeneration-base",
+          "prompt": "哪一列是本期自然再生的基数？",
+          "kind": "concept",
+          "options": [
+            {
+              "id": "correct",
+              "label": "取用后的余量",
+              "feedback": "打开本期再生事件，核对它沿用取用后的存量。",
+              "criterion": "correct"
+            },
+            {
+              "id": "wrong",
+              "label": "本期期初存量",
+              "feedback": "取用先发生，把期初存量减实际已取后再代入再生规则。",
+              "criterion": "incorrect"
+            }
+          ],
+          "selector": {
+            "event_type": "growth",
+            "fields": [
+              "remaining_stock",
+              "growth",
+              "next_stock"
+            ],
+            "metric_positive": "growth"
+          }
+        }
+      ],
+      "evidence": {
+        "selector": {
+          "event_type": "withdrawal",
+          "fields": [
+            "period",
+            "start_stock",
+            "remaining_stock",
+            "plans",
+            "requests",
+            "allocations"
+          ],
+          "actor_id": "F01"
+        },
+        "missing": "前进一步查看本期取用，之后再推进到再生。"
+      },
+      "id": "observe",
+      "legacy_stage": "observe",
+      "action": "observe",
+      "next_scene": "explain"
+    },
+    {
+      "title": "核对额度、扣缴与成本",
+      "question": "罚款流向哪里，群体为何会消耗资源？",
+      "objective": "分开核对使用者收入、管护账户与实际监测支出。",
+      "information": [
+        "监测发生在指定社区制度下。管护收到扣缴，并承担检查成本。核对零监测、零扣缴或资源枯竭时的观察结果。"
+      ],
+      "observables": [
+        "monitored",
+        "fines",
+        "monitoring_cost",
+        "income",
+        "gross_value"
+      ],
+      "questions": [
+        {
+          "id": "transfer-cost",
+          "prompt": "扣缴和监测支出都等量减少群体收益吗？",
+          "kind": "concept",
+          "options": [
+            {
+              "id": "correct",
+              "label": "扣缴在两个账户间转移，监测消耗计入小组成本",
+              "feedback": "比较使用者净额加管护账户变动与取用毛值减监测支出。",
+              "criterion": "correct"
+            },
+            {
+              "id": "wrong",
+              "label": "两项都是净资源消耗",
+              "feedback": "查管护账户收入。扣缴从使用者支出，同时成为管护账户的收入。",
+              "criterion": "incorrect"
+            }
+          ],
+          "selector": {
+            "event_type": "withdrawal",
+            "fields": [
+              "monitored",
+              "monitoring_cost",
+              "fines",
+              "gross_value",
+              "participant_net"
+            ]
+          }
+        }
+      ],
+      "evidence": {
+        "selector": {
+          "event_type": "withdrawal",
+          "fields": [
+            "monitored",
+            "monitoring_cost",
+            "fines",
+            "gross_value",
+            "participant_net"
+          ]
+        },
+        "missing": "目前尚未记录取用账本。"
+      },
+      "id": "explain",
+      "legacy_stage": "explain",
+      "action": "explain",
+      "next_scene": "compare"
+    },
+    {
+      "title": "比较统一限额与社区监测",
+      "question": "资源留得更多时，长期收益也一定更高吗？",
+      "objective": "同步观察相同再生期的资源存量、取用收益和监测成本。",
+      "information": [
+        "两组条件沿用相同初态、种子与学生计划。统一限额限制获准申请。社区监测用预算抽样并处理查出的超额实取。"
+      ],
+      "observables": [
+        "stock",
+        "income",
+        "monitoring_cost"
+      ],
+      "questions": [
+        {
+          "id": "same-outcomes",
+          "prompt": "若两种制度同一期有相同存量，可从哪里判断差异？",
+          "kind": "concept",
+          "options": [
+            {
+              "id": "correct",
+              "label": "检查实取、监测成本及后续再生与收入",
+              "feedback": "比较相同结算点的指标，再回查两侧具体的取用事件。",
+              "criterion": "correct"
+            },
+            {
+              "id": "wrong",
+              "label": "这一点存量相同便可视为完全相同",
+              "feedback": "对齐下一期初，并核对哪一批使用者承担了扣缴或限制。",
+              "criterion": "incorrect"
+            }
+          ]
+        }
+      ],
+      "id": "compare",
+      "legacy_stage": "compare",
+      "action": "compare",
+      "next_scene": "notebook"
+    },
+    {
+      "title": "写一条资源治理解释",
+      "question": "如何用存量和账本衡量治理机制？",
+      "objective": "用一次存量平衡和一项同期对照支持建议。",
+      "information": [
+        "把资源单位和代币分开记。若迁移到真实水域，注明人口、再生季节、权利和检查成本需要独立数据。"
+      ],
+      "observables": [],
+      "questions": [],
+      "rubric": "可以复算下一期存量和群体收益，解释制度变化及适用边界。",
+      "id": "notebook",
+      "legacy_stage": "notebook",
+      "action": "notebook",
+      "next_scene": null
+    }
+  ]
+}

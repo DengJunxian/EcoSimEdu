@@ -31,7 +31,7 @@ export function EventLookup({ runId, requested }: { runId: string; requested: st
   }, [runId, seq, valid, course]);
 
   const courseHref = `/?${new URLSearchParams({ case: selectedCourse })}`;
-  return <main className="container course-home">
+  return <main id="main" tabIndex={-1} className="container course-home">
     <a href={courseHref}>返回课程</a>
     <h1>{course?.title ?? "运行证据"}</h1>
     <form className="toolbar" method="get" action="/">

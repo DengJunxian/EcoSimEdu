@@ -1,0 +1,42 @@
+.allocation-panel {
+  min-width: 0;
+  padding: clamp(14px, 2vw, 22px);
+  background: var(--paper);
+  border: 1px solid var(--line);
+  border-radius: 12px;
+}
+.allocation-panel h3 { font-size: 1.05rem; }
+.allocation-panel table { font-size: .94rem; }
+.allocation-panel > * + * { margin-top: 12px; }
+.allocation-split { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px 22px; }
+.allocation-facts { display: flex; flex-wrap: wrap; gap: 8px 22px; margin: 10px 0; font-variant-numeric: tabular-nums; }
+.allocation-facts dt { font-size: .9rem; color: var(--muted); }
+.allocation-facts dd { margin: 0; font-weight: 700; }
+.allocation-events, .lemon-quality, .beer-chain { list-style: none; margin: 0; padding: 0; }
+.allocation-events li { margin: 4px 0; }
+.allocation-events li p { margin-bottom: 3px; }
+.allocation-event { border-top: 1px solid var(--line); padding-top: 14px; }
+.allocation-selection { margin-block: 12px 0; font-weight: 700; }
+.lemon-quality { display: grid; gap: 4px; margin-bottom: 16px; }
+.lemon-quality li { display: grid; grid-template-columns: 4em minmax(0, 1fr) 2em; gap: 8px; align-items: center; }
+.lemon-quality meter { width: 100%; height: 1.2rem; accent-color: var(--primary); }
+.lemon-quality meter::-webkit-meter-optimum-value { background: var(--primary); }
+.lemon-quality meter::-moz-meter-bar { background: var(--primary); }
+.matching-seats, .beer-chain { display: grid; gap: 8px; }
+.matching-seats { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+.matching-seats button, .beer-chain button { display: grid; text-align: left; width: 100%; gap: 4px; }
+.matching-seats button[aria-pressed="true"], .beer-chain button[aria-pressed="true"] {
+  border-color: var(--primary);
+  background: var(--sage, #edf1e7);
+}
+.matching-seats strong, .beer-chain strong { font-size: 1rem; }
+.matching-seats span, .beer-chain span { font-size: .88rem; color: var(--muted); }
+.beer-chain { grid-template-columns: repeat(4, minmax(0, 1fr)); margin-bottom: 12px; }
+.beer-chain li { min-width: 0; display: grid; gap: 4px; }
+.beer-direction { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 4px 16px; font-size: .9rem; }
+
+@media (max-width: 620px) {
+  .allocation-split { grid-template-columns: minmax(0, 1fr); }
+  .beer-chain { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .matching-seats button, .beer-chain button { padding-inline: 8px; }
+}

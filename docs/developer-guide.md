@@ -30,12 +30,22 @@ CIVITAS_LIVE_ENABLED=0 .venv/bin/python -m uvicorn services.simulation.api:app -
 CIVITAS_EDU_DB="$PWD/lab-restored.sqlite3" .venv/bin/python -m uvicorn services.simulation.api:app --host 127.0.0.1 --port 8776
 ```
 
-备份命令通过 SQLite 一致性快照复制数据库，验证 SQLite 完整性以及每个已保存结果的哈希；已存在的目标路径会保留。恢复时先验证新文件，再暂停原服务并重启到新库。复制外部相关状态时先核对目标数据和版本。一份浏览器笔记导出可以恢复其版本一致且仍在库内的事件引用。
+备份命令通过 SQLite 一致性快照复制数据库，验证 SQLite 完整性以及每个已保存结果的哈希；已存在的目标路径会保留。恢复时先验证新文件，再暂停原服务并重启到新库。复制外部相关状态时先核对目标数据和版本。新版课堂在 `/notes` 导入原始 JSON，旧版保留各自的导入入口。新版导入在写浏览器之前校验运行身份、版本、有效结果、引用指针和已有草稿。失败时保留原文件和本机记录。笔记中的引用依赖同一次 SQLite 备份。
 
-对独立发布包先在同目录运行 `shasum -a 256 -c <归档名>.sha256`，解压后运行 `python3 -m scripts.package_student_lab --verify`。清单记录发布版本、原仓库 HEAD、候选源码树哈希、课程版本与逐文件哈希。旧 Demo 和旧仓库审计脚本在完整仓库中分别运行。
+对独立发布包先在同目录运行 `shasum -a 256 -c <归档名>.sha256`，解压后运行 `python3 -m scripts.package_student_lab --verify`。清单记录发布版本、原仓库 HEAD、打包源码树哈希、课程版本与逐文件哈希。归档自带生产构建，重新构建使用锁文件。原版 Streamlit Demo 和旧仓库审计在完整仓库中运行。最新安装与兼容测试结果见[升级验收](upgrade/acceptance.md)。
 
 ## 模型实验台接入
 
 页面入口为 `/?view=model`。读取 `GET /api/live` 获取可选课程和服务配置。用户点击运行后，经 `POST /api/runs` 创建 `provider_kind=live` 的基准实验，再经 `POST /api/runs/{id}/start` 启动。供应商凭证由服务进程持有，浏览器只请求本地服务。API 文档可在本机 `/docs` 查看。
 
 `GET /api/runs/{id}/rule-reference` 读取已完成的高级实验，按其原始行动和种子重算本地规则基准。接口核对课程和引擎版本、共同生成根、初始状态与干预参数。响应提供两组期末指标、原运行哈希和规则对照哈希。刷新、回看和导出均使用已保存的模型结果。服务端规则回退仍可生成对照，页面显示回退身份。取消运行可回看已保存内容，期末对照仅检索已完成运行。
+
+## 多角色模型实验
+
+`/experiments/multi-role` 使用 `/api/v2/model-lab`。规则参考始终使用本机引擎。供应商分支另外要求 `CIVITAS_L2_ENABLED=1`、服务端凭证以及 `CIVITAS_L2_MAX_USD_MICROS` 或 `CIVITAS_L2_MAX_CNY_MICROS` 的正金额限额。前端确认一次实验后才能启动付费分支。
+
+SQLite 备份包含多角色运行及请求台账。进程存活时可暂停和继续，重启后可回看已提交前缀。同条件规则对照、原事件和使用回执可通过多角色页面导出。真供应商验收和故障模拟的范围见[升级验收](upgrade/acceptance.md)。
+
+## 课堂证据助手
+
+`POST /api/tutor` 携带场景时会使用场景导师。普通查询完全离线。配置 `CIVITAS_TUTOR_ONLINE_ENABLED=1` 和服务端凭证后，公开证据查询可由用户另行请求在线提示排序。模型输入使用已核对的公开证据摘要，输出只能选择既定顺序。预算、幂等和未知用量与模型实验共用同一库。

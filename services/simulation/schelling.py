@@ -55,10 +55,32 @@ def initial_board(seed):
     return {"size": size, "grid": grid, "student_target": target}
 
 
+def arranged_board(root, seed, layout):
+    """Keep the exact population and vacancies while relocating the two groups."""
+    size = root["size"]
+    grid = root["grid"].copy()
+    if layout == "mixed":
+        rank = lambda cell: sum(divmod(cell, size)) % 2
+    elif layout == "segregated":
+        rank = lambda cell: cell % size
+    else:
+        raise ValueError("Unknown initial layout")
+    positions = sorted((cell for cell, resident in enumerate(grid) if resident), key=rank)
+    residents = sorted(resident for resident in grid if resident)
+    rng = Random(f"{seed}:layout:{layout}")
+    midpoint = len(residents) // 2
+    residents = rng.sample(residents[:midpoint], midpoint) + rng.sample(residents[midpoint:], midpoint)
+    for cell, resident in zip(positions, residents, strict=True):
+        grid[cell] = resident
+    return {**root, "grid": grid}
+
+
 def simulate(case, scenario_id, seed, action):
     intervention = next(s["parameters"] for s in case["scenarios"] if s["id"] == scenario_id)
     threshold = intervention["threshold"]
-    initial = initial_board(seed)
+    root = initial_board(seed)
+    layout = intervention.get("initial_layout")
+    initial = arranged_board(root, seed, layout) if layout else root
     size = initial["size"]
     grid = initial["grid"].copy()
     cells = {resident: i for i, resident in enumerate(grid) if resident}
@@ -136,6 +158,6 @@ def simulate(case, scenario_id, seed, action):
     message = {"all_satisfied": "所有居民达到各自阈值。", "blocked": "无可行搬迁，仍有未达阈值的居民。",
                "round_limit": "达到轮数上限，地图尚未稳定。"}[terminal]
     emit("market_close", message, terminal=terminal)
-    return {"engine_version": "schelling/1", "initial": initial, "root_hash": digest(initial),
+    return {"engine_version": "schelling/2" if layout else "schelling/1", "initial": initial, "root_hash": digest(root),
             "initial_hash": digest(initial), "intervention": intervention, "events": events,
             "snapshots": snapshots, "metrics": snapshots[-1]["metrics"]}

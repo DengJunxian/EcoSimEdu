@@ -1,0 +1,329 @@
+{
+  "schema_version": 2,
+  "case_id": "information_cascade",
+  "content_version": "2.0.0",
+  "engine_version": "information-cascade/1",
+  "source_ids": [
+    "S07",
+    "BHW92"
+  ],
+  "scenes": [
+    {
+      "title": "读懂顺序猜测",
+      "question": "看见几个人选择一致，能数出几份线索？",
+      "objective": "先区分私人抽样和公开行动。",
+      "information": [
+        "A、B 两个箱子的先验相同。每位参与者获得一份私人抽样，再对箱子作一次选择。课程沿用学术实验的机制，用规则生成这一组轨迹。"
+      ],
+      "observables": [],
+      "questions": [
+        {
+          "id": "signal-or-action",
+          "prompt": "下一位实际看得到什么？",
+          "kind": "concept",
+          "options": [
+            {
+              "id": "correct",
+              "label": "按制度决定是否能看见前人的行动",
+              "feedback": "核对行动链的公开来源。各人的抽样卡各自保留。",
+              "criterion": "correct"
+            },
+            {
+              "id": "wrong",
+              "label": "所有人的抽样方向",
+              "feedback": "先把抽样卡与公开选择分开。后者经过每位参与者的策略。",
+              "criterion": "incorrect"
+            }
+          ]
+        }
+      ],
+      "id": "intro",
+      "legacy_stage": "intro",
+      "action": "intro",
+      "next_scene": "predict"
+    },
+    {
+      "title": "接过第三张抽样卡",
+      "question": "为什么持有相反线索的人仍可能选择同一箱？",
+      "objective": "用自己的抽样与公开行动先形成判断。",
+      "information": [
+        "观察顺序由模型固定。参考策略在个人后验相等时跟随私人线索。"
+      ],
+      "observables": [
+        "cascade_start",
+        "public_a_pct"
+      ],
+      "questions": [
+        {
+          "id": "cascade-occurs",
+          "prompt": "预计本次基准运行会出现参考策略下的级联行动吗？",
+          "kind": "prediction",
+          "selector": {
+            "event_type": "decision",
+            "fields": [
+              "cascade"
+            ],
+            "equals": {
+              "cascade": true
+            }
+          },
+          "options": [
+            {
+              "id": "yes",
+              "label": "会出现",
+              "feedback": "稍后找一个人在两种私人信号下都作出同一选择的时刻。"
+            },
+            {
+              "id": "no",
+              "label": "不会出现",
+              "feedback": "逐步查看参考决策者两种私人信号对应的行动。"
+            },
+            {
+              "id": "unknown",
+              "label": "不确定",
+              "feedback": "可以先保留判断，观察两种私人信号是否仍能改变参考决策。",
+              "criterion": "uncertain"
+            }
+          ]
+        }
+      ],
+      "role": {
+        "actor_id": "D03",
+        "label": "第三位参与者 D03",
+        "goal": "结合本人抽样和前两位公开行动，决定使用哪种策略。"
+      },
+      "id": "predict",
+      "legacy_stage": "predict",
+      "action": "predict",
+      "next_scene": "bid"
+    },
+    {
+      "title": "提交第三位的策略",
+      "question": "自己的抽样、公开历史和预先固定的规则，分别会怎样影响行动？",
+      "objective": "用已有的四种策略创建一场运行。",
+      "information": [
+        "本场只设置第三位的策略。后续参与者按课内规则依序行动。固定选项是公开策略，行动似然按同一策略计算。"
+      ],
+      "observables": [
+        "policy",
+        "choice"
+      ],
+      "questions": [],
+      "evidence": {
+        "selector": {
+          "event_type": "decision",
+          "fields": [
+            "turn",
+            "choice",
+            "visible_action_ids",
+            "public_a_after_pct"
+          ]
+        },
+        "missing": "推进到第三位行动后，可定位学生策略记录。"
+      },
+      "id": "bid",
+      "legacy_stage": "bid",
+      "action": "bid",
+      "next_scene": "observe"
+    },
+    {
+      "title": "沿公开行动链追踪",
+      "question": "哪个人的选择真正改变了公共后验？",
+      "objective": "点选参与者，查看其看到的公开行动和本次模型更新。",
+      "information": [
+        "先定位第一条行动，再看第三位能利用什么。结尾会揭晓真实箱子和其他参与者的私人抽样。"
+      ],
+      "observables": [
+        "visible_action_ids",
+        "public_a_pct",
+        "revealing_decisions"
+      ],
+      "questions": [
+        {
+          "id": "successive-beliefs",
+          "prompt": "连续三个 B，是否等于三份支持 B 的独立抽样？",
+          "kind": "concept",
+          "options": [
+            {
+              "id": "correct",
+              "label": "需检查每个行动怎样依赖私信号",
+              "feedback": "对比同一位参与者在私信号 A 和 B 时的动作。",
+              "criterion": "correct"
+            },
+            {
+              "id": "wrong",
+              "label": "每个 B 都是一次独立抽样",
+              "feedback": "尝试打开级联行动。若两种信号下都选 B，则仅由该动作无法推断抽样方向。",
+              "criterion": "incorrect"
+            }
+          ],
+          "selector": {
+            "event_type": "decision",
+            "fields": [
+              "turn",
+              "choice",
+              "visible_action_ids",
+              "public_a_after_pct"
+            ]
+          }
+        }
+      ],
+      "evidence": {
+        "selector": {
+          "event_type": "decision",
+          "fields": [
+            "turn",
+            "choice",
+            "visible_action_ids",
+            "public_a_after_pct"
+          ]
+        },
+        "missing": "开局仍没有公开行动，向前推进一个事件。"
+      },
+      "id": "observe",
+      "legacy_stage": "observe",
+      "action": "observe",
+      "next_scene": "explain"
+    },
+    {
+      "title": "区分个人与公共后验",
+      "question": "行动和一个新信号，什么时候会提供不同的信息？",
+      "objective": "用实际动作似然解释一次公共后验的变化或保持。",
+      "information": [
+        "公共后验根据可见的历史行动及公开策略更新。个人参考后验把本人抽样乘入相同赔率。两者来自规则计算，学生固定策略下的动作不能据此反推出真实主观信念。"
+      ],
+      "observables": [
+        "private_a_after_pct",
+        "action_likelihood_given_a",
+        "action_likelihood_given_b"
+      ],
+      "questions": [
+        {
+          "id": "certain-action",
+          "prompt": "若一种动作在状态 A、B 下的似然都等于 1，公共后验如何变化？",
+          "kind": "concept",
+          "options": [
+            {
+              "id": "correct",
+              "label": "保持原值",
+              "feedback": "相同似然使先验赔率乘以 1。",
+              "criterion": "correct"
+            },
+            {
+              "id": "wrong",
+              "label": "向该动作一侧继续移动",
+              "feedback": "先比较两列似然。两列相等时，此动作无法区分真实状态。",
+              "criterion": "incorrect"
+            }
+          ],
+          "selector": {
+            "event_type": "decision",
+            "fields": [
+              "cascade"
+            ],
+            "equals": {
+              "cascade": true
+            }
+          }
+        }
+      ],
+      "evidence": {
+        "selector": {
+          "event_type": "decision",
+          "fields": [
+            "cascade"
+          ],
+          "equals": {
+            "cascade": true
+          }
+        },
+        "missing": "本次到当前时点尚无参考策略级联，可检查有区分力的动作如何更新后验。"
+      },
+      "id": "explain",
+      "legacy_stage": "explain",
+      "action": "explain",
+      "next_scene": "compare"
+    },
+    {
+      "title": "检验屏蔽和公共核验",
+      "question": "隐藏行动或加入一条独立核验，会不会产生同样的结果？",
+      "objective": "在相同决策位次，比较两种单独的制度变化。",
+      "information": [
+        "两组沿用相同种子和第三位策略。逐位比较后验和级联次数。共同核验只在发布时进入公共后验，之后的多位参与者引用同一条信息。"
+      ],
+      "observables": [
+        "cascade_decisions",
+        "correct_pct",
+        "verification"
+      ],
+      "questions": [
+        {
+          "id": "shared-verification",
+          "prompt": "后续五人都看过同一核验，公共后验应乘几次核验似然？",
+          "kind": "concept",
+          "options": [
+            {
+              "id": "correct",
+              "label": "首次发布时一次",
+              "feedback": "打开核验事件并检查其后参与者引用的共同来源。",
+              "criterion": "correct"
+            },
+            {
+              "id": "wrong",
+              "label": "五人各乘一次",
+              "feedback": "数独立发布次数。五次引用同一证据仍是一份核验。",
+              "criterion": "incorrect"
+            }
+          ],
+          "selector": {
+            "event_type": "verification",
+            "fields": [
+              "signal",
+              "public_a_before_pct",
+              "public_a_after_pct"
+            ]
+          }
+        }
+      ],
+      "id": "compare",
+      "legacy_stage": "compare",
+      "action": "compare",
+      "next_scene": "notebook"
+    },
+    {
+      "title": "写一条信息链解释",
+      "question": "现实里的跟随行为何时能被识别为级联？",
+      "objective": "引用两种潜在行动、一个公共后验及一组同位次对照。",
+      "information": [
+        "结合本场事件写明规则、信息可见性和信号独立性。迁移到现实前检查策略是否可知、行动是否公开。"
+      ],
+      "observables": [],
+      "questions": [
+        {
+          "id": "inference-limit",
+          "prompt": "现实中的一致行动足以认定级联吗？",
+          "kind": "concept",
+          "options": [
+            {
+              "id": "correct",
+              "label": "还需要观察或识别当事策略与信息",
+              "feedback": "写下可使这个解释与独立信号解释区分的证据。",
+              "criterion": "correct"
+            },
+            {
+              "id": "wrong",
+              "label": "足够，行动一致就说明忽略了私人信息",
+              "feedback": "想象几人独立收到相同方向的信号。结果相同，机制不同。",
+              "criterion": "incorrect"
+            }
+          ]
+        }
+      ],
+      "rubric": "用真实事件区分独立证据和重复行动，说明结论依赖的可见性与策略。",
+      "id": "notebook",
+      "legacy_stage": "notebook",
+      "action": "notebook",
+      "next_scene": null
+    }
+  ]
+}
