@@ -70,6 +70,10 @@ def test_parameter_lab_exports_all_seed_pairs(local_app, chromium_options):
         page.get_by_role("button", name="运行参数对照", exact=True).click()
         page.get_by_text("五组模拟样本的期末差异", exact=True).click()
         expect(page.get_by_role("rowheader", name="1966", exact=True)).to_be_visible()
+        page.get_by_text("跨种子过程范围", exact=True).press("Enter")
+        expect(page.get_by_role("table", name="当前时点五组差值")).to_contain_text("5 / 5")
+        page.get_by_role("combobox", name="查看单组过程").select_option("1965")
+        expect(page.get_by_text("种子 1965。", exact=False)).to_be_visible()
         with page.expect_download() as download:
             page.get_by_role("button", name="导出对照与两组运行").click()
         data = json.loads(Path(download.value.path()).read_text())
@@ -98,4 +102,30 @@ def test_parameter_lab_public_goods_student_tape_reaches_both_arms(local_app, ch
                 if event["event_type"] == "contributions"
             }
             assert contributions[4] == 20 and contributions[7] == 0
+        browser.close()
+
+
+def test_parameter_lab_defaults_to_one_treatment_and_can_repeat_identical_inputs(local_app, chromium_options):
+    with sync_playwright() as playwright:
+        browser = playwright.chromium.launch(**chromium_options)
+        page = browser.new_page()
+        assert page.goto(local_app + "/compare?case=double_auction").ok
+        demand = page.get_by_role("combobox", name="每件买方价值上移")
+        fee = page.get_by_role("combobox", name="每方交易费")
+        demand.select_option(label="6")
+        fee.select_option(label="6")
+        expect(demand.locator("option:checked")).to_have_text("0")
+        multiple = page.get_by_role("checkbox", name="组合修改多项条件")
+        expect(multiple).to_be_disabled()
+        fee.select_option(label="0")
+        page.get_by_role("button", name="运行参数对照").press("Enter")
+        expect(page.get_by_text("已配对的非缺失指标无差异", exact=False)).to_be_visible()
+        expect(page.get_by_role("columnheader", name="差值")).to_be_visible()
+        page.get_by_text("核对我理解的比较条件", exact=True).press("Enter")
+        check = page.locator("details").filter(has_text="核对我理解的比较条件")
+        check.get_by_role("spinbutton", name="共同种子").fill("1962")
+        check.get_by_role("combobox", name="初态摘要").select_option("same")
+        check.get_by_role("combobox", name="当前时点的对齐依据").select_option("ending")
+        check.get_by_role("button", name="提交比较条件核对").press("Enter")
+        expect(check.get_by_text("四项条件与两份运行记录相符。")).to_be_visible()
         browser.close()

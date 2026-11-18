@@ -1,0 +1,461 @@
+{
+  "schema_version": 1,
+  "cases": {
+    "double_auction": [
+      {
+        "id": "double_auction.1",
+        "version": 1,
+        "concept_ids": [
+          "C02"
+        ],
+        "performance": "计算买方、卖方和平台收益并核对合计",
+        "evidence_requirement": "首次无该题提示且达到该任务的规则判据",
+        "phase": "explain",
+        "task": "按新价格计算价值、成本和双边费用",
+        "transfer": "在二手交易中扣除新增验货耗材"
+      },
+      {
+        "id": "double_auction.2",
+        "version": 1,
+        "concept_ids": [
+          "C14"
+        ],
+        "performance": "沿成交事件追踪买卖订单，判断哪些报价具备撮合条件",
+        "evidence_requirement": "首次无该题提示且达到该任务的规则判据",
+        "phase": "observe",
+        "task": "给定限价与到达时序判断可成交报价",
+        "transfer": "判断新增平台规则怎样改变成交机会"
+      },
+      {
+        "id": "double_auction.3",
+        "version": 1,
+        "concept_ids": [
+          "C03"
+        ],
+        "performance": "解释费用、资源耗用和未实现交易机会对总剩余的影响",
+        "evidence_requirement": "首次无该题提示且达到该任务的规则判据",
+        "phase": "compare",
+        "task": "在固定价值、成本和数量时拆解费用流向",
+        "transfer": "计算扣资源成本后的三方合计"
+      }
+    ],
+    "svb_run": [
+      {
+        "id": "svb_run.1",
+        "version": 1,
+        "concept_ids": [
+          "C05"
+        ],
+        "performance": "用账表分别计算权益、现金和待付",
+        "evidence_requirement": "首次无该题提示且达到该任务的规则判据",
+        "phase": "explain",
+        "task": "从申请及实付还原账表",
+        "transfer": "区分供应商账面权益和即日支付约束"
+      },
+      {
+        "id": "svb_run.2",
+        "version": 1,
+        "concept_ids": [
+          "C08"
+        ],
+        "performance": "用消息、阈值和请求定位一条可核对的传导链",
+        "evidence_requirement": "首次无该题提示且达到该任务的规则判据",
+        "phase": "observe",
+        "task": "排序消息与结算事件",
+        "transfer": "检验重复消息能否提供额外证据"
+      },
+      {
+        "id": "svb_run.3",
+        "version": 1,
+        "concept_ids": [
+          "C16"
+        ],
+        "performance": "给现金组合对照列出处理、共同条件与结论边界",
+        "evidence_requirement": "首次无该题提示且达到该任务的规则判据",
+        "phase": "compare",
+        "task": "辨认证券换现金与增资的差异",
+        "transfer": "说明同时改变消息网络与资产组合时的归因边界"
+      }
+    ],
+    "schelling_segregation": [
+      {
+        "id": "schelling_segregation.1",
+        "version": 1,
+        "concept_ids": [
+          "C06"
+        ],
+        "performance": "计算未搬居民的邻居比例及阈值状态",
+        "evidence_requirement": "首次无该题提示且达到该任务的规则判据",
+        "phase": "explain",
+        "task": "计算 B 搬离前后的同类比例",
+        "transfer": "判断边界位置的有效分母"
+      },
+      {
+        "id": "schelling_segregation.2",
+        "version": 1,
+        "concept_ids": [
+          "C07"
+        ],
+        "performance": "解释满意率与同类邻接率怎样汇总",
+        "evidence_requirement": "首次无该题提示且达到该任务的规则判据",
+        "phase": "observe",
+        "task": "辨认局部满意与全图同类边",
+        "transfer": "分析阈值为零的分群初态"
+      },
+      {
+        "id": "schelling_segregation.3",
+        "version": 1,
+        "concept_ids": [
+          "C18"
+        ],
+        "performance": "区分模型停止条件与现实分群解释",
+        "evidence_requirement": "首次无该题提示且达到该任务的规则判据",
+        "phase": "compare",
+        "task": "判断达到轮数上限所支持的结论",
+        "transfer": "为校园分群比较提出可辨异的资料"
+      }
+    ],
+    "information_cascade": [
+      {
+        "id": "information_cascade.1",
+        "version": 1,
+        "concept_ids": [
+          "C08"
+        ],
+        "performance": "用私信号似然比更新公共赔率",
+        "evidence_requirement": "首次无该题提示且达到该任务的规则判据",
+        "phase": "observe",
+        "task": "从 1/4 乘以 2 求后验",
+        "transfer": "同源新闻的重复转述"
+      },
+      {
+        "id": "information_cascade.2",
+        "version": 1,
+        "concept_ids": [
+          "C17"
+        ],
+        "performance": "根据两个可能信号下的行动判断公开动作的信息量",
+        "evidence_requirement": "首次无该题提示且达到该任务的规则判据",
+        "phase": "explain",
+        "task": "两个信号均选 B 时计算公共后验",
+        "transfer": "匿名评价的策略性同选"
+      },
+      {
+        "id": "information_cascade.3",
+        "version": 1,
+        "concept_ids": [
+          "C16"
+        ],
+        "performance": "固定信号和次序比较隐藏行动与公共核验",
+        "evidence_requirement": "首次无该题提示且达到该任务的规则判据",
+        "phase": "compare",
+        "task": "辨认共同信息与其他处理",
+        "transfer": "讨论不同核验质量"
+      }
+    ],
+    "public_goods": [
+      {
+        "id": "public_goods.1",
+        "version": 1,
+        "concept_ids": [
+          "C09"
+        ],
+        "performance": "计算边际个人收益与群体回报",
+        "evidence_requirement": "首次无该题提示且达到该任务的规则判据",
+        "phase": "explain",
+        "task": "给四人的投入计算回报及净收益",
+        "transfer": "比较共享厨房的个人与群体收益"
+      },
+      {
+        "id": "public_goods.2",
+        "version": 1,
+        "concept_ids": [
+          "C03"
+        ],
+        "performance": "对账施罚成本和受罚扣损，计算群体净收益",
+        "evidence_requirement": "首次无该题提示且达到该任务的规则判据",
+        "phase": "observe",
+        "task": "分解回报与惩罚",
+        "transfer": "区分维修支出与账户转移"
+      },
+      {
+        "id": "public_goods.3",
+        "version": 1,
+        "concept_ids": [
+          "C16"
+        ],
+        "performance": "比较相同初始条件下两项公共物品制度",
+        "evidence_requirement": "首次无该题提示且达到该任务的规则判据",
+        "phase": "compare",
+        "task": "指出并发处理限制",
+        "transfer": "讨论监督可观察性变化"
+      }
+    ],
+    "commons_governance": [
+      {
+        "id": "commons_governance.1",
+        "version": 1,
+        "concept_ids": [
+          "C10"
+        ],
+        "performance": "按取用后存量计算再生和期末资源",
+        "evidence_requirement": "首次无该题提示且达到该任务的规则判据",
+        "phase": "explain",
+        "task": "从 S100、H20 和指定再生函数求 S′",
+        "transfer": "辨认地下水模型的季节条件"
+      },
+      {
+        "id": "commons_governance.2",
+        "version": 1,
+        "concept_ids": [
+          "C03"
+        ],
+        "performance": "核对罚款、检查费用与管护预算",
+        "evidence_requirement": "首次无该题提示且达到该任务的规则判据",
+        "phase": "observe",
+        "task": "计算管护账户和净资源损耗",
+        "transfer": "水渠检查支出与缴费转移"
+      },
+      {
+        "id": "commons_governance.3",
+        "version": 1,
+        "concept_ids": [
+          "C16"
+        ],
+        "performance": "比较配额和监督对取用与资源再生的作用",
+        "evidence_requirement": "首次无该题提示且达到该任务的规则判据",
+        "phase": "compare",
+        "task": "识别共同初态与具体处理",
+        "transfer": "考虑降雨与取用权共同变化"
+      }
+    ],
+    "lemons_market": [
+      {
+        "id": "lemons_market.1",
+        "version": 1,
+        "concept_ids": [
+          "C11"
+        ],
+        "performance": "由出价推导愿售池构成与下一轮出价",
+        "evidence_requirement": "首次无该题提示且达到该任务的规则判据",
+        "phase": "explain",
+        "task": "沿质量 1 至 5 的愿售池递推",
+        "transfer": "评估二手设备认证可信度"
+      },
+      {
+        "id": "lemons_market.2",
+        "version": 1,
+        "concept_ids": [
+          "C17"
+        ],
+        "performance": "区分愿售、退出与签约证据",
+        "evidence_requirement": "首次无该题提示且达到该任务的规则判据",
+        "phase": "observe",
+        "task": "逐事件确认成交数量",
+        "transfer": "区分挂牌和最终成交"
+      },
+      {
+        "id": "lemons_market.3",
+        "version": 1,
+        "concept_ids": [
+          "C03"
+        ],
+        "performance": "将认证资源成本计入交易净收益",
+        "evidence_requirement": "首次无该题提示且达到该任务的规则判据",
+        "phase": "compare",
+        "task": "计算低质和高质成交的净收益",
+        "transfer": "比较保修成本与质量披露"
+      }
+    ],
+    "school_matching": [
+      {
+        "id": "school_matching.1",
+        "version": 1,
+        "concept_ids": [
+          "C12"
+        ],
+        "performance": "给定优先序和容量手推暂留与拒绝",
+        "evidence_requirement": "首次无该题提示且达到该任务的规则判据",
+        "phase": "explain",
+        "task": "计算小市场两轮 DA",
+        "transfer": "扩展到实习岗位"
+      },
+      {
+        "id": "school_matching.2",
+        "version": 1,
+        "concept_ids": [
+          "C17"
+        ],
+        "performance": "构造一组相对真偏好的阻挡对",
+        "evidence_requirement": "首次无该题提示且达到该任务的规则判据",
+        "phase": "observe",
+        "task": "检查接受意愿和替代当前席位的资格",
+        "transfer": "说明稳定与首选入学的区别"
+      },
+      {
+        "id": "school_matching.3",
+        "version": 1,
+        "concept_ids": [
+          "C16"
+        ],
+        "performance": "区分增加名额和改变分配机制的比较",
+        "evidence_requirement": "首次无该题提示且达到该任务的规则判据",
+        "phase": "compare",
+        "task": "分别列出初始和政策处理",
+        "transfer": "辨认夫妻联报的额外约束"
+      }
+    ],
+    "beer_game": [
+      {
+        "id": "beer_game.1",
+        "version": 1,
+        "concept_ids": [
+          "C04"
+        ],
+        "performance": "区分订单、实物在途、到货与积压",
+        "evidence_requirement": "首次无该题提示且达到该任务的规则判据",
+        "phase": "observe",
+        "task": "分解已订未到和实物在途",
+        "transfer": "零售到货与付款时差"
+      },
+      {
+        "id": "beer_game.2",
+        "version": 1,
+        "concept_ids": [
+          "C13"
+        ],
+        "performance": "由在库、已订未到和积压计算库存位置",
+        "evidence_requirement": "首次无该题提示且达到该任务的规则判据",
+        "phase": "explain",
+        "task": "计算 7＋11−4 并解释补单口径",
+        "transfer": "辨认未发货对补货的影响"
+      },
+      {
+        "id": "beer_game.3",
+        "version": 1,
+        "concept_ids": [
+          "C16"
+        ],
+        "performance": "在同一需求轨迹下辨认延迟或共享信息处理",
+        "evidence_requirement": "首次无该题提示且达到该任务的规则判据",
+        "phase": "compare",
+        "task": "说明方差分母为零的结果",
+        "transfer": "区分需求和产能冲击"
+      }
+    ],
+    "carbon_market": [
+      {
+        "id": "carbon_market.1",
+        "version": 1,
+        "concept_ids": [
+          "C15"
+        ],
+        "performance": "按递增边际成本分配固定减排量",
+        "evidence_requirement": "首次无该题提示且达到该任务的规则判据",
+        "phase": "explain",
+        "task": "比较两厂前三吨减排的边际成本",
+        "transfer": "比较固定总量与强度分配"
+      },
+      {
+        "id": "carbon_market.2",
+        "version": 1,
+        "concept_ids": [
+          "C04"
+        ],
+        "performance": "对账配额发行、交易和缴回",
+        "evidence_requirement": "首次无该题提示且达到该任务的规则判据",
+        "phase": "observe",
+        "task": "沿配额账本追踪一吨许可证",
+        "transfer": "辨认库存配额和当年发放"
+      },
+      {
+        "id": "carbon_market.3",
+        "version": 1,
+        "concept_ids": [
+          "C03"
+        ],
+        "performance": "区分减排资源成本与配额净支付",
+        "evidence_requirement": "首次无该题提示且达到该任务的规则判据",
+        "phase": "compare",
+        "task": "给固定总量修改免费分配",
+        "transfer": "比较资源投入与拍卖收入"
+      }
+    ],
+    "flash_crash": [
+      {
+        "id": "flash_crash.1",
+        "version": 1,
+        "concept_ids": [
+          "C14"
+        ],
+        "performance": "按成交、撤单和新增挂单核对深度",
+        "evidence_requirement": "首次无该题提示且达到该任务的规则判据",
+        "phase": "explain",
+        "task": "从深度 20 扣 3 成交及 5 撤单",
+        "transfer": "区分跨市场成交时钟"
+      },
+      {
+        "id": "flash_crash.2",
+        "version": 1,
+        "concept_ids": [
+          "C17"
+        ],
+        "performance": "用成交和撤单的独立事件解释价差变化",
+        "evidence_requirement": "首次无该题提示且达到该任务的规则判据",
+        "phase": "observe",
+        "task": "检查最后价格的成交出处",
+        "transfer": "用真实路由核对外部交易"
+      },
+      {
+        "id": "flash_crash.3",
+        "version": 1,
+        "concept_ids": [
+          "C16"
+        ],
+        "performance": "在相同卖出计划下对齐深度与暂停规则",
+        "evidence_requirement": "首次无该题提示且达到该任务的规则判据",
+        "phase": "compare",
+        "task": "指出暂停之后仍有未执行计划",
+        "transfer": "辨认跨场所反事实条件"
+      }
+    ],
+    "gamestop": [
+      {
+        "id": "gamestop.1",
+        "version": 1,
+        "concept_ids": [
+          "C08"
+        ],
+        "performance": "区分话题触达、买入意愿和公开成交",
+        "evidence_requirement": "首次无该题提示且达到该任务的规则判据",
+        "phase": "observe",
+        "task": "按消息与订单身份核对时序",
+        "transfer": "辨认消费转化与曝光"
+      },
+      {
+        "id": "gamestop.2",
+        "version": 1,
+        "concept_ids": [
+          "C04"
+        ],
+        "performance": "沿借入、回补成交和归还计算欠券",
+        "evidence_requirement": "首次无该题提示且达到该任务的规则判据",
+        "phase": "explain",
+        "task": "从借 10、买 4、还 3 核对余额",
+        "transfer": "区分购入和交付"
+      },
+      {
+        "id": "gamestop.3",
+        "version": 1,
+        "concept_ids": [
+          "C16"
+        ],
+        "performance": "在共同公开消息下区分借券和深度处理",
+        "evidence_requirement": "首次无该题提示且达到该任务的规则判据",
+        "phase": "compare",
+        "task": "核对借券供给与卖方深度改变",
+        "transfer": "说明股价证据与交易动机的边界"
+      }
+    ]
+  }
+}

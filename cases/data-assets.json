@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "content_release": "1.0.0-rc.9",
+  "content_release": "1.1.0-rc.1",
   "courses": [
     {
       "case_id": "double_auction",
@@ -17,8 +17,11 @@
       "records": [
         "cases/catalog.json",
         "cases/boundaries.json",
+        "cases/learning-outcomes.json",
+        "content/concepts.json",
         "cases/double_auction/case.json",
         "cases/double_auction/lesson-v2.json",
+        "cases/double_auction/learning-v3.json",
         "cases/double_auction/presets.json.gz",
         "docs/audit/m2-runs.json",
         "docs/audit/m3-runs.json",
@@ -41,8 +44,11 @@
       "records": [
         "cases/catalog.json",
         "cases/boundaries.json",
+        "cases/learning-outcomes.json",
+        "content/concepts.json",
         "cases/schelling_segregation/case.json",
         "cases/schelling_segregation/lesson-v2.json",
+        "cases/schelling_segregation/learning-v3.json",
         "docs/audit/m2-runs.json",
         "docs/audit/m3-runs.json",
         "docs/release/seed-matrix.json",
@@ -65,8 +71,11 @@
       "records": [
         "cases/catalog.json",
         "cases/boundaries.json",
+        "cases/learning-outcomes.json",
+        "content/concepts.json",
         "cases/svb_run/case.json",
         "cases/svb_run/lesson-v2.json",
+        "cases/svb_run/learning-v3.json",
         "docs/audit/m2-runs.json",
         "docs/audit/m3-runs.json",
         "docs/release/seed-matrix.json",
@@ -92,8 +101,11 @@
       "records": [
         "cases/catalog.json",
         "cases/boundaries.json",
+        "cases/learning-outcomes.json",
+        "content/concepts.json",
         "cases/information_cascade/case.json",
         "cases/information_cascade/lesson-v2.json",
+        "cases/information_cascade/learning-v3.json",
         "docs/audit/m2-runs.json",
         "docs/audit/m3-runs.json",
         "docs/release/seed-matrix.json",
@@ -118,8 +130,11 @@
       "records": [
         "cases/catalog.json",
         "cases/boundaries.json",
+        "cases/learning-outcomes.json",
+        "content/concepts.json",
         "cases/public_goods/case.json",
         "cases/public_goods/lesson-v2.json",
+        "cases/public_goods/learning-v3.json",
         "cases/public_goods/replicates.json",
         "docs/audit/m2-runs.json",
         "docs/audit/m3-runs.json",
@@ -145,8 +160,11 @@
       "records": [
         "cases/catalog.json",
         "cases/boundaries.json",
+        "cases/learning-outcomes.json",
+        "content/concepts.json",
         "cases/commons_governance/case.json",
         "cases/commons_governance/lesson-v2.json",
+        "cases/commons_governance/learning-v3.json",
         "cases/commons_governance/replicates.json",
         "docs/audit/m2-runs.json",
         "docs/audit/m3-runs.json",
@@ -168,8 +186,11 @@
       "records": [
         "cases/catalog.json",
         "cases/boundaries.json",
+        "cases/learning-outcomes.json",
+        "content/concepts.json",
         "cases/lemons_market/case.json",
         "cases/lemons_market/lesson-v2.json",
+        "cases/lemons_market/learning-v3.json",
         "docs/audit/m3-runs.json",
         "docs/release/seed-matrix.json",
         "docs/release/rc9-boundaries.json"
@@ -190,8 +211,11 @@
       "records": [
         "cases/catalog.json",
         "cases/boundaries.json",
+        "cases/learning-outcomes.json",
+        "content/concepts.json",
         "cases/school_matching/case.json",
         "cases/school_matching/lesson-v2.json",
+        "cases/school_matching/learning-v3.json",
         "docs/audit/m3-runs.json",
         "docs/release/seed-matrix.json",
         "docs/release/rc9-boundaries.json"
@@ -212,8 +236,11 @@
       "records": [
         "cases/catalog.json",
         "cases/boundaries.json",
+        "cases/learning-outcomes.json",
+        "content/concepts.json",
         "cases/beer_game/case.json",
         "cases/beer_game/lesson-v2.json",
+        "cases/beer_game/learning-v3.json",
         "docs/audit/m3-runs.json",
         "docs/release/seed-matrix.json",
         "docs/release/rc9-boundaries.json"
@@ -234,8 +261,11 @@
       "records": [
         "cases/catalog.json",
         "cases/boundaries.json",
+        "cases/learning-outcomes.json",
+        "content/concepts.json",
         "cases/carbon_market/case.json",
         "cases/carbon_market/lesson-v2.json",
+        "cases/carbon_market/learning-v3.json",
         "docs/audit/m3-runs.json",
         "docs/release/seed-matrix.json",
         "docs/release/rc9-boundaries.json"
@@ -255,8 +285,11 @@
       "records": [
         "cases/catalog.json",
         "cases/boundaries.json",
+        "cases/learning-outcomes.json",
+        "content/concepts.json",
         "cases/flash_crash/case.json",
         "cases/flash_crash/lesson-v2.json",
+        "cases/flash_crash/learning-v3.json",
         "docs/audit/m3-runs.json",
         "docs/release/seed-matrix.json",
         "docs/release/rc9-boundaries.json"
@@ -276,8 +309,11 @@
       "records": [
         "cases/catalog.json",
         "cases/boundaries.json",
+        "cases/learning-outcomes.json",
+        "content/concepts.json",
         "cases/gamestop/case.json",
         "cases/gamestop/lesson-v2.json",
+        "cases/gamestop/learning-v3.json",
         "docs/audit/m3-runs.json",
         "docs/release/seed-matrix.json",
         "docs/release/rc9-boundaries.json",
@@ -342,6 +378,58 @@
       "license_status": "project_public_license_unconfirmed"
     },
     {
+      "path": "cases/learning-outcomes.json",
+      "kind": "authored_learning_design",
+      "version": "1",
+      "cases": [
+        "double_auction",
+        "schelling_segregation",
+        "svb_run",
+        "information_cascade",
+        "public_goods",
+        "commons_governance",
+        "lemons_market",
+        "school_matching",
+        "beer_game",
+        "carbon_market",
+        "flash_crash",
+        "gamestop"
+      ],
+      "grain": "每门课三项目标",
+      "method": "项目编写的目标、任务与迁移映射",
+      "verify": "python -m scripts.check_learning_packages",
+      "bytes": 15948,
+      "sha256": "9c4171ae715ae5c428c9b5e79c739b11f19b22a2e41065c4ee3595bc8788216b",
+      "distribution": "included_in_local_teaching_package",
+      "license_status": "project_public_license_unconfirmed"
+    },
+    {
+      "path": "content/concepts.json",
+      "kind": "authored_learning_design",
+      "version": "1",
+      "cases": [
+        "double_auction",
+        "schelling_segregation",
+        "svb_run",
+        "information_cascade",
+        "public_goods",
+        "commons_governance",
+        "lemons_market",
+        "school_matching",
+        "beer_game",
+        "carbon_market",
+        "flash_crash",
+        "gamestop"
+      ],
+      "grain": "每项独立概念及其先修",
+      "method": "课内概念、误解定义与跨课连接",
+      "verify": "python -m scripts.check_learning_packages",
+      "bytes": 5027,
+      "sha256": "93fab15170733fef1022c17cc6ff511b0ab743adede50e77f8c086de75708c3e",
+      "distribution": "included_in_local_teaching_package",
+      "license_status": "project_public_license_unconfirmed"
+    },
+    {
       "path": "cases/double_auction/case.json",
       "kind": "teaching_input",
       "version": "1.0.0",
@@ -368,6 +456,21 @@
       "verify": "python -m services.simulation.lesson_scenes",
       "bytes": 14319,
       "sha256": "fca1a22d98464954efb6af770d598e8a223259932863c4303104d17a3f69803e",
+      "distribution": "included_in_local_teaching_package",
+      "license_status": "project_public_license_unconfirmed"
+    },
+    {
+      "path": "cases/double_auction/learning-v3.json",
+      "kind": "authored_model_exercise",
+      "version": "1.0.0",
+      "cases": [
+        "double_auction"
+      ],
+      "grain": "每课一份可执行学习包",
+      "method": "项目编写的练习、参考解、暴露作用域、复习与活动。真实运行由独立数据契约提供。",
+      "verify": "python -m scripts.check_learning_packages",
+      "bytes": 20714,
+      "sha256": "9003039312f7a428fca092ac8e7ee9dabbd63ec610621df1287203b2addcc343",
       "distribution": "included_in_local_teaching_package",
       "license_status": "project_public_license_unconfirmed"
     },
@@ -402,6 +505,21 @@
       "license_status": "project_public_license_unconfirmed"
     },
     {
+      "path": "cases/schelling_segregation/learning-v3.json",
+      "kind": "authored_model_exercise",
+      "version": "1.0.0",
+      "cases": [
+        "schelling_segregation"
+      ],
+      "grain": "每课一份可执行学习包",
+      "method": "项目编写的练习、参考解、暴露作用域、复习与活动。真实运行由独立数据契约提供。",
+      "verify": "python -m scripts.check_learning_packages",
+      "bytes": 20539,
+      "sha256": "4a203a363300a8687651d4fa649e58f1620a041e68957cc510b65db4cc12ad66",
+      "distribution": "included_in_local_teaching_package",
+      "license_status": "project_public_license_unconfirmed"
+    },
+    {
       "path": "cases/svb_run/case.json",
       "kind": "teaching_input",
       "version": "1.0.0",
@@ -428,6 +546,21 @@
       "verify": "python -m services.simulation.lesson_scenes",
       "bytes": 14252,
       "sha256": "bc2b5320796d905213953ca7501af102c8fe88ac1d1f6095ce176477ff95aa7d",
+      "distribution": "included_in_local_teaching_package",
+      "license_status": "project_public_license_unconfirmed"
+    },
+    {
+      "path": "cases/svb_run/learning-v3.json",
+      "kind": "authored_model_exercise",
+      "version": "1.0.0",
+      "cases": [
+        "svb_run"
+      ],
+      "grain": "每课一份可执行学习包",
+      "method": "项目编写的练习、参考解、暴露作用域、复习与活动。真实运行由独立数据契约提供。",
+      "verify": "python -m scripts.check_learning_packages",
+      "bytes": 21093,
+      "sha256": "17f4d6732ce3a4843a6412f5574571ede7ad5b89a12bc619051bf5791f9f9aff",
       "distribution": "included_in_local_teaching_package",
       "license_status": "project_public_license_unconfirmed"
     },
@@ -462,6 +595,21 @@
       "license_status": "project_public_license_unconfirmed"
     },
     {
+      "path": "cases/information_cascade/learning-v3.json",
+      "kind": "authored_model_exercise",
+      "version": "1.0.0",
+      "cases": [
+        "information_cascade"
+      ],
+      "grain": "每课一份可执行学习包",
+      "method": "项目编写的练习、参考解、暴露作用域、复习与活动。真实运行由独立数据契约提供。",
+      "verify": "python -m scripts.check_learning_packages",
+      "bytes": 20496,
+      "sha256": "a1e7f44f23954c209335b0464aa38fd2a3afa014e9831bf1ebad6bdb3bc76aae",
+      "distribution": "included_in_local_teaching_package",
+      "license_status": "project_public_license_unconfirmed"
+    },
+    {
       "path": "cases/public_goods/case.json",
       "kind": "teaching_input",
       "version": "1.0.0",
@@ -488,6 +636,21 @@
       "verify": "python -m services.simulation.lesson_scenes",
       "bytes": 9779,
       "sha256": "a5ecae4657dc037cee804c78dca4e58b4c62e14d837f79432473af9da682271b",
+      "distribution": "included_in_local_teaching_package",
+      "license_status": "project_public_license_unconfirmed"
+    },
+    {
+      "path": "cases/public_goods/learning-v3.json",
+      "kind": "authored_model_exercise",
+      "version": "1.0.0",
+      "cases": [
+        "public_goods"
+      ],
+      "grain": "每课一份可执行学习包",
+      "method": "项目编写的练习、参考解、暴露作用域、复习与活动。真实运行由独立数据契约提供。",
+      "verify": "python -m scripts.check_learning_packages",
+      "bytes": 19637,
+      "sha256": "f111cbd11d3b0f09183ddc9be986eea4abca475c2cf367c8db310aaa4ba7046c",
       "distribution": "included_in_local_teaching_package",
       "license_status": "project_public_license_unconfirmed"
     },
@@ -522,6 +685,21 @@
       "license_status": "project_public_license_unconfirmed"
     },
     {
+      "path": "cases/commons_governance/learning-v3.json",
+      "kind": "authored_model_exercise",
+      "version": "1.0.0",
+      "cases": [
+        "commons_governance"
+      ],
+      "grain": "每课一份可执行学习包",
+      "method": "项目编写的练习、参考解、暴露作用域、复习与活动。真实运行由独立数据契约提供。",
+      "verify": "python -m scripts.check_learning_packages",
+      "bytes": 16218,
+      "sha256": "74be8e798c4210423b6040246d4456e17018510f745664149535b6ebcc86ba4a",
+      "distribution": "included_in_local_teaching_package",
+      "license_status": "project_public_license_unconfirmed"
+    },
+    {
       "path": "cases/lemons_market/case.json",
       "kind": "teaching_input",
       "version": "1.0.0",
@@ -548,6 +726,21 @@
       "verify": "python -m services.simulation.lesson_scenes",
       "bytes": 10935,
       "sha256": "60c0aadc7eda749789f4bc13e035a0f7f6d9b13fb33293d65b9032f32cd90813",
+      "distribution": "included_in_local_teaching_package",
+      "license_status": "project_public_license_unconfirmed"
+    },
+    {
+      "path": "cases/lemons_market/learning-v3.json",
+      "kind": "authored_model_exercise",
+      "version": "1.0.0",
+      "cases": [
+        "lemons_market"
+      ],
+      "grain": "每课一份可执行学习包",
+      "method": "项目编写的练习、参考解、暴露作用域、复习与活动。真实运行由独立数据契约提供。",
+      "verify": "python -m scripts.check_learning_packages",
+      "bytes": 15526,
+      "sha256": "d0b18c1d02349cb78f452bb88111baaa558b63085a8672b11494fdd677125a18",
       "distribution": "included_in_local_teaching_package",
       "license_status": "project_public_license_unconfirmed"
     },
@@ -582,6 +775,21 @@
       "license_status": "project_public_license_unconfirmed"
     },
     {
+      "path": "cases/school_matching/learning-v3.json",
+      "kind": "authored_model_exercise",
+      "version": "1.0.0",
+      "cases": [
+        "school_matching"
+      ],
+      "grain": "每课一份可执行学习包",
+      "method": "项目编写的练习、参考解、暴露作用域、复习与活动。真实运行由独立数据契约提供。",
+      "verify": "python -m scripts.check_learning_packages",
+      "bytes": 16968,
+      "sha256": "bfcc49a3eb82e3fbbadb31d3e50a47a9dae26d4d51fcb0ab82f4869fc15a2d36",
+      "distribution": "included_in_local_teaching_package",
+      "license_status": "project_public_license_unconfirmed"
+    },
+    {
       "path": "cases/beer_game/case.json",
       "kind": "teaching_input",
       "version": "1.0.0",
@@ -608,6 +816,21 @@
       "verify": "python -m services.simulation.lesson_scenes",
       "bytes": 11112,
       "sha256": "5759e7641594bdc5f36faef8f9289f411421b2bd586db1b989b38a12f30a1b43",
+      "distribution": "included_in_local_teaching_package",
+      "license_status": "project_public_license_unconfirmed"
+    },
+    {
+      "path": "cases/beer_game/learning-v3.json",
+      "kind": "authored_model_exercise",
+      "version": "1.0.0",
+      "cases": [
+        "beer_game"
+      ],
+      "grain": "每课一份可执行学习包",
+      "method": "项目编写的练习、参考解、暴露作用域、复习与活动。真实运行由独立数据契约提供。",
+      "verify": "python -m scripts.check_learning_packages",
+      "bytes": 19143,
+      "sha256": "54d37f17612d913eb8b9f17b8d1811a9e8a490d0bf6ba3331a024f058c055ed6",
       "distribution": "included_in_local_teaching_package",
       "license_status": "project_public_license_unconfirmed"
     },
@@ -642,6 +865,21 @@
       "license_status": "project_public_license_unconfirmed"
     },
     {
+      "path": "cases/carbon_market/learning-v3.json",
+      "kind": "authored_model_exercise",
+      "version": "1.0.0",
+      "cases": [
+        "carbon_market"
+      ],
+      "grain": "每课一份可执行学习包",
+      "method": "项目编写的练习、参考解、暴露作用域、复习与活动。真实运行由独立数据契约提供。",
+      "verify": "python -m scripts.check_learning_packages",
+      "bytes": 15915,
+      "sha256": "00f1e6df27b5eb939f49ccb964e17f14ed0f634669cec15744df0592e0e965ea",
+      "distribution": "included_in_local_teaching_package",
+      "license_status": "project_public_license_unconfirmed"
+    },
+    {
       "path": "cases/flash_crash/case.json",
       "kind": "teaching_input",
       "version": "1.0.0",
@@ -672,6 +910,21 @@
       "license_status": "project_public_license_unconfirmed"
     },
     {
+      "path": "cases/flash_crash/learning-v3.json",
+      "kind": "authored_model_exercise",
+      "version": "1.0.0",
+      "cases": [
+        "flash_crash"
+      ],
+      "grain": "每课一份可执行学习包",
+      "method": "项目编写的练习、参考解、暴露作用域、复习与活动。真实运行由独立数据契约提供。",
+      "verify": "python -m scripts.check_learning_packages",
+      "bytes": 15840,
+      "sha256": "df8553850e65d963f056e4cd0b0948f9640182d286ece4ef18786d1f088395ac",
+      "distribution": "included_in_local_teaching_package",
+      "license_status": "project_public_license_unconfirmed"
+    },
+    {
       "path": "cases/gamestop/case.json",
       "kind": "teaching_input",
       "version": "1.0.0",
@@ -698,6 +951,21 @@
       "verify": "python -m services.simulation.lesson_scenes",
       "bytes": 8542,
       "sha256": "6094d21bec7a78a805f5a6c8c0e965d2c29324614edaf0322558c9fc46e9f75f",
+      "distribution": "included_in_local_teaching_package",
+      "license_status": "project_public_license_unconfirmed"
+    },
+    {
+      "path": "cases/gamestop/learning-v3.json",
+      "kind": "authored_model_exercise",
+      "version": "1.0.0",
+      "cases": [
+        "gamestop"
+      ],
+      "grain": "每课一份可执行学习包",
+      "method": "项目编写的练习、参考解、暴露作用域、复习与活动。真实运行由独立数据契约提供。",
+      "verify": "python -m scripts.check_learning_packages",
+      "bytes": 15808,
+      "sha256": "67b13f642c4968f29cae122f24b914f6c839304bf33d4e9e19d7abaad01da972",
       "distribution": "included_in_local_teaching_package",
       "license_status": "project_public_license_unconfirmed"
     },

@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { api, downloadJson, eventHref } from "../contracts";
-import { alignmentLabel, type Alignment, type FieldStudy, type SourceRef, eventActors, getFieldView } from "./flagship-study";
+import { alignmentLabel, type Alignment, type FieldStudy, type SourceRef, eventActors, getFieldView,
+  verifyLayoutPair } from "./flagship-study";
 import type { SceneContent } from "./flagship-types";
 
 export function FlagshipNotes({ study, content, title, edit }: {
@@ -36,6 +37,10 @@ export function FlagshipNotes({ study, content, title, edit }: {
     for (const ref of evidence) void verify(ref).then(result => save(JSON.stringify(ref), result));
     for (const pair of comparisons) void (async () => {
       try {
+        if (pair.kind === "initial_layout") {
+          save(JSON.stringify(pair), { valid: await verifyLayoutPair(pair, runs.baseline, controller.signal) });
+          return;
+        }
         const [baseValid, branchValid, alignment] = await Promise.all([
           verify(pair.base), verify(pair.branch),
           api<Alignment>(`/runs/${pair.base.run_id}/compare/${pair.branch.run_id}`, undefined, controller.signal),

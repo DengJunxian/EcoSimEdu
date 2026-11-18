@@ -63,10 +63,15 @@ def test_domain_evidence_and_outcomes_on_the_real_classroom(local_app, chromium_
         else:
             world = page.get_by_role("region", name="订单与实物在途")
             expect(world.get_by_text("零售商 本周无到货记录。")).to_be_visible()
+            world.get_by_text("核对各环节的订单放大").press("Enter")
+            expect(world.get_by_text("终端需求方差为零或周数不足")).to_be_visible()
             for tick in range(1, 6):
                 advance(page, tick)
             expect(world.get_by_text("本周下单", exact=True).locator("..").get_by_role("definition")).to_have_text("20")
             expect(world.get_by_text("实际到货", exact=True).locator("..").get_by_role("definition")).to_have_text("4")
+            expect(world.get_by_text("算术恒等式", exact=True)).to_be_visible()
+            expect(world.get_by_text("截至当前的 5 个已完成周", exact=False)).to_be_visible()
+            expect(world.get_by_text("放大比无法计算", exact=False)).to_have_count(0)
             world.get_by_role("button", name="引用这一周").press("Enter")
             advance(page, 6)
             world.get_by_role("button", name="定位第 6 周批发收到订单").press("Enter")
@@ -74,6 +79,9 @@ def test_domain_evidence_and_outcomes_on_the_real_classroom(local_app, chromium_
             source = world.get_by_role("button", name="回查第 4 周发货 · 事件 4")
             source.press("Enter")
             expect(world.get_by_role("heading", name="批发商 · 第 4 周")).to_be_visible()
+            world.get_by_text("反查 批发商 的订单样本", exact=True).press("Enter")
+            world.get_by_role("button", name=re.compile("第 2 周 · 批发商下单")).press("Enter")
+            expect(world.get_by_role("heading", name="批发商 · 第 2 周")).to_be_visible()
         if screenshots := os.getenv("CIVITAS_UPGRADE_SCREENSHOTS"):
             page.screenshot(path=str(Path(screenshots) / f"{case_id}-observe-{width}.png"), full_page=True)
         assert page.evaluate("document.documentElement.scrollWidth <= innerWidth")
@@ -81,6 +89,10 @@ def test_domain_evidence_and_outcomes_on_the_real_classroom(local_app, chromium_
         page.get_by_role("button", name="进入解释", exact=True).click()
         outcome = "运行结束，未出现匹配事件。" if case_id == "beer_game" else "与原预测一致。"
         expect(page.get_by_text(outcome, exact=False)).to_be_visible()
+        if case_id == "beer_game":
+            page.get_by_text("写一张机制解释卡", exact=True).press("Enter")
+            expect(page.get_by_text("用一个有周账本证据的环节说明", exact=False)).to_be_visible()
+            expect(page.get_by_role("button", name="提交解释卡", exact=True)).to_be_disabled()
         assert not external and not errors
         browser.close()
 

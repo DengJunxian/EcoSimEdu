@@ -23,6 +23,15 @@ def cascade_briefing(case):
 
 
 def cascade_visibility(view):
+    choices = bool(view["intervention"]["observe_actions"])
+    total = count_a = 0
+    shares = []
+    for event in view["events"]:
+        if choices and event["event_type"] == "decision":
+            total += 1
+            count_a += event["choice"] == "A"
+        shares.append(100 * count_a / total if total else None)
+    view = {**view, "public_choice_a_pct": shares}
     if view["closed"]:
         return view
 

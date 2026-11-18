@@ -7,14 +7,18 @@
       "cases": [
         "double_auction",
         "lemons_market"
-      ]
+      ],
+      "learning_goal": "从限价与交易剩余出发，解释价格在质量未知时的作用。",
+      "bridge_concept": "C02"
     },
     {
       "title": "社会互动",
       "cases": [
         "schelling_segregation",
         "information_cascade"
-      ]
+      ],
+      "learning_goal": "用局部观察和反馈解释集体结果。",
+      "bridge_concept": "C06"
     },
     {
       "title": "金融风险",
@@ -22,7 +26,9 @@
         "svb_run",
         "flash_crash",
         "gamestop"
-      ]
+      ],
+      "learning_goal": "分别在账表、订单簿和借券账本里辨认流动性约束。",
+      "bridge_concept": "C04"
     },
     {
       "title": "制度设计",
@@ -32,7 +38,9 @@
         "school_matching",
         "beer_game",
         "carbon_market"
-      ]
+      ],
+      "learning_goal": "比较规则怎样改变个人激励、资源使用和分配。",
+      "bridge_concept": "C09"
     }
   ],
   "lessons": [

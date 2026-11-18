@@ -85,9 +85,9 @@ export const emptyAuctionStudy: AuctionStudy = {
   notes: { explanation: "", condition: "", selfReview: "" },
 };
 
-export function readAuctionStudy(): AuctionStudy | null {
+export function readAuctionStudy(key = auctionStudyKey): AuctionStudy | null {
   try {
-    const raw = localStorage.getItem(auctionStudyKey);
+    const raw = localStorage.getItem(key);
     if (!raw) return null;
     const saved = JSON.parse(raw) as AuctionStudy;
     if (!saved || !auctionStages.includes(saved.scene) || !saved.runs || !saved.notes ||

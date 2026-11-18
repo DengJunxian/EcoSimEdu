@@ -1,0 +1,190 @@
+[
+  {
+    "id": "C02",
+    "version": 1,
+    "label": "交易剩余",
+    "definition": "在给定数量和资源成本下，买方价值减卖方成本给出可实现的交易剩余。",
+    "prerequisite_ids": [],
+    "misconception_codes": [
+      "price_is_surplus"
+    ]
+  },
+  {
+    "id": "C03",
+    "version": 1,
+    "label": "支付转移",
+    "definition": "同一笔支付在收付款账户分别增加和减少，合计时抵消。耗材等资源成本需要单列。",
+    "prerequisite_ids": [
+      "C02"
+    ],
+    "misconception_codes": [
+      "all_fees_destroy_value"
+    ]
+  },
+  {
+    "id": "C04",
+    "version": 1,
+    "label": "存量与流量",
+    "definition": "余额对应一个时点，流量对应一个区间。用期初存量加净流量得到期末存量。",
+    "prerequisite_ids": [],
+    "misconception_codes": [
+      "request_is_payment"
+    ]
+  },
+  {
+    "id": "C05",
+    "version": 1,
+    "label": "流动性与权益",
+    "definition": "现金约束当期支付，权益按资产估值减负债计算。",
+    "prerequisite_ids": [
+      "C04"
+    ],
+    "misconception_codes": [
+      "liquidity_is_equity"
+    ]
+  },
+  {
+    "id": "C06",
+    "version": 1,
+    "label": "局部与总体分母",
+    "definition": "一个居民的局部比例按其已占邻居计，整体指标按规定的全体对象计。",
+    "prerequisite_ids": [],
+    "misconception_codes": [
+      "empty_as_neighbor"
+    ]
+  },
+  {
+    "id": "C07",
+    "version": 1,
+    "label": "阈值与反馈",
+    "definition": "当前状态跨越阈值时会改变行动，行动改变下一步的约束。",
+    "prerequisite_ids": [
+      "C06"
+    ],
+    "misconception_codes": [
+      "satisfied_means_mixed"
+    ]
+  },
+  {
+    "id": "C08",
+    "version": 1,
+    "label": "信息与信念",
+    "definition": "新增信息会改变判断。来源重复或同一行动兼容多种信号时，证据较弱。",
+    "prerequisite_ids": [],
+    "misconception_codes": [
+      "actions_are_independent_signals"
+    ]
+  },
+  {
+    "id": "C09",
+    "version": 1,
+    "label": "个人激励与群体净收益",
+    "definition": "个人收益由自己的支出与收到的回报决定。群体净收益还要汇总其他人的收支和执行成本。",
+    "prerequisite_ids": [
+      "C03"
+    ],
+    "misconception_codes": [
+      "private_gain_is_social_gain"
+    ]
+  },
+  {
+    "id": "C10",
+    "version": 1,
+    "label": "共同池与再生",
+    "definition": "取走一单位减少他人可用存量，下一期资源取决于剩余存量和再生规则。",
+    "prerequisite_ids": [
+      "C04"
+    ],
+    "misconception_codes": [
+      "regenerate_from_opening_stock"
+    ]
+  },
+  {
+    "id": "C11",
+    "version": 1,
+    "label": "信息不对称与参与",
+    "definition": "交易条件会影响不同类型是否参与，参与者构成会反馈到合理的出价。",
+    "prerequisite_ids": [
+      "C02",
+      "C08"
+    ],
+    "misconception_codes": [
+      "lower_price_higher_surplus"
+    ]
+  },
+  {
+    "id": "C12",
+    "version": 1,
+    "label": "稳定匹配",
+    "definition": "在给定偏好、优先序和容量下，没有愿意彼此改配的学生—学校对。",
+    "prerequisite_ids": [],
+    "misconception_codes": [
+      "tentative_is_final"
+    ]
+  },
+  {
+    "id": "C13",
+    "version": 1,
+    "label": "库存位置与延迟",
+    "definition": "库存位置计在库和已订未到并扣积压，运输在途是已订未到的一部分。",
+    "prerequisite_ids": [
+      "C04"
+    ],
+    "misconception_codes": [
+      "order_is_arrival"
+    ]
+  },
+  {
+    "id": "C14",
+    "version": 1,
+    "label": "订单簿与流动性",
+    "definition": "可在当前价格附近成交的挂单决定即时深度，成交与撤单分别改变簿面。",
+    "prerequisite_ids": [],
+    "misconception_codes": [
+      "order_is_trade"
+    ]
+  },
+  {
+    "id": "C15",
+    "version": 1,
+    "label": "配额与减排配置",
+    "definition": "给定总减排要求，按边际成本分配新增减排。免费配额影响各主体的净支付。",
+    "prerequisite_ids": [
+      "C02",
+      "C03"
+    ],
+    "misconception_codes": [
+      "allocation_is_cap"
+    ]
+  },
+  {
+    "id": "C16",
+    "version": 1,
+    "label": "处理与共同条件",
+    "definition": "对照先指定待检验处理，再在统一的经济时钟下比较结果。",
+    "prerequisite_ids": [],
+    "misconception_codes": [
+      "mixed_treatments_single_cause"
+    ]
+  },
+  {
+    "id": "C17",
+    "version": 1,
+    "label": "事件与机制证据",
+    "definition": "机制解释要用事件身份核对顺序、输入和规则，并考虑替代解释。",
+    "prerequisite_ids": [],
+    "misconception_codes": [
+      "sequence_proves_cause"
+    ]
+  },
+  {
+    "id": "C18",
+    "version": 1,
+    "label": "模型条件",
+    "definition": "模型结论依赖适用的资源、行为和制度条件。",
+    "prerequisite_ids": [],
+    "misconception_codes": [
+      "model_is_observation"
+    ]
+  }
+]

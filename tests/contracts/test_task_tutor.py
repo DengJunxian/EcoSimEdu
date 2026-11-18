@@ -75,7 +75,7 @@ def test_scope_rejects_future_private_cross_run_numeric_and_missing_evidence(loc
         (f"事件 {tick} 发生了什么？", "event_unavailable", {"scene": "predict"}),
         ("D99 提款了吗？", "actor_unavailable", {}),
         ("当前事件发生了什么？", "event_unavailable", {"tick": 0}),
-        ("银行现金为 999 吗？", "unverified_number", {}),
+        ("银行现金为 0 元吗？", "metric_unit_mismatch", {}),
         ("为什么木星会有圆环？", "unsupported_question", {}),
         (f"运行 {compare_run} 发生了什么？", "cross_run", {}),
         ("当前事件发生了什么？", "cross_run", {"evidence": [{"run_id": compare_run, "seq": 1}]}),
@@ -90,6 +90,33 @@ def test_scope_rejects_future_private_cross_run_numeric_and_missing_evidence(loc
     assert answer["unsupported_scope"] == "private_information" and answer["citations"] == []
     answer = advice(local_app, "svb_run", "有待付就等于银行破产了？", run_id=bank, tick=tick)
     assert answer["unsupported_scope"] == "premise_to_check" and "流动性" in answer["claim"]
+
+
+def test_numeric_assertion_reads_revealed_cash_and_checks_units(local_app):
+    bank = launch_bank(local_app, "baseline")
+    queue = call(local_app, f"/api/runs/{bank}/classroom-view?tick=checkpoint")
+    tick = queue["tick"]
+    assert queue["frame"]["metrics"]["cash"] == 0
+    for question, matches in [
+        ("银行现金为 0 吗？", True),
+        ("银行现金为 0 资金单位吗？", True),
+        (f"事件 {tick} 的银行现金为 999 资金单位吗？", False),
+    ]:
+        result = advice(local_app, "svb_run", question, run_id=bank, tick=tick)
+        assert result["kind"] == "observation"
+        assert ("一致" if matches else "有差异") in result["claim"]
+        assert "银行现金为 0 资金单位" in result["claim"]
+        assert result["evidence_ids"] == [f"{bank}:{tick}"]
+    result = advice(local_app, "svb_run", "下一轮银行现金为 0 吗？", run_id=bank, tick=tick)
+    assert result["kind"] == "insufficient" and not result["evidence_ids"]
+
+
+@pytest.mark.parametrize("case_id", ["svb_run", "schelling_segregation", "double_auction"])
+def test_comparison_guidance_distinguishes_treatment_from_controls(local_app, case_id):
+    result = advice(local_app, case_id, "对照时应该比较什么？", scene="compare")
+    assert result["unsupported_scope"] == "paired_evidence_required"
+    assert "政策对照" in result["next_action"] and "初始处理" in result["next_action"]
+    assert "多个因素" in result["next_action"] and not result["evidence_ids"]
 
 
 def test_public_observation_roundtrips_exact_id_and_values(local_app):
@@ -164,3 +191,44 @@ def test_online_tutor_shares_l1_and_l2_currency_ceiling(monkeypatch, tmp_path):
     answer = {"intent": "mechanism", "claim": "已核验值", "next_action": "查看记录。",
               "evidence_ids": ["run:1"], "delivery": "offline"}
     assert tutor_online.explain_online(api.connect, "budget", answer, selected)["delivery"] == "offline_fallback"
+
+
+def test_learning_context_uses_published_version_and_does_not_grade_open_text(local_app):
+    context = {"activity_id": "auc-independent", "item_id": "auc-independent", "item_version": 1}
+    answer = advice(local_app, "double_auction", "给我本题提示", scene="explain",
+                    learning_context={**context, "response": [6, 8, 6, 21]})
+    assert "卖方剩余" in answer["claim"]
+    assert answer["unsupported_scope"] == "authored_exercise" and answer["delivery"] == "offline"
+    correct = advice(local_app, "double_auction", "给我本题提示", scene="explain",
+                     learning_context={**context, "response": [6, 9, 6, 21]})
+    assert "符合本题判据" in correct["claim"]
+    draft = advice(local_app, "double_auction", "核对解释结构", scene="explain",
+                   learning_context={**context, "explanation_draft": {"claim": "价格上涨一定创造剩余"}})
+    assert draft["unsupported_scope"] == "structure_only"
+    assert "成立条件" in draft["claim"] and not draft["evidence_ids"]
+    invalid = advice(local_app, "double_auction", "给我本题提示", scene="observe", learning_context=context)
+    assert invalid["unsupported_scope"] == "learning_context_unavailable"
+
+
+def test_online_draft_suggestion_accepts_only_registered_questions(monkeypatch, tmp_path):
+    monkeypatch.setenv("CIVITAS_EDU_DB", str(tmp_path / "runs.sqlite"))
+    provider = live_client.PROVIDERS[0]
+    answer = {"intent": "learning", "claim": "可以补上成立条件。", "next_action": "选择事件。",
+              "evidence_ids": [], "delivery": "offline", "coach_options": {"evidence": "选择事件。", "conditions": "哪项条件改变？"}}
+    seen = []
+
+    def mock_send(selected, pack, allowed):
+        assert selected == provider and set(allowed) == {"evidence", "conditions"}
+        assert "explanation_draft" not in pack and not pack["evidence_ids"]
+        seen.append(pack)
+        action, reason = [("conditions", None), ("invented-evidence:12345", None), (None, "timeout")][len(seen) - 1]
+        return {"action": action, "reason": reason, "actual_model": "mock",
+                "usage": live_client.make_usage(10, 2, 0) if not reason else None}
+
+    monkeypatch.setattr(live_client, "send", mock_send)
+    accepted = tutor_online.explain_online(api.connect, "accept-coach", answer, provider)
+    assert accepted["delivery"] == "online" and accepted["next_action"] == "哪项条件改变？"
+    assert accepted["feedback_kind"] == "followup_question"
+    for request in ("bad-reference", "timeout"):
+        fallback = tutor_online.explain_online(api.connect, request, answer, provider)
+        assert fallback["delivery"] == "offline_fallback" and fallback["next_action"] == answer["next_action"]

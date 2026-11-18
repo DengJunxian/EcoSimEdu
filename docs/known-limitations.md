@@ -6,6 +6,6 @@
 | 高级实验 | 历史 OpenAI 回执覆盖四课各一名角色、一个合法动作。当前四课多角色路径有本机规则和受控供应商测试，真实多角色供应商回执及模型质量比较待验。模型请求止于配置的覆盖、金额和时间上限，界面报告已提交前缀和费用未知项。 |
 | 学习与教师 | 校内实际课堂和学习提升待研究。教师模式提供课堂展示、参考答案开关和预设导出。课程笔记逐课导出，恢复需要匹配版本、原始 JSON 和对应运行库。已有同课记录时，可在其他浏览器配置中打开备份。 |
 | 性能 | 组合样本包含 500 主体 × 300 帧、同一帧 5000 条关系列表和 10 万条事件。RC3 已通过事件直达抽样和边界测试。5000 条线的网络图、通用 100 主体 × 100 tick 规则规格、跨设备基准、更大或并发运行、增量快照待验。RC5 的新格式大样本首次与重复定位均达到 200 ms。旧格式大运行继续使用原始校验逻辑，首次性能仍沿用原限制。[RC5 验收](release/rc5-verification.md) 当前回放提供逐步播放。 |
-| 可访问性 | RC7 在 Linux 的 Orca/Chromium 组合验证了回放标题、时间轴、行列选格与成交价表。Schelling、双向拍卖、SVB 的指定课堂路径在 macOS Chrome 的 390 和 1100 像素实测 VoiceOver 朗读和键盘操作。Schelling 另在 320 和 390 像素验证模拟触摸点选。其他课程的 VoiceOver、NVDA、触屏实机、全站 WCAG 2.2 AA 和完整浏览器矩阵待验。 [升级验收](upgrade/acceptance.md) [RC7 验收](release/rc7-verification.md) |
+| 可访问性 | 1.1.0-rc.3 实测三旗舰与教学展示，macOS Safari 加 VoiceOver 确认 11 项，Chrome 加 VoiceOver 确认 10 项。历史 RC7 在 Linux 的 Orca 与 Chromium 组合覆盖回放、行列选格与成交价表。其他课程的完整读屏、实体触屏、TalkBack、NVDA 与全站 WCAG 2.2 AA 待验。 [教育升级验收](education-upgrade/closeout.md) [RC7 验收](release/rc7-verification.md) |
 | 来源和授权 | 12 课为合成课件、历史事件启发的教学模型或理论机制。候选库登记另外 14 条资料。归档配发教学配置、事件生成代码、生成数据和引用元数据。第三方原文及市场原始数据仍由各发布方提供。上游 HEAD 根目录未发现独立许可证文件，本归档按同一项目的本地交付处理。[来源与阅读范围](release/candidate-catalog.md) |
 | 旧仿真 | 独立交付包聚焦教学。完整仓库的 Streamlit、IPC、C++、Ray 和实盘相关路径按 [WP00](audit/repository-audit.md) 的审计范围记录。 |

@@ -66,6 +66,7 @@ def test_auction_scene_offline_from_price_to_notebook(local_app, width, chromium
         play.focus()
         page.keyboard.press("Enter")
         expect(page.get_by_role("heading", name="96 代币成交")).to_be_visible()
+        expect(page.get_by_text("逐笔核对", exact=False)).to_have_count(0)
         playback = page.get_by_role("region", name="市场时间").get_by_role("slider")
         if width == 390:
             page.evaluate("""() => {
@@ -135,12 +136,34 @@ def test_auction_scene_offline_from_price_to_notebook(local_app, width, chromium
         expect(page.get_by_role("button", name="进入剩余解释")).to_be_enabled()
         page.get_by_role("button", name="进入剩余解释").click()
         expect(page.get_by_role("heading", name="价值、成本与配置")).to_be_visible()
+        summary = page.get_by_text("逐笔核对", exact=False)
+        summary.press("Enter")
+        ledger = page.get_by_role("table", name="截至事件 4 的结算加总 · 代币")
+        expect(ledger.get_by_role("row", name="累计 35")).to_be_visible()
+        ledger.get_by_role("button", name="事件 4", exact=True).press("Enter")
+        expect(page.get_by_role("heading", name="96 代币成交")).to_be_visible()
         trade = next(event for event in run_auction("baseline", CASE["seed"], 96)["events"]
                      if event["event_type"] == "trade")
         for label, field in [("买方剩余", "buyer_surplus"), ("卖方剩余", "seller_surplus"), ("平台费用", "platform_fee")]:
             page.get_by_label(label, exact=True).fill(str(trade[field]))
         page.get_by_role("button", name="核对结算").click()
         expect(page.get_by_text("对账一致。", exact=False)).to_be_visible()
+        if width == 390:
+            task = page.get_by_role("region", name="课堂练习")
+            task.get_by_text("查看本课尝试（1）", exact=True).click()
+            expect(task.get_by_text("实际成交结算", exact=False)).to_be_visible()
+            rows = page.evaluate("""() => new Promise((resolve, reject) => {
+                const open = indexedDB.open("ecosimedu-learning");
+                open.onerror = () => reject(open.error);
+                open.onsuccess = () => {
+                    const read = open.result.transaction("attempts").objectStore("attempts").getAll();
+                    read.onsuccess = () => { open.result.close(); resolve(read.result); };
+                    read.onerror = () => reject(read.error);
+                };
+            })""")
+            assert len(rows) == 1 and rows[0]["evidence_class"] == "assisted"
+            assert rows[0]["source_refs"][0]["event_type"] == "trade"
+            assert len(rows[0]["source_refs"][0]["result_hash"]) == 64
         page.get_by_role("button", name="比较两项制度").click()
         for branch in ("demand", "fee"):
             page.get_by_label("选择条件").select_option(branch)
@@ -160,7 +183,8 @@ def test_auction_scene_offline_from_price_to_notebook(local_app, width, chromium
         page.get_by_label("机制解释", exact=True).fill("先在簿的买单以 96 代币成交。")
         page.get_by_label("成立条件", exact=True).fill("价格时间优先，且开局限价保持不变。")
         page.get_by_role("button", name="保存笔记").click()
-        expect(page.get_by_role("status")).to_contain_text("笔记已保存在此浏览器")
+        saved_note = page.get_by_role("status").filter(has_text="笔记已保存在此浏览器")
+        expect(saved_note).to_be_visible()
         expect(page.get_by_text("证据已核对", exact=False)).to_have_count(2)
         with page.expect_download() as exported:
             page.get_by_role("button", name="导出可读笔记").click()

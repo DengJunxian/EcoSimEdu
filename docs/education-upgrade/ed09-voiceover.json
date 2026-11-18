@@ -1,0 +1,101 @@
+{
+  "date": "2026-11-18",
+  "release": "1.1.0-rc.2",
+  "release_sha256": "1906e01ca35333e2c56b69bb0c87e08fcb1284594587f4d1b688bcdb7df3b9c4",
+  "browser": "Google Chrome 158.0.8127.36",
+  "platform": "macOS 27.0 (26A428), arm64",
+  "screen_reader": "VoiceOver 10",
+  "source": "macOS VoiceOver caption window, original single-window PNGs",
+  "profile": "temporary Chrome profile and SQLite, no external browser requests",
+  "evidence_directory": "output/playwright/ed09-voiceover",
+  "observations": [
+    {
+      "task": "auction_amount_label",
+      "action": "聚焦卖方字段",
+      "caption_excerpt": "卖方剩余（代币）",
+      "passed": true,
+      "image": "auction_amount_label.png",
+      "sha256": "d700b5e5e59aadaf362bee8acf9cbfbf1eb22e95d9cbe0073cbf25f197519425"
+    },
+    {
+      "task": "auction_tab_amount",
+      "action": "按 Tab 移到下一字段",
+      "caption_excerpt": "平台收入（代币）",
+      "passed": true,
+      "image": "auction_tab_amount.png",
+      "sha256": "002db17d36fded2ea07c4a093fb101bb59503036f33287ec078293690e7dc438"
+    },
+    {
+      "task": "auction_wrong_answer",
+      "action": "回车提交拍卖错答",
+      "caption_excerpt": "再核对这一步",
+      "passed": true,
+      "image": "auction_wrong_answer.png",
+      "sha256": "8dc339303cb749ec25712be7060b2ecac5c1bf2aac3289d322df59cf0f45d93e"
+    },
+    {
+      "task": "auction_example_focus",
+      "action": "回车打开拍卖例题",
+      "caption_excerpt": "标题级别 2，看一个完整例题",
+      "passed": true,
+      "image": "auction_example_focus.png",
+      "sha256": "d46a9ad66fdeefb6a51310e75de858bda565aad867424543bd11f2bd7b685975"
+    },
+    {
+      "task": "auction_return_focus",
+      "action": "回车从例题返回",
+      "caption_excerpt": "标题级别 2，练习",
+      "passed": true,
+      "image": "auction_return_focus.png",
+      "sha256": "b2199ed1259e8022c2bc70a2c174eac222d6b9e81affd4cac4c1e5450990ba33"
+    },
+    {
+      "task": "svb_run_amount_label",
+      "action": "聚焦 SVB 现金字段",
+      "caption_excerpt": "现金（资金单位）",
+      "passed": true,
+      "image": "svb_run_amount_label.png",
+      "sha256": "d03032935c4329fdbea68363a2e57b1bd6e3036e73563c62a34d9ebb3ca2fb87"
+    },
+    {
+      "task": "svb_run_wrong_answer",
+      "action": "回车提交 SVB 错答",
+      "caption_excerpt": "再核对这一步",
+      "passed": true,
+      "image": "svb_run_wrong_answer.png",
+      "sha256": "8dc339303cb749ec25712be7060b2ecac5c1bf2aac3289d322df59cf0f45d93e"
+    },
+    {
+      "task": "schelling_segregation_amount_label",
+      "action": "聚焦 Schelling 邻居字段",
+      "caption_excerpt": "已占邻居数（人）",
+      "passed": true,
+      "image": "schelling_segregation_amount_label.png",
+      "sha256": "59dbc3f09fff095031a5357efbad556a1c0efd2a642041e275def3df1613293a"
+    },
+    {
+      "task": "schelling_segregation_wrong_answer",
+      "action": "回车提交 Schelling 错答",
+      "caption_excerpt": "再核对这一步",
+      "passed": true,
+      "image": "schelling_segregation_wrong_answer.png",
+      "sha256": "8dc339303cb749ec25712be7060b2ecac5c1bf2aac3289d322df59cf0f45d93e"
+    },
+    {
+      "task": "teacher_title",
+      "action": "独立标签切换后刷新教学页",
+      "caption_excerpt": "双向拍卖教学活动",
+      "passed": true,
+      "image": "teacher_title.png",
+      "sha256": "9b310af788528966a44170a41fd936573ce99d97c672a302b60e692f98533e37"
+    },
+    {
+      "task": "teacher_demo_link",
+      "action": "聚焦教学展示入口",
+      "caption_excerpt": "链接，打开隔离展示课堂",
+      "passed": true,
+      "image": "teacher_demo_link.png",
+      "sha256": "7df893ba515d5a8cbb89655acf18141497d8875fb8e71fef8ea2b772054d586f"
+    }
+  ]
+}

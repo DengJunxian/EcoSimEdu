@@ -1,0 +1,30 @@
+{
+  "browser": "Chrome 158.0.8127.36",
+  "scope": "v3 question region, WCAG 2.0 A/AA and 2.1 AA tags",
+  "records": [
+    {
+      "case_view": "auction-1440",
+      "version": "4.14.0",
+      "violations": [],
+      "manuals": []
+    },
+    {
+      "case_view": "auction-320",
+      "version": "4.14.0",
+      "violations": [],
+      "manuals": []
+    },
+    {
+      "case_view": "schelling_segregation",
+      "version": "4.14.0",
+      "violations": [],
+      "manuals": []
+    },
+    {
+      "case_view": "svb_run",
+      "version": "4.14.0",
+      "violations": [],
+      "manuals": []
+    }
+  ]
+}

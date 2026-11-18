@@ -4,6 +4,10 @@ import { ApiError, api, downloadJson } from "../contracts";
 import type { Course } from "../lesson-types";
 import { MetricChart } from "../lesson-view";
 import { TutorPanel } from "../tutor";
+import { isDemo, isExploration, sceneSearch } from "./demo";
+import { CompactViews, coreMetrics, type Perspective } from "../emergence/trace-view";
+import { ExplanationEditor } from "./explanation-card";
+import { LearningActivities, useLearningPackage } from "./activity-renderer";
 import { FlagshipCompare } from "./flagship-compare";
 import { FlagshipNotes } from "./flagship-notes";
 import { usePlaybackFocus } from "./playback-focus";
@@ -16,7 +20,7 @@ const stages = ["intro", "predict", "bid", "observe", "explain", "compare", "not
 
 function fromUrl(defaultStage: number, unlocked: number) {
   const params = new URLSearchParams(location.search);
-  if (!params.has("scene")) return { stage: defaultStage, warning: "" };
+  if (!params.has("scene")) return { stage: isExploration() && unlocked >= 3 ? 3 : defaultStage, warning: "" };
   const stage = stages.indexOf(params.get("scene") ?? "");
   const warning = params.getAll("scene").length !== 1 || stage < 0 ? "场景地址无效，已打开本机进度。" :
     stage > unlocked ? "完成前面场景后可打开此链接。" : "";
@@ -101,8 +105,14 @@ function Playback({ view, cursor, review, pending, revealed, seek, setReview, pl
 
 export function FlagshipLesson({ caseId, Panel, defaultActor }: FieldLesson) {
   const course = catalog.find(item => item.case_id === caseId) as Course;
-  const [loaded] = useState(() => readFieldStudy(caseId));
-  const [legacy] = useState(() => legacyProgress(course));
+  const [demo] = useState(isDemo);
+  const [explore] = useState(() => Boolean(coreMetrics[caseId]) && isExploration());
+  const [perspective, setPerspective] = useState<Perspective>("system");
+  const inRole = caseId === "schelling_segregation" && perspective === "role";
+  const learning = useLearningPackage(caseId);
+  const key = fieldStudyKey(caseId) + (demo ? "/demo" : "");
+  const [loaded] = useState(() => readFieldStudy(caseId, key));
+  const [legacy] = useState(() => demo ? null : legacyProgress(course));
   const [content, setContent] = useState<SceneContent>();
   const [briefing, setBriefing] = useState<unknown>();
   const [study, setStudy] = useState<FieldStudy>(() => {
@@ -124,6 +134,7 @@ export function FlagshipLesson({ caseId, Panel, defaultActor }: FieldLesson) {
   const [loadedView, setLoadedView] = useState<{ key: string; review: boolean; view: FlagshipView }>();
   const selected = content?.scenes[study.stage];
   const baseline = study.runs.baseline;
+  const required = learning.pack?.required_comparisons ?? course.scenarios.slice(1).map(scenario => scenario.id);
   const viewing = study.stage === 3 || study.stage === 4;
   const viewKey = `${baseline}/${cursor}/${review}`;
   const priorView = loadedView?.view.run_id === baseline ? loadedView?.view : undefined;
@@ -151,29 +162,31 @@ export function FlagshipLesson({ caseId, Panel, defaultActor }: FieldLesson) {
     if (!content || !study.updatedAt) return;
     if (study.content_version && study.content_version !== content.content_version) return;
     try {
-      localStorage.setItem(fieldStudyKey(caseId), JSON.stringify({ ...study, content_version: content.content_version }));
+      localStorage.setItem(key, JSON.stringify({ ...study, content_version: content.content_version }));
       setStorageError("");
     } catch {
       setStorageError("浏览器无法保存本机进度。可导出当前草稿。");
     }
-  }, [caseId, study, content]);
+  }, [key, study, content]);
 
   useEffect(() => {
     if (!new URLSearchParams(location.search).has("scene")) {
-      const saved = readFieldStudy(caseId).study;
-      history.replaceState({}, "", `?scene=${stages[saved?.stage ?? 0]}`);
+      const saved = readFieldStudy(caseId, key).study;
+      const stage = fromUrl(saved?.stage ?? 0, saved?.unlocked ?? 0).stage;
+      history.replaceState({}, "", sceneSearch(stages[stage], demo, explore));
     }
     const navigate = () => {
-      const saved = readFieldStudy(caseId).study;
+      const saved = readFieldStudy(caseId, key).study;
       const result = fromUrl(saved?.stage ?? 0, saved?.unlocked ?? 0);
       clearPlaybackFocus();
       save({ stage: result.stage });
       setWarning(result.warning);
       setReview(false);
+      setPerspective("system");
     };
     window.addEventListener("popstate", navigate);
     return () => window.removeEventListener("popstate", navigate);
-  }, [caseId, save, clearPlaybackFocus]);
+  }, [caseId, demo, explore, key, save, clearPlaybackFocus]);
 
   useEffect(() => {
     if (!baseline || !viewing || !content) return;
@@ -213,8 +226,9 @@ export function FlagshipLesson({ caseId, Panel, defaultActor }: FieldLesson) {
   function visit(stage: number) {
     if (stage === study.stage) return;
     clearPlaybackFocus();
+    if (stage !== 3 && stage !== 4) setPerspective("system");
     save({ stage, unlocked: Math.max(study.unlocked, stage), content_version: content?.content_version ?? "" });
-    history.pushState({}, "", `?scene=${stages[stage]}`);
+    history.pushState({}, "", sceneSearch(stages[stage], demo, explore));
     moveFocus.current = true;
     setReview(false);
     setError("");
@@ -278,6 +292,10 @@ export function FlagshipLesson({ caseId, Panel, defaultActor }: FieldLesson) {
     return <Panel stage={stages[study.stage]} course={course} briefing={briefing} action={study.action}
       view={mainView} comparison={branchView} tick={mainView?.tick ?? 0}
       pinned={study.pinned} pin={pinned => save({ pinned })} seek={seekPanelEvent} review={review}
+      evidence={study.evidence} comparisons={study.comparisons} capture={capture}
+      contentVersion={content?.content_version} demo={demo}
+      reviewUnlocked={study.unlocked >= 4} hasRun={!!baseline} explore={explore}
+      perspective={perspective} changePerspective={setPerspective}
       records={study.records} record={(key, value) => save({ records: { ...study.records, [key]: value } })}
       cite={(seq, actor, arm) => {
         const source = arm === "comparison" ? branchView : mainView;
@@ -295,7 +313,11 @@ export function FlagshipLesson({ caseId, Panel, defaultActor }: FieldLesson) {
   }
 
   function capture(pair: PairRef) {
-    if (study.comparisons.length < 100) save({ comparisons: [...study.comparisons, pair] });
+    if (study.comparisons.length < 100 && (!pair.kind || !study.comparisons.some(item =>
+      item.kind === pair.kind && item.base.run_id === pair.base.run_id && item.branch.run_id === pair.branch.run_id &&
+      item.base.seq === pair.base.seq && item.branch.seq === pair.branch.seq))) {
+      save({ comparisons: [...study.comparisons, pair] });
+    }
   }
 
   function questions(stage: typeof selected, includePrediction = true) {
@@ -338,6 +360,7 @@ export function FlagshipLesson({ caseId, Panel, defaultActor }: FieldLesson) {
   }
 
   if (!selected) return <main id="main" tabIndex={-1} className="container field-lesson">
+    {demo && <p>教学展示 · <a href={`/learn/${caseId}`}>返回个人课堂</a></p>}
     {error ? <p role="alert" className="error">{error}</p> : <p role="status">正在读取课堂…</p>}
   </main>;
   if (study.content_version && content && study.content_version !== content.content_version) return <main id="main" tabIndex={-1} className="container field-lesson">
@@ -347,7 +370,7 @@ export function FlagshipLesson({ caseId, Panel, defaultActor }: FieldLesson) {
   </main>;
 
   const predictions = content?.scenes[1]?.questions.filter(question => question.kind === "prediction") ?? [];
-  const tutorView = viewing && !readError ? view : undefined;
+  const tutorView = viewing && !readError && !inRole ? view : undefined;
   const prediction = study.answers[predictions[0]?.id];
   const currentEvent = view?.events[view.tick];
   const eventPrefix = view?.events.slice(0, view.tick + 1) ?? [];
@@ -373,6 +396,7 @@ export function FlagshipLesson({ caseId, Panel, defaultActor }: FieldLesson) {
   });
 
   return <main id="main" tabIndex={-1} className="container field-lesson">
+    {demo && <p>教学展示 · <a href={`/learn/${caseId}`}>返回个人课堂</a></p>}
     <nav className="field-scenes" aria-label="学习场景">
       {content?.scenes.map((scene, index) => <button key={scene.id} aria-current={index === study.stage ? "step" : undefined}
         disabled={index > study.unlocked || busy} onClick={() => visit(index)}>{scene.title}</button>)}
@@ -406,6 +430,7 @@ export function FlagshipLesson({ caseId, Panel, defaultActor }: FieldLesson) {
         </details>
       </aside>
       <div className="field-action">
+        {explore && study.stage <= 2 && <p>完成开局选择后，此处会打开本课的涌现探究。</p>}
         {study.stage <= 2 && renderWorld()}
         {study.stage === 0 && <>
           {questions(selected)}
@@ -439,8 +464,10 @@ export function FlagshipLesson({ caseId, Panel, defaultActor }: FieldLesson) {
             evidenceSelected={evidenceSelected}/>}
         {viewing && pending && !view && <p role="status">正在读取运行…</p>}
         {viewing && view && !readError && <>
-          {renderWorld(view)}
-          <details><summary>指标图与事件</summary>
+          {explore && !inRole ? <CompactViews view={view} actor={study.pinned} seek={seekPanelEvent}>
+            {renderWorld(view)}
+          </CompactViews> : renderWorld(view)}
+          {!inRole && <details><summary>指标图与事件</summary>
             <MetricChart course={course} frames={view.series} tick={view.tick} change={seek}/>
             {currentEvent && <p>{currentEvent.summary}</p>}
             {currentEvent && course.evidence_types.includes(currentEvent.event_type) &&
@@ -450,8 +477,8 @@ export function FlagshipLesson({ caseId, Panel, defaultActor }: FieldLesson) {
                     item.seq === ref.seq && !item.actor)) save({ evidence: [...study.evidence, ref] });
                 setStatus(`已引用事件 ${ref.seq}。`);
               }}>引用当前事件</button>}
-          </details>
-          {study.stage === 4 && <>
+          </details>}
+          {!inRole && study.stage === 4 && <>
             {outcomes && outcomes.length > 0 && <section className="field-outcome"><h2>回看入场预测</h2>{outcomes}</section>}
             {selected.evidence && (shownEvidence ?
               <button className="text-button" onClick={() => seek(shownEvidence.tick)}>定位场景证据 · 事件 {shownEvidence.seq}</button> :
@@ -467,7 +494,7 @@ export function FlagshipLesson({ caseId, Panel, defaultActor }: FieldLesson) {
             forecast={(scenario, value) => save({ forecasts: { ...study.forecasts, [scenario]: value } })}
             renderWorld={renderWorld}/>
           {questions(selected, false)}
-          <div className="toolbar"><button className="primary" disabled={busy || !course.scenarios.every(scenario => study.runs[scenario.id])}
+          <div className="toolbar"><button className="primary" disabled={busy || !required.every(scenario => study.runs[scenario])}
             onClick={() => visit(6)}>写实验笔记</button>
             <a href={`/compare?case=${encodeURIComponent(caseId)}`}>自定义参数对照</a></div>
         </>}
@@ -475,11 +502,15 @@ export function FlagshipLesson({ caseId, Panel, defaultActor }: FieldLesson) {
           {selected.rubric && <p>{selected.rubric}</p>}
           {questions(selected, false)}
           <FlagshipNotes study={study} content={content} title={course.title} edit={save}/>
+          <ExplanationEditor caseId={caseId} version={content!.content_version} demo={demo}
+            sources={study.evidence.filter(ref => ref.run_id === baseline && ref.tick <= study.revealed)
+              .concat(study.comparisons.flatMap(pair => [pair.base, pair.branch]))}/>
           <button className="primary" disabled={!!storageError} onClick={() => {
             save({ content_version: content!.content_version });
             setStatus("笔记已保存在此浏览器。");
           }}>保存笔记</button>
         </>}
+        <LearningActivities {...learning} phase={selected.id}/>
         <TutorPanel caseId={caseId} runId={tutorView?.run_id} tick={tutorView?.tick} revealUntil={tutorView?.tick}
           scene={{ id: selected.id, actor: tutorView ? study.pinned : defaultActor,
             prediction: prediction?.original ?? prediction?.latest, evidence: study.evidence }}

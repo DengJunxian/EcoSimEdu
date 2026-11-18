@@ -1,17 +1,21 @@
-import { useEffect, useState } from "react";
+import { lazy, Suspense, useEffect, useState } from "react";
 import { RestoreStudy } from "../learning/restore-study";
 import { FlagshipNotes } from "../learning/flagship-notes";
 import { readFieldStudy } from "../learning/flagship-study";
 import { fieldFlagships, isFieldFlagship, type SceneContent } from "../learning/flagship-types";
 import auctionScenes from "../../../cases/double_auction/lesson-v2.json";
-import { caseHref, catalog, legacyCourseHref, paths, type CatalogCourse } from "../catalog";
+import { caseHref, catalog, legacyCourseHref, paths, pathPreferenceKey, preferredPath, type CatalogCourse } from "../catalog";
 import { downloadJson, traceHref } from "../contracts";
 import { noteKeys, noteNames, type Course } from "../lesson-types";
-import { readExperiments } from "../lab-tools";
+import { readExperiments, readFavorites, toggleCourseFavorite } from "../lab-tools";
 import { BoundaryLink } from "../boundary";
 import { readAuctionStudy } from "../cases/auction/auction-study";
 import { AuctionNotes } from "../cases/auction/auction-notes";
 import { Mechanism, QuoteDiagram } from "./mechanisms";
+import type { Outcome } from "../learning/education-types";
+
+const HomeLearningActions = lazy(() => import("../learning/review-page").then(module => ({ default: module.HomeLearningActions })));
+const LearningRecords = lazy(() => import("../learning/learning-records").then(module => ({ default: module.LearningRecords })));
 
 const auction = catalog[0];
 const auctionHref = "/learn/double_auction";
@@ -29,7 +33,7 @@ function listProgress() {
   const currentAuction = savedAuction &&
     (savedAuction.unlocked > 0 || savedAuction.runs.baseline || Object.keys(savedAuction.responses).length)
     ? savedAuction : null;
-  const fieldReads = fieldFlagships.map(readFieldStudy);
+  const fieldReads = fieldFlagships.map(caseId => readFieldStudy(caseId));
   const fields = fieldReads.flatMap(({ study }) => study && study.updatedAt ? [study] : [])
     .sort((left, right) => right.updatedAt - left.updatedAt);
   const invalidFields = fieldReads.filter(entry => entry.bad).length;
@@ -94,6 +98,7 @@ export function HomePage() {
         <p>报出一个价格，决定何时提款，或在地图上搬一次家。先做预测，再从仿真记录里追查你的选择如何进入群体结果。</p>
         <div className="app-actions">
           <a className="app-button" href={auctionHref}>进入双向拍卖</a>
+          <a href="/emergence">从微观到宏观</a>
           <a href="/paths">查看学习路径</a>
         </div>
       </div>
@@ -103,6 +108,7 @@ export function HomePage() {
       <div><h2>继续学习</h2><p>{resume.title} · {resume.scene}</p></div>
       <a className="app-button" href={resume.href}>回到课堂</a>
     </section>}
+    <Suspense fallback={null}><HomeLearningActions/></Suspense>
     <section className="app-featured">
       <div className="app-section-line"><h2>选一个你想弄懂的问题</h2><a href="/cases">全部 {catalog.length} 门案例</a></div>
       <Cards courses={featured.map(id => catalog.find(course => course.case_id === id)!)}/>
@@ -153,7 +159,18 @@ export function CasePage({ course }: { course: CatalogCourse }) {
   const resume = local.entries.find(entry => entry.course.case_id === course.case_id);
   const isAuction = course.case_id === auction.case_id;
   const hasNewClass = isAuction || isFieldFlagship(course.case_id);
+  const [outcomes, setOutcomes] = useState<Outcome[]>();
+  useEffect(() => {
+    void import("../../../cases/learning-outcomes.json").then(({ default: { cases } }) => {
+      setOutcomes((cases as Record<string, Outcome[]>)[course.case_id]);
+    }).catch(() => setOutcomes(undefined));
+  }, [course.case_id]);
   const newProgress = isAuction ? local.currentAuction : local.fields.find(item => item.case_id === course.case_id);
+  const [favorites, setFavorites] = useState<string[]>(() => {
+    try { return readFavorites(); } catch { return []; }
+  });
+  const [favoriteError, setFavoriteError] = useState("");
+  const favorite = favorites.includes(course.case_id);
   return <main id="main" tabIndex={-1} className="container app-page app-inner">
     <a href="/cases">返回案例库</a>
     <section className="app-case-brief">
@@ -166,14 +183,29 @@ export function CasePage({ course }: { course: CatalogCourse }) {
           <a className="app-button" href={hasNewClass ? `/learn/${course.case_id}` : legacyCourseHref(course.case_id)}>
             {(hasNewClass ? newProgress : resume) ? "继续学习" : "进入课堂"}
           </a>
+          <button type="button" aria-pressed={favorite} onClick={() => {
+            try { setFavorites(toggleCourseFavorite(course.case_id)); setFavoriteError(""); }
+            catch { setFavoriteError("收藏暂时无法保存。"); }
+          }}>{favorite ? "取消收藏" : "收藏案例"}</button>
+          {hasNewClass && <a href={`/teach?case=${encodeURIComponent(course.case_id)}`}>教学活动页</a>}
           {hasNewClass && <a href={legacyCourseHref(course.case_id)}>{resume ? "继续原版课堂" : "打开原版课堂"}</a>}
         </div>
+        {favoriteError && <p role="alert">{favoriteError}</p>}
       </div>
       <Mechanism caseId={course.case_id}/>
     </section>
     <section className="app-case-context">
+      <h2>学完能做什么</h2>
+      <ul>{(outcomes?.map(outcome => outcome.performance) ?? course.goals).map(goal => <li key={goal}>{goal}</li>)}</ul>
+      <p>带走一份含预测、观察和运行引用的实验笔记。</p>
+      <a href="#course-concepts" onClick={() => {
+        const details = document.querySelector<HTMLDetailsElement>("#course-concepts");
+        if (details) details.open = true;
+      }}>自查课前概念</a>
+    </section>
+    <section className="app-case-context">
       <h2>实验背景</h2><p>{course.background}</p>
-      <details><summary>来源与概念</summary>
+      <details id="course-concepts"><summary>来源与概念</summary>
         <ul>{course.sources.map(source => <li key={source.id}><a href={source.url} target="_blank" rel="noreferrer">{source.title}</a> · {source.supports}</li>)}</ul>
         <dl>{course.glossary.map(item => <div key={item.term}><dt>{item.term}</dt><dd>{item.definition}</dd></div>)}</dl>
       </details>
@@ -184,11 +216,26 @@ export function CasePage({ course }: { course: CatalogCourse }) {
 }
 
 export function PathsPage() {
+  const [selected, setSelected] = useState(() => preferredPath()?.title ?? "");
+  const [error, setError] = useState("");
   return <main id="main" tabIndex={-1} className="container app-page app-inner">
     <h1>学习路径</h1>
+    <p><a href="/emergence">按机制浏览十二课</a></p>
+    <p>按建议顺序学习，也可直接选择一门课。</p>
+    <label>首页推荐路径 <select aria-label="首页推荐路径" value={selected} onChange={event => {
+      const value = event.target.value;
+      try { localStorage.setItem(pathPreferenceKey, value); setSelected(value); setError(""); }
+      catch { setError("路径暂时无法保存。仍可直接打开课程。"); }
+    }}><option value="">按最近练习推荐</option>
+      {paths.map(path => <option key={path.title} value={path.title}>{path.title}</option>)}
+    </select></label>
+    {error && <p role="alert">{error}</p>}
+    <div className="toolbar"><a href="/concepts">浏览概念</a><a href="/review">复习</a><a href="/practice">跨课练习</a></div>
     <div className="app-path-list">
       {paths.map(path => <section key={path.title}>
         <div className="app-section-line"><h2>{path.title}</h2><a href={`/cases?${new URLSearchParams({ path: path.title })}`}>筛选此路径</a></div>
+        <p>{path.learning_goal}</p>
+        <a href={`/concepts/${path.bridge_concept}`}>先做概念自查</a>
         <ul>{path.cases.map(id => {
           const course = catalog.find(item => item.case_id === id)!;
           return <li key={id}><a href={caseHref(id)}>{course.title}</a><span>{course.subtitle}</span></li>;
@@ -203,6 +250,8 @@ export function NotesPage() {
   const local = useLocalProgress(restored);
   return <main id="main" tabIndex={-1} className="container app-page app-inner">
     <h1>实验笔记</h1>
+    <div className="toolbar"><a href="/review">复习</a><a href="/concepts">按概念查看</a></div>
+    <Suspense fallback={null}><LearningRecords/></Suspense>
     <RestoreStudy courseFor={caseId => catalog.find(course => course.case_id === caseId) as Course}
       contentFor={caseId => fieldContent[caseId]}
       onRestore={() => setRestored(count => count + 1)}/>

@@ -3,6 +3,10 @@ import lesson from "../../../../cases/double_auction/case.json";
 import { api, downloadJson, type Provider } from "../../contracts";
 import { readStudy } from "../../study";
 import { TutorPanel } from "../../tutor";
+import { ExplanationEditor } from "../../learning/explanation-card";
+import { LearningActivities, useLearningPackage } from "../../learning/activity-renderer";
+import { isDemo, isExploration, sceneSearch } from "../../learning/demo";
+import type { Phase } from "../../learning/education-types";
 import { usePlaybackFocus } from "../../learning/playback-focus";
 import { AuctionCompare } from "./auction-compare";
 import { AuctionExplain } from "./auction-explain";
@@ -22,7 +26,7 @@ type Question = {
 };
 type Selector = { event_type: string; actor_id?: string; fields: string[] };
 type Scene = {
-  id: string;
+  id: Phase;
   title: string;
   question: string;
   objective: string;
@@ -44,19 +48,23 @@ function matches(selector: Selector, event: AuctionView["events"][number]) {
 function resolveScene(study: AuctionStudy) {
   const requested = new URLSearchParams(window.location.search).get("scene");
   const index = requested ? auctionStages.indexOf(requested) : -1;
-  if (!requested) return { scene: study.scene, warning: "" };
+  if (!requested) return { scene: isExploration() && study.unlocked >= 3 ? "observe" : study.scene, warning: "" };
   if (index < 0) return { scene: study.scene, warning: "链接中的场景不存在。已打开本机保存的场景。" };
   if (index > study.unlocked) return { scene: study.scene, warning: "请先完成前面的任务，再进入链接中的场景。" };
   return { scene: requested, warning: "" };
 }
 
 export function AuctionLesson() {
+  const [demo] = useState(isDemo);
+  const [explore] = useState(isExploration);
+  const learning = useLearningPackage("double_auction");
+  const key = auctionStudyKey + (demo ? "/demo" : "");
   const [study, setStudy] = useState<AuctionStudy>(() => {
-    const previous = readAuctionStudy() ?? emptyAuctionStudy;
+    const previous = readAuctionStudy(key) ?? emptyAuctionStudy;
     return { ...previous, scene: resolveScene(previous).scene };
   });
   const [course, setCourse] = useState<Course>();
-  const [linkWarning, setLinkWarning] = useState(() => resolveScene(readAuctionStudy() ?? emptyAuctionStudy).warning);
+  const [linkWarning, setLinkWarning] = useState(() => resolveScene(readAuctionStudy(key) ?? emptyAuctionStudy).warning);
   const [error, setError] = useState("");
   const [readError, setReadError] = useState("");
   const [storageError, setStorageError] = useState("");
@@ -70,10 +78,12 @@ export function AuctionLesson() {
   const [checkpoint, setCheckpoint] = useState(0);
   const heading = useRef<HTMLHeadingElement>(null);
   const focusChapter = useRef(false);
-  const [legacy] = useState(() => readStudy().study);
+  const [legacy] = useState(() => demo ? null : readStudy().study);
   const scene = course?.scenes.find(item => item.id === study.scene);
   const stage = auctionStages.indexOf(study.scene);
   const baseline = study.runs.baseline;
+  const required = (learning.pack?.required_comparisons ?? ["demand", "fee"]) as Branch[];
+  const comparisonsPending = required.some(branch => !study.runs[branch]);
   const explaining = study.scene === "explain";
   const mode = modeOverride ?? (explaining || study.scene === "compare" ? "review" : "guided");
   const viewing = stage >= 3 && stage <= 5;
@@ -94,19 +104,19 @@ export function AuctionLesson() {
   }, []);
   useEffect(() => {
     try {
-      localStorage.setItem(auctionStudyKey, JSON.stringify(study));
+      localStorage.setItem(key, JSON.stringify(study));
       setStorageError("");
     } catch {
       setStorageError("浏览器无法保存学习记录。可以导出当前草稿。");
     }
-  }, [study]);
+  }, [key, study]);
   useEffect(() => {
     if (!new URLSearchParams(window.location.search).has("scene")) {
-      const saved = readAuctionStudy() ?? emptyAuctionStudy;
-      window.history.replaceState({}, "", `?scene=${encodeURIComponent(saved.scene)}`);
+      const saved = readAuctionStudy(key) ?? emptyAuctionStudy;
+      window.history.replaceState({}, "", sceneSearch(resolveScene(saved).scene, demo, explore));
     }
     const onHistory = () => {
-      const resolved = resolveScene(readAuctionStudy() ?? emptyAuctionStudy);
+      const resolved = resolveScene(readAuctionStudy(key) ?? emptyAuctionStudy);
       clearPlaybackFocus();
       setStudy(current => ({ ...current, scene: resolved.scene }));
       setLinkWarning(resolved.warning);
@@ -114,7 +124,7 @@ export function AuctionLesson() {
     };
     window.addEventListener("popstate", onHistory);
     return () => window.removeEventListener("popstate", onHistory);
-  }, [clearPlaybackFocus]);
+  }, [clearPlaybackFocus, demo, explore, key]);
   useEffect(() => {
     if (focusChapter.current && heading.current) {
       heading.current.focus();
@@ -158,7 +168,7 @@ export function AuctionLesson() {
     setFeedback("");
     setMode(undefined);
     focusChapter.current = true;
-    window.history.pushState({}, "", `?scene=${encodeURIComponent(id)}`);
+    window.history.pushState({}, "", sceneSearch(id, demo, explore));
   }
   function answer(question: Question, value: string) {
     save({ responses: { ...study.responses, [question.id]: { first: study.responses[question.id]?.first ?? value, latest: value } } });
@@ -212,6 +222,7 @@ export function AuctionLesson() {
       { ...previous, evidence: [...previous.evidence, item] });
   }
   async function resumeLegacy() {
+    if (!legacy) return;
     const saved = legacy.runs.baseline;
     if (!saved) return;
     setBusy(true);
@@ -260,6 +271,7 @@ export function AuctionLesson() {
     </fieldset>;
   });
   return <main id="main" tabIndex={-1} className="container auction-lesson">
+    {demo && <p>教学展示 · <a href="/learn/double_auction">返回个人课堂</a></p>}
     <nav className="auction-chapters" aria-label="双向拍卖场景">
       {course?.scenes.map((chapter, index) => <button key={chapter.id} onClick={() => visit(chapter.id)}
         disabled={index > study.unlocked || busy} aria-current={chapter.id === study.scene ? "step" : undefined}>
@@ -310,6 +322,7 @@ export function AuctionLesson() {
             else seek(0);
           }}>重试读取运行</button>}
         </div>}
+        {explore && stage < 3 && <p>完成入场预测和报价后，此处会打开涌现探究。</p>}
         {study.scene === "intro" && <>
           <div className="auction-opening" aria-label="教学情境中的买卖边界">
             <div><span>卖方最低接受</span><strong>85</strong></div>
@@ -317,7 +330,7 @@ export function AuctionLesson() {
             <div><span>买方最高愿付</span><strong>105</strong></div>
           </div>
           {questionPanels}
-          {legacy.runs.baseline && !baseline && <button disabled={busy} onClick={resumeLegacy}>用旧版基准运行继续</button>}
+          {legacy?.runs.baseline && !baseline && <button disabled={busy} onClick={resumeLegacy}>用旧版基准运行继续</button>}
         </>}
         {study.scene === "predict" && <>
           <fieldset className="auction-question">
@@ -379,7 +392,7 @@ export function AuctionLesson() {
             forecast={(id, value) => save({ forecasts: { ...study.forecasts, [id]: value } })}
             launch={id => { void launch(id); }}
             capture={comparison => save({ comparison })}/> : <>
-            <MarketFloor cite={cite} evidence={study.evidence} explaining={explaining}/>
+            <MarketFloor cite={cite} evidence={study.evidence} explaining={explaining} explore={explore}/>
             {canCheckPrediction && <section className="auction-prediction-result">
               <h2>对照入场预测</h2>
               <p>{originalAnswer ? `原预测：${originalAnswer === "yes" ? "会成交" : originalAnswer === "no" ? "不会成交" : "不确定"}。` : ""}
@@ -405,7 +418,11 @@ export function AuctionLesson() {
           }}/>
           <button className="primary" disabled={!!storageError} onClick={() => setFeedback("笔记已保存在此浏览器，可从「我的记录」打开。")}>保存笔记</button>
           {feedback && <p role="status">{feedback}</p>}
+          <ExplanationEditor caseId="double_auction" version={course!.content_version} demo={demo}
+            sources={study.evidence.filter(ref => ref.run_id === baseline && ref.tick <= study.revealed)
+              .map(({ kind, actor_id, ...ref }) => ({ ...ref, actor: actor_id, event_type: kind === "trade" ? "trade" : "order_cancelled" }))}/>
         </>}
+        <LearningActivities {...learning} phase={scene.id}/>
         <TutorPanel caseId="double_auction" runId={tutorView?.run_id} tick={tutorView?.tick} revealUntil={tutorView?.tick}
           scene={{ id: scene.id, actor: tutorView ? selectedActor || study.pinned : lesson.player_id,
             prediction: originalAnswer ?? prediction?.answer, evidence: study.evidence }}
@@ -413,14 +430,16 @@ export function AuctionLesson() {
         {scene.next_scene && study.scene !== "bid" && <div className="auction-next">
           <button className="primary" disabled={
             busy || pending || (stage === 3 && !view?.closed && study.unlocked < 4) ||
-              (stage === 5 && !(study.runs.demand && study.runs.fee))
+              (scene.id === "compare" && comparisonsPending)
           } onClick={() => {
             if (stage === 1) finishPrediction();
             else if (stage === 3 && firstTrade) { seek(firstTrade.tick); visit(scene.next_scene!, true); }
             else visit(scene.next_scene!, true);
           }}>{["领取买家身份", "去报价", "", "进入剩余解释", "比较两项制度", "写实验笔记"][stage]}</button>
           {stage === 3 && !view?.closed && study.unlocked < 4 && <p>先推进到收盘，再核对预测与全市场剩余。</p>}
-          {stage === 5 && !(study.runs.demand && study.runs.fee) && <p>分别运行需求和费用对照后进入笔记。</p>}
+          {scene.id === "compare" && comparisonsPending && <p>先运行{
+            required.map(branch => lesson.scenarios.find(item => item.id === branch)?.label).join("、")
+          }对照。</p>}
         </div>}
       </section>
     </div>

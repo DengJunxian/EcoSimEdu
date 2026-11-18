@@ -7,7 +7,8 @@ import {
 } from "../cases/auction/auction-study";
 import { api } from "../contracts";
 import type { Course, LessonRun } from "../lesson-types";
-import { alignmentLabel, eventActors, fieldStudyKey, parseFieldStudy, type Alignment, type SourceRef } from "./flagship-study";
+import { alignmentLabel, eventActors, fieldStudyKey, parseFieldStudy, verifyLayoutPair,
+  type Alignment, type SourceRef } from "./flagship-study";
 import { isFieldFlagship, type FieldFlagship, type SceneContent } from "./flagship-types";
 
 const uuid = /^[0-9a-f]{8}(-[0-9a-f]{4}){3}-[0-9a-f]{12}$/;
@@ -105,6 +106,10 @@ async function verifyField(study: NonNullable<ReturnType<typeof parseFieldStudy>
   }
   if (study.evidence.some(ref => !verify(ref))) throw new Error(badRun);
   for (const pair of study.comparisons) {
+    if (pair.kind === "initial_layout") {
+      if (!await verifyLayoutPair(pair, study.runs.baseline)) throw new Error(badRun);
+      continue;
+    }
     if (pair.base.run_id !== study.runs.baseline || !verify(pair.base) || !verify(pair.branch)) throw new Error(badRun);
     const alignment = await api<Alignment>(`/runs/${pair.base.run_id}/compare/${pair.branch.run_id}`);
     if (!alignment.rows.some(row => row.baseline?.tick === pair.base.tick &&

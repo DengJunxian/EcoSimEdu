@@ -1,4 +1,7 @@
-import { showValue } from "../../lesson-view";
+import { useState } from "react";
+import { LedgerEvidence, TraceClaims, TraceLenses, useTrace } from "../../emergence/trace-view";
+import { FeedbackExplanation } from "../../emergence/feedback-explanation";
+import { MetricChart, showValue } from "../../lesson-view";
 import type { DomainPanelProps, FlagshipView } from "../../learning/flagship-types";
 import "./cooperation.css";
 
@@ -36,7 +39,7 @@ function Facts({ rows }: { rows: [string, string][] }) {
     <div key={label}><dt>{label}</dt><dd>{value}</dd></div>)}</dl>;
 }
 
-export function CascadePanel({ stage, briefing, view, comparison, pin, pinned, seek, cite }: DomainPanelProps) {
+export function CascadePanel({ stage, briefing, view, comparison, pin, pinned, seek, cite, explore }: DomainPanelProps) {
   if (stage === "predict" || stage === "bid") {
     if (!briefing || !("signal" in (briefing as object))) return <p role="status">正在读取 D03 的抽样卡…</p>;
     const role = briefing as CascadeBriefing;
@@ -95,9 +98,36 @@ export function CascadePanel({ stage, briefing, view, comparison, pin, pinned, s
         {" "}{percent(Number(verification.public_a_after_pct))}。</p>
       {stage !== "compare" && <button className="text-button" onClick={() => seek(verification.tick)}>查看核验事件</button>}
     </>}
+    {stage !== "compare" && <CascadeTrace view={view} seek={seek} initialOpen={explore}/>}
     {view.closed && current?.event_type === "reveal" &&
       <p role="status">真实箱子为 {String(current.state)}。猜对 {String(current.correct_count)} 人。</p>}
   </section>;
+}
+
+function CascadeTrace({ view, seek, initialOpen = false }: Pick<DomainPanelProps, "seek"> & { view: FlagshipView; initialOpen?: boolean }) {
+  const [open, setOpen] = useState(initialOpen);
+  const [metric, setMetric] = useState("public_a_pct");
+  const trace = useTrace(view, metric, "system", "", open);
+  const course = { metrics: [
+    { id: "public_a_pct", label: "A 箱公共后验", unit: "%" },
+    { id: "public_choice_a_pct", label: "公开选择 A 的比例", unit: "%" },
+  ] };
+  const frames = view.series.slice(0, view.tick + 1).map((frame, index) => ({
+    metrics: { ...frame.metrics, public_choice_a_pct: view.public_choice_a_pct?.[index] ?? null } as Record<string, number | null>,
+  }));
+  const values = frames[view.tick]?.metrics;
+  return <details id="emergence-explore" open={open} onToggle={e => setOpen(e.currentTarget.open)}>
+    <summary>涌现显微镜 · 从后验反查行动</summary>
+    {open && <>
+      <Facts rows={course.metrics.map(item => [item.label, values?.[item.id] == null ? "未公开或尚无行动" : percent(values[item.id]!)])}/>
+      <p>公开选择比例数已发生的行动。公共后验按这些行动所提供的信息更新。</p>
+      <MetricChart course={course} frames={frames} tick={view.tick} metricChanged={setMetric}
+        change={(tick, id) => { setMetric(id); seek(tick); }}/>
+      <TraceLenses trace={trace?.trace} perspective="system" seek={seek}/>
+      {trace?.trace && <TraceClaims trace={trace.trace} seek={seek}/>}
+      {trace?.error && <p role="alert">当前行动证据无法核对。</p>}
+    </>}
+  </details>;
 }
 
 function contributionAt(view: FlagshipView) {
@@ -108,7 +138,8 @@ function settlementAt(view: FlagshipView, round: number) {
   return visible(view).find(event => event.event_type === "settlement" && event.round === round) as Settlement | undefined;
 }
 
-export function PublicGoodsPanel({ stage, view, comparison, pinned, pin, seek, cite }: DomainPanelProps) {
+export function PublicGoodsPanel(props: DomainPanelProps) {
+  const { stage, view, comparison, pinned, pin, seek, cite } = props;
   if (!view) return null;
   const round = contributionAt(view);
   if (!round) return <section className="cooperation-world" aria-label="公共池与小组账本">
@@ -119,9 +150,13 @@ export function PublicGoodsPanel({ stage, view, comparison, pinned, pin, seek, c
   const paired = other && comparison && settlementAt(comparison, other.round);
   const contribution = sum(round.contributions);
   const actor = actors.includes(pinned) ? pinned : "P1";
+  const previous = visible(view).find(event => event.event_type === "contributions" &&
+    event.round === round.round - 1) as Contributions | undefined;
+  const previousSettlement = settlementAt(view, round.round - 1);
   return <section className="cooperation-world" aria-label="公共池与小组账本">
     <h2>第 {round.round} 轮公共池</h2>
     <p>四笔贡献合计 <strong>{contribution}</strong> 代币，每人公共回报 <strong>{text(round.public_return)}</strong> 代币。</p>
+    <p>人均贡献 {text(contribution / Object.keys(round.contributions).length)} 代币，以本轮公开贡献的参与者人数为分母。</p>
     <ol className="cooperation-bars" aria-label="贡献资金流">
       {actors.map(id => <li key={id}>
         <button type="button" aria-pressed={actor === id} onClick={() => pin(id)}>{id}</button>
@@ -145,6 +180,20 @@ export function PublicGoodsPanel({ stage, view, comparison, pinned, pin, seek, c
       <p>小组结算（代币）{text(sum(settlement.gross))} 毛收益 − {text(sum(settlement.outgoing))} 施罚成本 −
         {" "}{text(sum(settlement.fines))} 受罚扣损 = <strong>{text(sum(settlement.net))}</strong> 净收益。</p>
       {stage !== "compare" && <button onClick={() => cite(settlement.seq, actor)}>引用本轮结算</button>}
+      {stage !== "compare" && view.origin === "offline_simulation" && <details>
+        <summary>看投入怎样反馈到下一轮</summary>
+        <p><strong>模型规则</strong> · P1、P2 的自动目标会用上一轮其他人的平均贡献调整。
+          上轮被罚会抬高该主体下一轮的自动目标。每轮仍有模型扰动，学生计划可覆盖 P1 的自动值。</p>
+        {previous && previousSettlement ? <>
+          <p>{actor} 上轮贡献 {previous.contributions[actor]}、扣损 {text(previousSettlement.fines[actor])}，
+            本轮贡献 {round.contributions[actor]} 代币。</p>
+          {["P1", "P2"].includes(actor) && <p>用上轮贡献记录复算，其他人的平均贡献为 {
+            text((sum(previous.contributions) - previous.contributions[actor]) /
+              (Object.keys(previous.contributions).length - 1))} 代币。</p>}
+          <button type="button" className="text-button" onClick={() => seek(previous.tick)}>查上轮公开贡献 · 事件 {previous.seq}</button>
+          <button onClick={() => seek(previousSettlement.tick)}>查上轮结算 · 事件 {previousSettlement.seq}</button>
+        </> : <p>第一轮还没有上一次结算。推进至下一轮后可检查实际反馈。</p>}
+      </details>}
     </>}
     {stage !== "compare" && <div className="toolbar">
       {settlement && <button className="text-button" onClick={() => seek(round.tick)}>回看贡献公开</button>}
@@ -152,6 +201,16 @@ export function PublicGoodsPanel({ stage, view, comparison, pinned, pin, seek, c
     </div>}
     {other && paired && <p>对照第 {other.round} 轮，公共池 {sum(other.contributions)} 代币，{actor} 贡献 {other.contributions[actor]}，
       净收益 {text(paired.net[actor])}；小组净收益 {text(sum(paired.net))}。</p>}
+    {stage !== "compare" && settlement && <details><summary>从群体净收益反查结算</summary>
+      <ul>{(visible(view).filter(event => event.event_type === "settlement") as Settlement[]).map(event =>
+        <li key={event.seq}><button type="button" className="text-button" onClick={() => seek(event.tick)}>
+          第 {event.round} 轮 · 全组净收益 {text(sum(event.net))} 代币
+        </button></li>)}</ul>
+    </details>}
+    {stage !== "compare" && <LedgerEvidence view={view} metric="net_income" actor={actor} seek={tick => seek(tick)}
+      initialOpen={props.explore}/>}
+    {stage === "explain" && <FeedbackExplanation {...props} view={view} eventType="settlement"
+      prompt="引用一位参与者的结算。描述贡献如何进入公共池、惩罚如何影响个人与全组净收益，并指出哪条反馈规则会进入下一轮。写出一个仍待检验的政策解释。"/>}
   </section>;
 }
 

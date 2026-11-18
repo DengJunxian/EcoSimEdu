@@ -3,13 +3,20 @@ import curriculum from "../../docs/curriculum/knowledge-map.json";
 import type { Course } from "./lesson-types";
 
 export type CatalogCourse = Pick<Course, "case_id" | "version" | "title" | "subtitle" | "seed" | "identity" |
-  "identity_label" | "minutes" | "intro" | "background" | "goals" | "glossary" | "lessons" | "sources">;
+  "identity_label" | "minutes" | "intro" | "background" | "metrics" | "goals" | "glossary" | "lessons" | "sources">;
 const packages = import.meta.glob<CatalogCourse>(
   "../../cases/*/case.json", { import: "default", eager: true },
 );
 export const catalog = published.map(id => packages[`../../cases/${id}/case.json`]);
 export const selectedCourse = new URLSearchParams(location.search).get("case") ?? published[0];
 export const paths = curriculum.paths;
+export const pathPreferenceKey = "civitas/learning-path";
+export function preferredPath() {
+  try {
+    const title = localStorage.getItem(pathPreferenceKey);
+    return paths.find(path => path.title === title);
+  } catch { return undefined; }
+}
 export const legacyCourseHref = (caseId: string) => `/?${new URLSearchParams({ case: caseId })}`;
 export const caseHref = (caseId: string) => `/cases/${encodeURIComponent(caseId)}`;
 

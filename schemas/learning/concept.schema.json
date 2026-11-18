@@ -1,0 +1,46 @@
+{
+  "additionalProperties": false,
+  "properties": {
+    "id": {
+      "title": "Id",
+      "type": "string"
+    },
+    "version": {
+      "exclusiveMinimum": 0,
+      "title": "Version",
+      "type": "integer"
+    },
+    "label": {
+      "title": "Label",
+      "type": "string"
+    },
+    "definition": {
+      "title": "Definition",
+      "type": "string"
+    },
+    "prerequisite_ids": {
+      "items": {
+        "type": "string"
+      },
+      "title": "Prerequisite Ids",
+      "type": "array"
+    },
+    "misconception_codes": {
+      "items": {
+        "type": "string"
+      },
+      "title": "Misconception Codes",
+      "type": "array"
+    }
+  },
+  "required": [
+    "id",
+    "version",
+    "label",
+    "definition",
+    "prerequisite_ids",
+    "misconception_codes"
+  ],
+  "title": "Concept",
+  "type": "object"
+}

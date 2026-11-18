@@ -1,0 +1,89 @@
+{
+  "release": "1.1.0-rc.2",
+  "n": 9,
+  "device": "macOS 27.0 arm64",
+  "browser": "Chrome 158.0.8127.36",
+  "scope": "Warm in-lesson opening and entry submission. Restore measures reload to saved text and transfer evidence.",
+  "stats": {
+    "first_activity_ms": {
+      "median": 10.0,
+      "p95_nearest_rank": 23.0,
+      "min": 5.9
+    },
+    "submit_ms": {
+      "median": 32.8,
+      "p95_nearest_rank": 49.9,
+      "min": 30.0
+    },
+    "restore_ms": {
+      "median": 357.9,
+      "p95_nearest_rank": 419.2,
+      "min": 345.6
+    }
+  },
+  "samples": [
+    {
+      "case": "beer_game",
+      "width": 390,
+      "first_activity_ms": 15.111207962036133,
+      "submit_ms": 37.47687488794327,
+      "restore_ms": 360.08804105222225
+    },
+    {
+      "case": "carbon_market",
+      "width": 768,
+      "first_activity_ms": 22.96175016090274,
+      "submit_ms": 49.94379077106714,
+      "restore_ms": 419.17195823043585
+    },
+    {
+      "case": "commons_governance",
+      "width": 768,
+      "first_activity_ms": 5.867915693670511,
+      "submit_ms": 29.962750151753426,
+      "restore_ms": 346.1578330025077
+    },
+    {
+      "case": "flash_crash",
+      "width": 1440,
+      "first_activity_ms": 7.152250036597252,
+      "submit_ms": 31.724166590720415,
+      "restore_ms": 346.2080406025052
+    },
+    {
+      "case": "gamestop",
+      "width": 320,
+      "first_activity_ms": 8.907417301088572,
+      "submit_ms": 32.758249901235104,
+      "restore_ms": 345.5597497522831
+    },
+    {
+      "case": "information_cascade",
+      "width": 320,
+      "first_activity_ms": 6.585625000298023,
+      "submit_ms": 30.061999801546335,
+      "restore_ms": 346.7460838146508
+    },
+    {
+      "case": "lemons_market",
+      "width": 1440,
+      "first_activity_ms": 11.476917192339897,
+      "submit_ms": 48.97549981251359,
+      "restore_ms": 383.8353748433292
+    },
+    {
+      "case": "public_goods",
+      "width": 390,
+      "first_activity_ms": 10.023375041782856,
+      "submit_ms": 29.97695840895176,
+      "restore_ms": 357.8894999809563
+    },
+    {
+      "case": "school_matching",
+      "width": 320,
+      "first_activity_ms": 13.60141672194004,
+      "submit_ms": 41.58500023186207,
+      "restore_ms": 393.63337494432926
+    }
+  ]
+}

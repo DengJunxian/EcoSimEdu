@@ -1,0 +1,329 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$defs": {
+    "Focus": {
+      "properties": {
+        "event_seq": {
+          "minimum": 0,
+          "title": "Event Seq",
+          "type": "integer"
+        },
+        "metric_id": {
+          "title": "Metric Id",
+          "type": "string"
+        },
+        "clock": {
+          "title": "Clock",
+          "type": "string"
+        },
+        "economic_time": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Economic Time"
+        }
+      },
+      "required": [
+        "event_seq",
+        "metric_id",
+        "clock",
+        "economic_time"
+      ],
+      "title": "Focus",
+      "type": "object"
+    },
+    "SourceRef": {
+      "additionalProperties": false,
+      "properties": {
+        "run_id": {
+          "format": "uuid",
+          "title": "Run Id",
+          "type": "string"
+        },
+        "case_version": {
+          "title": "Case Version",
+          "type": "string"
+        },
+        "engine_version": {
+          "title": "Engine Version",
+          "type": "string"
+        },
+        "result_hash": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Result Hash",
+          "type": "string"
+        },
+        "seq": {
+          "minimum": 0,
+          "title": "Seq",
+          "type": "integer"
+        },
+        "tick": {
+          "minimum": 0,
+          "title": "Tick",
+          "type": "integer"
+        },
+        "event_type": {
+          "title": "Event Type",
+          "type": "string"
+        },
+        "actor": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Actor"
+        }
+      },
+      "required": [
+        "run_id",
+        "case_version",
+        "engine_version",
+        "result_hash",
+        "seq",
+        "tick",
+        "event_type"
+      ],
+      "title": "SourceRef",
+      "type": "object"
+    },
+    "TraceEdge": {
+      "properties": {
+        "source": {
+          "title": "Source",
+          "type": "string"
+        },
+        "target": {
+          "title": "Target",
+          "type": "string"
+        },
+        "kind": {
+          "anyOf": [
+            {
+              "enum": [
+                "accounting_identity",
+                "model_rule",
+                "paired_difference",
+                "interpretive_hypothesis"
+              ],
+              "type": "string"
+            },
+            {
+              "const": "observed_transition",
+              "type": "string"
+            }
+          ],
+          "title": "Kind"
+        },
+        "label": {
+          "title": "Label",
+          "type": "string"
+        },
+        "source_refs": {
+          "items": {
+            "$ref": "#/$defs/SourceRef"
+          },
+          "minItems": 1,
+          "title": "Source Refs",
+          "type": "array"
+        }
+      },
+      "required": [
+        "source",
+        "target",
+        "kind",
+        "label",
+        "source_refs"
+      ],
+      "title": "TraceEdge",
+      "type": "object"
+    },
+    "TraceNode": {
+      "properties": {
+        "id": {
+          "title": "Id",
+          "type": "string"
+        },
+        "kind": {
+          "enum": [
+            "actor_state",
+            "event",
+            "relation",
+            "group_metric",
+            "system_metric",
+            "rule"
+          ],
+          "title": "Kind",
+          "type": "string"
+        },
+        "label": {
+          "title": "Label",
+          "type": "string"
+        },
+        "actor_id": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Actor Id"
+        },
+        "metric_id": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Metric Id"
+        },
+        "value": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Value"
+        },
+        "unit": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Unit"
+        },
+        "source_refs": {
+          "items": {
+            "$ref": "#/$defs/SourceRef"
+          },
+          "minItems": 1,
+          "title": "Source Refs",
+          "type": "array"
+        }
+      },
+      "required": [
+        "id",
+        "kind",
+        "label",
+        "source_refs"
+      ],
+      "title": "TraceNode",
+      "type": "object"
+    }
+  },
+  "properties": {
+    "schema_version": {
+      "const": 1,
+      "default": 1,
+      "title": "Schema Version",
+      "type": "integer"
+    },
+    "case_id": {
+      "title": "Case Id",
+      "type": "string"
+    },
+    "run_id": {
+      "format": "uuid",
+      "title": "Run Id",
+      "type": "string"
+    },
+    "result_hash": {
+      "pattern": "^[0-9a-f]{64}$",
+      "title": "Result Hash",
+      "type": "string"
+    },
+    "as_of_seq": {
+      "minimum": 0,
+      "title": "As Of Seq",
+      "type": "integer"
+    },
+    "perspective": {
+      "enum": [
+        "role",
+        "system"
+      ],
+      "title": "Perspective",
+      "type": "string"
+    },
+    "reveal_scope": {
+      "const": "visible_prefix",
+      "default": "visible_prefix",
+      "title": "Reveal Scope",
+      "type": "string"
+    },
+    "focus": {
+      "$ref": "#/$defs/Focus"
+    },
+    "evidence_level": {
+      "enum": [
+        "exact_identity",
+        "rule_trace",
+        "partial",
+        "hypothesis"
+      ],
+      "title": "Evidence Level",
+      "type": "string"
+    },
+    "nodes": {
+      "items": {
+        "$ref": "#/$defs/TraceNode"
+      },
+      "title": "Nodes",
+      "type": "array"
+    },
+    "edges": {
+      "items": {
+        "$ref": "#/$defs/TraceEdge"
+      },
+      "title": "Edges",
+      "type": "array"
+    },
+    "notes": {
+      "items": {
+        "type": "string"
+      },
+      "title": "Notes",
+      "type": "array"
+    }
+  },
+  "required": [
+    "case_id",
+    "run_id",
+    "result_hash",
+    "as_of_seq",
+    "perspective",
+    "focus",
+    "evidence_level",
+    "nodes",
+    "edges",
+    "notes"
+  ],
+  "title": "EmergenceTrace",
+  "type": "object"
+}

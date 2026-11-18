@@ -1,0 +1,82 @@
+{
+  "date": "2026-11-18",
+  "release": "1.1.0-rc.2",
+  "release_sha256": "1906e01ca35333e2c56b69bb0c87e08fcb1284594587f4d1b688bcdb7df3b9c4",
+  "platform": "macOS 27.0 (26A428), arm64",
+  "browser": "Safari 27.0 (22625.1.29.11.27)",
+  "screen_reader": "VoiceOver 10",
+  "source": "macOS VoiceOver caption window, verified Safari private front window",
+  "evidence_directory": "output/playwright/ed09-safari-voiceover",
+  "observations": [
+    {
+      "task": "teacher_title",
+      "action": "刷新拍卖教学页",
+      "caption_excerpt": "双向拍卖教学活动",
+      "status": "verified",
+      "image": "teacher_title.png",
+      "sha256": "9b310af788528966a44170a41fd936573ce99d97c672a302b60e692f98533e37"
+    },
+    {
+      "task": "teacher_demo_link",
+      "action": "Option+Tab 聚焦展示入口",
+      "caption_excerpt": "链接，打开隔离展示课堂",
+      "status": "verified",
+      "image": "teacher_demo_link.png",
+      "sha256": "ddd3cb4bbd7442326c1194b5c62bc465d185f0a9c4054a375b35f4ee31c1c033"
+    },
+    {
+      "task": "auction_tab_amount",
+      "action": "Tab 移至平台收入字段",
+      "caption_excerpt": "2，内容已被选择，平台…",
+      "status": "partial_caption",
+      "image": "auction_tab_amount.png",
+      "sha256": "51cd9caf16aefefe0f7a360ccd9f05b864d5b2fc786b87bafe16a69b9a477b44"
+    },
+    {
+      "task": "svb_run_amount_label",
+      "action": "用 Tab 和 Shift+Tab 回到现金字段",
+      "caption_excerpt": "15，内容已被选择，现金…",
+      "status": "partial_caption",
+      "image": "svb_run_amount_label.png",
+      "sha256": "06401ae2e452def97a6b83e2120784e5cbc84ef883be365b9a538fb226876955"
+    },
+    {
+      "task": "schelling_segregation_amount_label",
+      "action": "聚焦邻域计算字段间导航",
+      "caption_excerpt": "60，在文本的结尾插入的内容…",
+      "status": "value_only",
+      "image": "schelling_segregation_amount_label.png",
+      "sha256": "18a8d7acc0652c8c2851bbf75001e669fb31d0e2d53e22aa86ad59bdc322ef9f"
+    },
+    {
+      "task": "auction_amount_label",
+      "action": "聚焦卖方剩余字段",
+      "status": "caption_not_observed"
+    },
+    {
+      "task": "auction_wrong_answer",
+      "action": "回车提交拍卖错答",
+      "status": "caption_not_observed"
+    },
+    {
+      "task": "auction_example_focus",
+      "action": "打开拍卖例题",
+      "status": "caption_not_observed"
+    },
+    {
+      "task": "auction_return_focus",
+      "action": "从拍卖例题返回",
+      "status": "caption_not_observed"
+    },
+    {
+      "task": "svb_run_wrong_answer",
+      "action": "回车提交 SVB 错答",
+      "status": "caption_not_observed"
+    },
+    {
+      "task": "schelling_segregation_wrong_answer",
+      "action": "回车提交 Schelling 错答",
+      "status": "caption_not_observed"
+    }
+  ]
+}

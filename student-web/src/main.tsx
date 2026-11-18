@@ -575,6 +575,12 @@ function InvalidLink({ error }: { error: string }) {
   </main></>;
 }
 
+const BridgePractice = lazy(() => import("./learning/bridge-practice").then(module => ({ default: module.BridgePractice })));
+const TeachingPage = lazy(() => import("./learning/teaching-page").then(module => ({ default: module.TeachingPage })));
+const ReviewPage = lazy(() => import("./learning/review-page").then(module => ({ default: module.ReviewPage })));
+const ConceptPage = lazy(() => import("./learning/concept-page").then(module => ({ default: module.ConceptPage })));
+const StudioPage = lazy(() => import("./emergence/studio-page").then(module => ({ default: module.StudioPage })));
+
 function Page() {
   if ((path === "/" && hasLegacyQuery) || path === "/experiments") {
     if (!activeCourse) return <InvalidLink error="课程不可用"/>;
@@ -593,7 +599,12 @@ function Page() {
       : path === "/compare" ? <ParameterLab initialCase={query.get("case")}/>
       : path === "/experiments/multi-role" ? <MultiRolePage/>
       : path === "/paths" ? <PathsPage/>
+      : path === "/emergence" ? <StudioPage/>
       : path === "/notes" ? <NotesPage/>
+      : path === "/review" ? <ReviewPage/>
+      : path === "/practice" ? <BridgePractice/>
+      : path === "/teach" ? <TeachingPage caseId={query.get("case") ?? ""}/>
+      : path === "/concepts" || path.startsWith("/concepts/") ? <ConceptPage conceptId={path.split("/")[2] ?? ""}/>
       : importCourse ? <CasePage course={importCourse}/>
       : path === "/learn/double_auction" ? <AuctionLesson/>
       : isFieldFlagship(fieldCase) ? <FlagshipLesson caseId={fieldCase} {...classroomPanels[fieldCase]}/>
@@ -602,8 +613,12 @@ function Page() {
 }
 
 const pageTitle = modelPage ? "模型实验" : path === "/" && hasLegacyQuery ? activeCourse?.title :
-  importCourse?.title ?? fieldCourse?.title ?? ({ "/cases": "案例库", "/compare": "参数对照", "/paths": "学习路径", "/notes": "实验笔记",
-    "/experiments": "模型实验", "/experiments/multi-role": "多角色模型实验", "/learn/double_auction": lesson.title } as Record<string, string>)[path];
+  importCourse?.title ?? fieldCourse?.title ?? ({
+    "/cases": "案例库", "/compare": "参数对照", "/paths": "学习路径", "/notes": "实验笔记",
+    "/review": "复习队列", "/practice": "跨课练习", "/concepts": "概念索引", "/emergence": "从微观到宏观",
+    "/teach": `${(activeCourse ?? catalog[0]).title}教学活动`,
+    "/experiments": "模型实验", "/experiments/multi-role": "多角色模型实验", "/learn/double_auction": lesson.title,
+  } as Record<string, string>)[path.startsWith("/concepts/") ? "/concepts" : path];
 const legacyView = linkedRun ? (linkedEvent !== null ? "运行事件" : "实验回放")
   : boundaryPage ? "边界实验" : modelPage ? "模型实验" : null;
 document.title = (path === "/" && hasLegacyQuery

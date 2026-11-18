@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { recordWorksheet } from "../../learning/worksheet-attempt";
 import type { Grid } from "../../lesson-types";
 import { coordinates, localCells, localCounts, satisfied } from "./neighborhood";
 
@@ -32,6 +33,8 @@ export function Neighborhood({ grid, cell, actor, threshold, excluded, label }: 
 export function Practice({ prediction = false }: { prediction?: boolean }) {
   const [chosen, setChosen] = useState<number[]>([]);
   const [checked, setChecked] = useState(false);
+  const [saving, setSaving] = useState(false);
+  const [storageError, setStorageError] = useState(false);
   const [threshold, setThreshold] = useState(30);
   const [answer, setAnswer] = useState("");
   const [same, total] = localCounts(localCells(example, 4), "A001");
@@ -69,7 +72,15 @@ export function Practice({ prediction = false }: { prediction?: boolean }) {
         {" "}同组 {same}/{total}，约 33.3%，{actual === "stay" ? "达到" : "未达到"} {threshold}%。
       </p>}
     </> : <>
-      <button type="button" onClick={() => setChecked(true)}>核对邻居计数</button>
+      <button type="button" disabled={saving} onClick={() => void (async () => {
+        setSaving(true);
+        setStorageError(false);
+        try { await recordWorksheet("schelling_segregation", "worksheet-schelling", [...chosen].sort(), eligible); }
+        catch { setStorageError(true); }
+        finally { setSaving(false); }
+        setChecked(true);
+      })()}>核对邻居计数</button>
+      {storageError && <p role="alert">这次邻域练习未能存入作答档案。</p>}
       {checked && <p role="status">{correct ? "你选中了全部已占邻居。" :
         chosen.includes(4) ? "中央是被观察居民，分母只数周边已住人的格子。" :
           chosen.some(index => example.cells[index] === null) ? "空位可以用于迁居，分母只数已经住人的格子。" :

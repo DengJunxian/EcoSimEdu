@@ -75,7 +75,7 @@ def _first_request_batch(run, events, tick):
     return _response("insufficient", "截至所选时点，运行没有记录提款申请。")
 
 
-def _observation(case, run, tick, descriptors, *, first_request=False):
+def _observation(case, run, tick, descriptors, *, first_request=False, guided=False):
     if (run is None or run.get("case_id") != case["case_id"]
             or run.get("case_version") != case["version"] or not run.get("run_id")):
         return _response("insufficient", "请在本案例的运行面板选取一个观察点，再查询该事件和指标。")
@@ -88,12 +88,24 @@ def _observation(case, run, tick, descriptors, *, first_request=False):
     if first_request:
         return _first_request_batch(run, events, tick)
     event, frame = events[tick], frames[tick]
+    if guided:
+        if case["case_id"] == "double_auction":
+            from .auction_view import project_auction
+
+            view = project_auction(run, tick)
+        else:
+            from .flagship_view import project_flagship
+
+            view = project_flagship(run, tick)
+        event, frame = view["events"][-1], view["frame"]
     metrics = frame_metrics(frame)
     values = []
     for descriptor in descriptors:
         value = metrics.get(descriptor["id"])
         if type(value) in (int, float) and math.isfinite(value):
             values.append(f'{descriptor["label"]}为 {value} {descriptor["unit"]}')
+        elif guided and descriptor["id"] not in metrics:
+            values.append(f'{descriptor["label"]}在当前课堂视图未揭示')
         else:
             values.append(f'{descriptor["label"]}没有记录')
     summary = event.get("summary")
@@ -142,7 +154,8 @@ def answer_tutor(case, question, run=None, tick=None, *, reveal_until=None):
             selected_tick = reveal_until if selected_tick is None else selected_tick
             if selected_tick > reveal_until:
                 return _response("insufficient", "引导播放尚未到达所查询的事件。可继续播放或查看全程。")
-        return _observation(case, run, selected_tick, matched or registry, first_request=first_request)
+        return _observation(case, run, selected_tick, matched or registry, first_request=first_request,
+                            guided=reveal_until is not None)
 
     if "反事实" in question or "对照" in question or "比较" in question:
         return _lesson_reply(case, "compare")

@@ -1,0 +1,590 @@
+{
+  "schema_version": 3,
+  "case_id": "carbon_market",
+  "content_version": "1.0.0",
+  "case_version": "1.0.0",
+  "source_ids": [
+    "S14",
+    "S14-CN"
+  ],
+  "outcomes": [
+    {
+      "id": "carbon_market.1",
+      "version": 1,
+      "concept_ids": [
+        "C15"
+      ],
+      "performance": "按递增边际成本分配固定减排量",
+      "evidence_requirement": "首次无该题提示且达到该任务的规则判据",
+      "phase": "explain",
+      "task": "比较两厂前三吨减排的边际成本",
+      "transfer": "比较固定总量与强度分配"
+    },
+    {
+      "id": "carbon_market.2",
+      "version": 1,
+      "concept_ids": [
+        "C04"
+      ],
+      "performance": "对账配额发行、交易和缴回",
+      "evidence_requirement": "首次无该题提示且达到该任务的规则判据",
+      "phase": "observe",
+      "task": "沿配额账本追踪一吨许可证",
+      "transfer": "辨认库存配额和当年发放"
+    },
+    {
+      "id": "carbon_market.3",
+      "version": 1,
+      "concept_ids": [
+        "C03"
+      ],
+      "performance": "区分减排资源成本与配额净支付",
+      "evidence_requirement": "首次无该题提示且达到该任务的规则判据",
+      "phase": "compare",
+      "task": "给固定总量修改免费分配",
+      "transfer": "比较资源投入与拍卖收入"
+    }
+  ],
+  "items": [
+    {
+      "id": "carbon-bridge",
+      "version": 1,
+      "variant_id": "carbon-bridge",
+      "family_id": "carbon_market.1",
+      "outcome_ids": [
+        "carbon_market.1"
+      ],
+      "kind": "numeric",
+      "prompt": "成本函数为 0.5×2×a²。第一吨的边际成本是多少？",
+      "context": {
+        "kind": "authored_model_exercise"
+      },
+      "assessment_role": "practice",
+      "response_schema": {
+        "fields": [
+          {
+            "id": "n1",
+            "label": "第一吨边际成本",
+            "unit": "代币"
+          }
+        ]
+      },
+      "evaluator": {
+        "id": "numeric_v1",
+        "version": 1,
+        "answers": [
+          1.0
+        ]
+      },
+      "feedback": {
+        "hint": "把题中给出的数量、规则和单位写成一步算式。",
+        "explanation": "从 a=0 到 a=1，总成本由 0 到 1。",
+        "misconception_code": "allocation_is_cap"
+      }
+    },
+    {
+      "id": "carbon-cost",
+      "version": 1,
+      "variant_id": "carbon-cost",
+      "family_id": "carbon_market.1",
+      "outcome_ids": [
+        "carbon_market.1"
+      ],
+      "kind": "numeric",
+      "prompt": "两厂各 4 吨基准排放，成本系数 2、8。上限 6 吨，须减 2 吨。在离散成本最小化中总成本？",
+      "context": {
+        "kind": "authored_model_exercise"
+      },
+      "assessment_role": "independent",
+      "response_schema": {
+        "fields": [
+          {
+            "id": "n1",
+            "label": "减排资源成本",
+            "unit": "代币"
+          }
+        ]
+      },
+      "evaluator": {
+        "id": "numeric_v1",
+        "version": 1,
+        "answers": [
+          4.0
+        ]
+      },
+      "feedback": {
+        "hint": "把题中给出的数量、规则和单位写成一步算式。",
+        "explanation": "两吨分配给低成本厂，边际 1＋3＝4。",
+        "misconception_code": "allocation_is_cap"
+      }
+    },
+    {
+      "id": "carbon-ledger",
+      "version": 1,
+      "variant_id": "carbon-ledger",
+      "family_id": "carbon_market.2",
+      "outcome_ids": [
+        "carbon_market.2"
+      ],
+      "kind": "numeric",
+      "prompt": "总量发行 10 张，转手 3 张，最后缴回 8 张。账面剩余配额数量？",
+      "context": {
+        "kind": "authored_model_exercise"
+      },
+      "assessment_role": "independent",
+      "response_schema": {
+        "fields": [
+          {
+            "id": "n1",
+            "label": "未缴回配额",
+            "unit": "张"
+          }
+        ]
+      },
+      "evaluator": {
+        "id": "numeric_v1",
+        "version": 1,
+        "answers": [
+          2.0
+        ]
+      },
+      "feedback": {
+        "hint": "把题中给出的数量、规则和单位写成一步算式。",
+        "explanation": "转手改变持有者，8 张缴回后余 2。",
+        "misconception_code": "request_is_payment"
+      }
+    },
+    {
+      "id": "carbon-free",
+      "version": 1,
+      "variant_id": "carbon-free",
+      "family_id": "carbon_market.3",
+      "outcome_ids": [
+        "carbon_market.3"
+      ],
+      "kind": "single_choice",
+      "prompt": "无融资约束、零交易费，总量和技术保持。向甲多免费分一张、乙少一张。直接改变什么？",
+      "context": {
+        "kind": "authored_model_exercise"
+      },
+      "assessment_role": "independent",
+      "response_schema": {
+        "options": [
+          {
+            "id": "option-0",
+            "label": "两厂各自配额净支付"
+          },
+          {
+            "id": "option-1",
+            "label": "行业减排总需求"
+          },
+          {
+            "id": "option-2",
+            "label": "两厂技术成本函数"
+          }
+        ]
+      },
+      "evaluator": {
+        "id": "choice_v1",
+        "version": 1,
+        "answer": "option-0"
+      },
+      "feedback": {
+        "hint": "逐项检查题干给出的规则和观察口径。",
+        "explanation": "总量与技术决定最小减排成本。分配改变谁付钱。",
+        "misconception_code": "all_fees_destroy_value"
+      }
+    },
+    {
+      "id": "carbon-proportional",
+      "version": 1,
+      "variant_id": "carbon-proportional",
+      "family_id": "carbon_market.1",
+      "outcome_ids": [
+        "carbon_market.1"
+      ],
+      "kind": "single_choice",
+      "prompt": "某制度按实际产量和强度基准发放配额。产量上升而强度基准固定时，应核对什么？",
+      "context": {
+        "kind": "authored_model_exercise"
+      },
+      "assessment_role": "transfer",
+      "response_schema": {
+        "options": [
+          {
+            "id": "option-1",
+            "label": "直接套用固定行业总量"
+          },
+          {
+            "id": "option-2",
+            "label": "把强度当成交价"
+          },
+          {
+            "id": "option-0",
+            "label": "有效总量是否随产量变动"
+          }
+        ]
+      },
+      "evaluator": {
+        "id": "choice_v1",
+        "version": 1,
+        "answer": "option-0"
+      },
+      "feedback": {
+        "hint": "逐项检查题干给出的规则和观察口径。",
+        "explanation": "按产出分配与独立固定总量是不同条件。",
+        "misconception_code": "allocation_is_cap"
+      }
+    },
+    {
+      "id": "carbon-transfer",
+      "version": 1,
+      "variant_id": "carbon-transfer",
+      "family_id": "carbon_market.2",
+      "outcome_ids": [
+        "carbon_market.2"
+      ],
+      "kind": "single_choice",
+      "prompt": "两个工厂跨厂转手一张许可证后，买家要按实际排放履约。核对什么才能确认履约？",
+      "context": {
+        "kind": "authored_model_exercise"
+      },
+      "assessment_role": "transfer",
+      "response_schema": {
+        "options": [
+          {
+            "id": "option-2",
+            "label": "卖家提供过报价"
+          },
+          {
+            "id": "option-0",
+            "label": "买家账上唯一许可已缴回且覆盖排放"
+          },
+          {
+            "id": "option-1",
+            "label": "看到买卖款已支付"
+          }
+        ]
+      },
+      "evaluator": {
+        "id": "choice_v1",
+        "version": 1,
+        "answer": "option-0"
+      },
+      "feedback": {
+        "hint": "逐项检查题干给出的规则和观察口径。",
+        "explanation": "许可证、付款与最终缴回各有独立责任。",
+        "misconception_code": "request_is_payment"
+      }
+    },
+    {
+      "id": "carbon-friction",
+      "version": 1,
+      "variant_id": "carbon-friction",
+      "family_id": "carbon_market.3",
+      "outcome_ids": [
+        "carbon_market.3"
+      ],
+      "kind": "single_choice",
+      "prompt": "若一家企业因现金限制无法买入配额，是否仍可直接推导改免费分配只改净支付？",
+      "context": {
+        "kind": "authored_model_exercise"
+      },
+      "assessment_role": "transfer",
+      "response_schema": {
+        "options": [
+          {
+            "id": "option-0",
+            "label": "须重新核对可行减排和交易，融资约束可改变配置"
+          },
+          {
+            "id": "option-1",
+            "label": "永远只改净支付"
+          },
+          {
+            "id": "option-2",
+            "label": "所有企业必然同样减排"
+          }
+        ]
+      },
+      "evaluator": {
+        "id": "choice_v1",
+        "version": 1,
+        "answer": "option-0"
+      },
+      "feedback": {
+        "hint": "逐项检查题干给出的规则和观察口径。",
+        "explanation": "无约束是结果成立的条件。",
+        "misconception_code": "all_fees_destroy_value"
+      }
+    },
+    {
+      "id": "review-1",
+      "version": 1,
+      "variant_id": "review-1",
+      "family_id": "carbon_market.1",
+      "outcome_ids": [
+        "carbon_market.1"
+      ],
+      "kind": "numeric",
+      "prompt": "企业系数 k＝4，减第 2 吨的增量成本是多少？",
+      "context": {
+        "kind": "authored_model_exercise"
+      },
+      "assessment_role": "review",
+      "response_schema": {
+        "fields": [
+          {
+            "id": "n1",
+            "label": "第二吨增量",
+            "unit": "代币"
+          }
+        ]
+      },
+      "evaluator": {
+        "id": "numeric_v1",
+        "version": 1,
+        "answers": [
+          6.0
+        ]
+      },
+      "feedback": {
+        "hint": "把题中给出的数量、规则和单位写成一步算式。",
+        "explanation": "4×(2−0.5)＝6。",
+        "misconception_code": "allocation_is_cap"
+      }
+    },
+    {
+      "id": "review-2",
+      "version": 1,
+      "variant_id": "review-2",
+      "family_id": "carbon_market.2",
+      "outcome_ids": [
+        "carbon_market.2"
+      ],
+      "kind": "numeric",
+      "prompt": "发行 12 张，累计缴回 12 张，允许单位唯一。未缴回多少？",
+      "context": {
+        "kind": "authored_model_exercise"
+      },
+      "assessment_role": "review",
+      "response_schema": {
+        "fields": [
+          {
+            "id": "n1",
+            "label": "未缴回",
+            "unit": "张"
+          }
+        ]
+      },
+      "evaluator": {
+        "id": "numeric_v1",
+        "version": 1,
+        "answers": [
+          0.0
+        ]
+      },
+      "feedback": {
+        "hint": "把题中给出的数量、规则和单位写成一步算式。",
+        "explanation": "12−12＝0。",
+        "misconception_code": "request_is_payment"
+      }
+    },
+    {
+      "id": "review-3",
+      "version": 1,
+      "variant_id": "review-3",
+      "family_id": "carbon_market.3",
+      "outcome_ids": [
+        "carbon_market.3"
+      ],
+      "kind": "numeric",
+      "prompt": "一个厂买许可支付 9，另一个厂收到 9；减排耗用 4。合计资源成本？",
+      "context": {
+        "kind": "authored_model_exercise"
+      },
+      "assessment_role": "review",
+      "response_schema": {
+        "fields": [
+          {
+            "id": "n1",
+            "label": "资源成本",
+            "unit": "代币"
+          }
+        ]
+      },
+      "evaluator": {
+        "id": "numeric_v1",
+        "version": 1,
+        "answers": [
+          4.0
+        ]
+      },
+      "feedback": {
+        "hint": "把题中给出的数量、规则和单位写成一步算式。",
+        "explanation": "支付双方抵消，资源成本为 4。",
+        "misconception_code": "all_fees_destroy_value"
+      }
+    }
+  ],
+  "activities": [
+    {
+      "id": "carbon-bridge",
+      "phase": "explain",
+      "kind": "assessment",
+      "outcome_ids": [
+        "carbon_market.1"
+      ],
+      "content_ref": "carbon-bridge",
+      "assessment_item_ids": [
+        "carbon-bridge"
+      ],
+      "completion_rule": "submit_or_skip",
+      "next_activity_id": "carbon-cost",
+      "remediation_activity_id": "worked-example"
+    },
+    {
+      "id": "carbon-cost",
+      "phase": "explain",
+      "kind": "assessment",
+      "outcome_ids": [
+        "carbon_market.1"
+      ],
+      "content_ref": "carbon-cost",
+      "assessment_item_ids": [
+        "carbon-cost"
+      ],
+      "completion_rule": "submit_or_skip",
+      "next_activity_id": "carbon-ledger"
+    },
+    {
+      "id": "carbon-ledger",
+      "phase": "explain",
+      "kind": "assessment",
+      "outcome_ids": [
+        "carbon_market.2"
+      ],
+      "content_ref": "carbon-ledger",
+      "assessment_item_ids": [
+        "carbon-ledger"
+      ],
+      "completion_rule": "submit_or_skip",
+      "next_activity_id": "carbon-free"
+    },
+    {
+      "id": "carbon-free",
+      "phase": "explain",
+      "kind": "assessment",
+      "outcome_ids": [
+        "carbon_market.3"
+      ],
+      "content_ref": "carbon-free",
+      "assessment_item_ids": [
+        "carbon-free"
+      ],
+      "completion_rule": "submit_or_skip",
+      "next_activity_id": null
+    },
+    {
+      "id": "carbon-proportional",
+      "phase": "notebook",
+      "kind": "assessment",
+      "outcome_ids": [
+        "carbon_market.1"
+      ],
+      "content_ref": "carbon-proportional",
+      "assessment_item_ids": [
+        "carbon-proportional"
+      ],
+      "completion_rule": "submit_or_skip",
+      "next_activity_id": "carbon-transfer"
+    },
+    {
+      "id": "carbon-transfer",
+      "phase": "notebook",
+      "kind": "assessment",
+      "outcome_ids": [
+        "carbon_market.2"
+      ],
+      "content_ref": "carbon-transfer",
+      "assessment_item_ids": [
+        "carbon-transfer"
+      ],
+      "completion_rule": "submit_or_skip",
+      "next_activity_id": "carbon-friction"
+    },
+    {
+      "id": "carbon-friction",
+      "phase": "notebook",
+      "kind": "assessment",
+      "outcome_ids": [
+        "carbon_market.3"
+      ],
+      "content_ref": "carbon-friction",
+      "assessment_item_ids": [
+        "carbon-friction"
+      ],
+      "completion_rule": "submit_or_skip",
+      "next_activity_id": null
+    },
+    {
+      "id": "review-1",
+      "phase": "notebook",
+      "kind": "review",
+      "outcome_ids": [
+        "carbon_market.1"
+      ],
+      "content_ref": "review-1",
+      "assessment_item_ids": [
+        "review-1"
+      ],
+      "completion_rule": "submit_or_skip",
+      "next_activity_id": null
+    },
+    {
+      "id": "review-2",
+      "phase": "notebook",
+      "kind": "review",
+      "outcome_ids": [
+        "carbon_market.2"
+      ],
+      "content_ref": "review-2",
+      "assessment_item_ids": [
+        "review-2"
+      ],
+      "completion_rule": "submit_or_skip",
+      "next_activity_id": null
+    },
+    {
+      "id": "review-3",
+      "phase": "notebook",
+      "kind": "review",
+      "outcome_ids": [
+        "carbon_market.3"
+      ],
+      "content_ref": "review-3",
+      "assessment_item_ids": [
+        "review-3"
+      ],
+      "completion_rule": "submit_or_skip",
+      "next_activity_id": null
+    },
+    {
+      "id": "worked-example",
+      "phase": "explain",
+      "kind": "example",
+      "outcome_ids": [
+        "carbon_market.1"
+      ],
+      "content_ref": "worked-example",
+      "assessment_item_ids": [],
+      "completion_rule": "read_or_skip",
+      "next_activity_id": null,
+      "return_activity_id": "carbon-bridge",
+      "text": "两厂各需从基准 4 吨起减排，成本系数 2 和 8，总配额 5。前三吨所选边际成本为 1、3、4，减量分配为 2 和 1，实际资源成本合计 8。"
+    }
+  ],
+  "required_comparisons": [
+    "uniform"
+  ]
+}

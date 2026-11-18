@@ -1,0 +1,312 @@
+{
+  "date": "2026-11-18",
+  "screen_reader": "Orca 48.1",
+  "accessibility_bus": "AT-SPI 2.56.2",
+  "environment": "Debian 13 ARM64, Xvfb, Chromium, Speech Dispatcher/eSpeak NG, no network",
+  "method": "Speech logged by Orca during actions in an isolated local classroom",
+  "rc.1": {
+    "browser": "156.0.8078.79",
+    "scope": "education-upgrade",
+    "viewport_width": 390,
+    "observations": [
+      {
+        "task": "auction_amount_label",
+        "required_phrases": [
+          "卖方剩余",
+          "代币"
+        ],
+        "spoken": [
+          "'main content'",
+          "'场景操作 landmark'",
+          "'双向拍卖交易大厅 landmark'",
+          "'市场时间 landmark'",
+          "'快进到收盘 button grayed.'",
+          "'leaving region.'",
+          "'leaving region.'",
+          "'课堂练习 landmark'",
+          "'价值 108、成本 84、成交价 96，每方付 2 代币。买方剩余已算出 10。补上卖方剩余和平台收入。 panel'",
+          "'leaving region.'",
+          "'leaving region.'",
+          "'课堂练习 landmark'",
+          "'价值 108、成本 84、成交价 96，每方付 2 代币。买方剩余已算出 10。补上卖方剩余和平台收入。 panel'",
+          "'卖方剩余（代币） spin button 0 required.'",
+          "'Focus mode'"
+        ],
+        "passed": true
+      },
+      {
+        "task": "auction_tab_amount",
+        "required_phrases": [
+          "平台收入",
+          "代币"
+        ],
+        "spoken": [
+          "'tab'",
+          "'平台收入（代币） spin button 0 required.'"
+        ],
+        "passed": true
+      },
+      {
+        "task": "auction_wrong_answer",
+        "required_phrases": [
+          "再核对这一步"
+        ],
+        "spoken": [
+          "'return'",
+          "'• 卖方剩余 · 待核对'"
+        ],
+        "passed": false
+      },
+      {
+        "task": "auction_example_focus",
+        "required_phrases": [
+          "看一个完整例题"
+        ],
+        "spoken": [
+          "'return'",
+          "'main content'",
+          "'场景操作 landmark'",
+          "'课堂练习 landmark'",
+          "'看一个完整例题 heading 2 clickable.'"
+        ],
+        "passed": true
+      },
+      {
+        "task": "auction_return_focus",
+        "required_phrases": [
+          "练习 heading"
+        ],
+        "spoken": [
+          "'return'",
+          "'看一个完整例题 heading 2 clickable.'"
+        ],
+        "passed": false
+      },
+      {
+        "task": "svb_run_amount_label",
+        "required_phrases": [
+          "现金"
+        ],
+        "spoken": [
+          "'leaving region.'",
+          "'课堂练习 landmark'",
+          "'初始现金 20、证券 30、贷款 50、存款 80。借 10，再卖掉账面 10 的证券并收到 8，随后实付 25。填写期末现金、存款和权益。 panel'",
+          "'leaving region.'",
+          "'课堂练习 landmark'",
+          "'初始现金 20、证券 30、贷款 50、存款 80。借 10，再卖掉账面 10 的证券并收到 8，随后实付 25。填写期末现金、存款和权益。 panel'",
+          "'现金（资金单位） spin button 0 required.'",
+          "'Focus mode'"
+        ],
+        "passed": true
+      },
+      {
+        "task": "svb_run_wrong_answer",
+        "required_phrases": [
+          "再核对这一步"
+        ],
+        "spoken": [
+          "'return'",
+          "'• 存款 · 正确'"
+        ],
+        "passed": false
+      },
+      {
+        "task": "schelling_segregation_amount_label",
+        "required_phrases": [
+          "已占邻居数"
+        ],
+        "spoken": [
+          "'回放控制 landmark'",
+          "'快进到结束 button grayed.'",
+          "'leaving region.'",
+          "'课堂练习 landmark'",
+          "'中央住户 A 周围有 3 个 A、2 个 B、3 个空位。填同类比例的分母与百分数。 panel'",
+          "'leaving region.'",
+          "'课堂练习 landmark'",
+          "'中央住户 A 周围有 3 个 A、2 个 B、3 个空位。填同类比例的分母与百分数。 panel'",
+          "'已占邻居数（人） spin button 0 required.'",
+          "'Focus mode'"
+        ],
+        "passed": true
+      },
+      {
+        "task": "schelling_segregation_wrong_answer",
+        "required_phrases": [
+          "再核对这一步"
+        ],
+        "spoken": [
+          "'return'",
+          "'再核对这一步• 已占邻居数 · 待核对 • 同类比例 · 正确 分母 3＋2＝5。比例 3／5＝60%。 首次无本题帮助。'"
+        ],
+        "passed": true
+      },
+      {
+        "task": "teaching_title",
+        "required_phrases": [
+          "双向拍卖教学活动 · EcoSimEdu"
+        ],
+        "spoken": [
+          "'Finished loading EcoSimEdu · Civitas Economica.'"
+        ],
+        "passed": false
+      },
+      {
+        "task": "teaching_demo_link",
+        "required_phrases": [
+          "打开隔离展示课堂"
+        ],
+        "spoken": [
+          "'打开隔离展示课堂 link.'"
+        ],
+        "passed": true
+      }
+    ]
+  },
+  "rc.2": {
+    "browser": "156.0.8078.79",
+    "scope": "education-upgrade",
+    "viewport_width": 390,
+    "observations": [
+      {
+        "task": "auction_amount_label",
+        "required_phrases": [
+          "卖方剩余",
+          "代币"
+        ],
+        "spoken": [
+          "'leaving region.'",
+          "'leaving region.'",
+          "'课堂练习 landmark'",
+          "'价值 108、成本 84、成交价 96，每方付 2 代币。买方剩余已算出 10。补上卖方剩余和平台收入。 panel'",
+          "'leaving region.'",
+          "'leaving region.'",
+          "'课堂练习 landmark'",
+          "'价值 108、成本 84、成交价 96，每方付 2 代币。买方剩余已算出 10。补上卖方剩余和平台收入。 panel'",
+          "'卖方剩余（代币） spin button 0 required.'",
+          "'Focus mode'"
+        ],
+        "passed": true
+      },
+      {
+        "task": "auction_tab_amount",
+        "required_phrases": [
+          "平台收入",
+          "代币"
+        ],
+        "spoken": [
+          "'tab'",
+          "'main content'",
+          "'场景操作 landmark'",
+          "'课堂练习 landmark'",
+          "'价值 108、成本 84、成交价 96，每方付 2 代币。买方剩余已算出 10。补上卖方剩余和平台收入。 panel'",
+          "'main content'",
+          "'场景操作 landmark'",
+          "'课堂练习 landmark'",
+          "'价值 108、成本 84、成交价 96，每方付 2 代币。买方剩余已算出 10。补上卖方剩余和平台收入。 panel'",
+          "'平台收入（代币） spin button 0 required.'"
+        ],
+        "passed": true
+      },
+      {
+        "task": "auction_wrong_answer",
+        "required_phrases": [
+          "再核对这一步"
+        ],
+        "spoken": [
+          "'return'",
+          "'再核对这一步'"
+        ],
+        "passed": true
+      },
+      {
+        "task": "auction_example_focus",
+        "required_phrases": [
+          "看一个完整例题"
+        ],
+        "spoken": [
+          "'return'",
+          "'看一个完整例题 heading 2 clickable.'"
+        ],
+        "passed": true
+      },
+      {
+        "task": "auction_return_focus",
+        "required_phrases": [
+          "练习 heading"
+        ],
+        "spoken": [
+          "'return'",
+          "'双向拍卖 · EcoSimEdu · Civitas Economica - Chromium'",
+          "'双向拍卖 · EcoSimEdu · Civitas Economica document web'",
+          "'main content'",
+          "'场景操作 landmark'",
+          "'课堂练习 landmark'",
+          "'练习 heading 2 clickable.'"
+        ],
+        "passed": true
+      },
+      {
+        "task": "svb_run_amount_label",
+        "required_phrases": [
+          "现金"
+        ],
+        "spoken": [
+          "'现金（资金单位） spin button 0 required.'"
+        ],
+        "passed": true
+      },
+      {
+        "task": "svb_run_wrong_answer",
+        "required_phrases": [
+          "再核对这一步"
+        ],
+        "spoken": [
+          "'return'",
+          "'再核对这一步'"
+        ],
+        "passed": true
+      },
+      {
+        "task": "schelling_segregation_amount_label",
+        "required_phrases": [
+          "已占邻居数"
+        ],
+        "spoken": [
+          "'已占邻居数（人） spin button 0 required.'"
+        ],
+        "passed": true
+      },
+      {
+        "task": "schelling_segregation_wrong_answer",
+        "required_phrases": [
+          "再核对这一步"
+        ],
+        "spoken": [
+          "'return'",
+          "'再核对这一步'"
+        ],
+        "passed": true
+      },
+      {
+        "task": "teaching_title",
+        "required_phrases": [
+          "双向拍卖教学活动 · EcoSimEdu"
+        ],
+        "spoken": [
+          "'Finished loading 双向拍卖教学活动 · EcoSimEdu · Civitas Economica.'"
+        ],
+        "passed": true
+      },
+      {
+        "task": "teaching_demo_link",
+        "required_phrases": [
+          "打开隔离展示课堂"
+        ],
+        "spoken": [
+          "'打开隔离展示课堂 link.'"
+        ],
+        "passed": true
+      }
+    ]
+  }
+}

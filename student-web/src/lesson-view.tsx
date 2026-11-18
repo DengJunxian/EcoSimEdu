@@ -83,8 +83,11 @@ export function GridView({ grid, selection, onSelect, affected = [] }: {
   </figure>;
 }
 
-export function MetricChart({ course, frames, tick, change }: {
-  course: Course; frames: Pick<Frame, "metrics">[]; tick: number; change: (tick: number) => void;
+export function MetricChart({ course, frames, tick, change, interval, metricChanged }: {
+  course: Pick<Course, "metrics">; frames: Pick<Frame, "metrics">[]; tick: number;
+  change: (tick: number, metricId: string) => void;
+  interval?: readonly [number, number];
+  metricChanged?: (metricId: string) => void;
 }) {
   const [metricId, setMetricId] = useState(course.metrics[0].id);
   const metric = course.metrics.find(m => m.id === metricId)!;
@@ -94,26 +97,32 @@ export function MetricChart({ course, frames, tick, change }: {
   const max = finite.length ? Math.max(...finite) : 0;
   const end = frames.length - 1;
   const from = Math.max(0, tick - 2);
-  const at = (index: number) => 52 + 510 * index / Math.max(1, end);
+  const left = 78;
+  const right = 562;
+  const at = (index: number) => left + (right - left) * index / Math.max(1, end);
   const y = (number: number) => 137 - (max === min ? .5 : (number - min) / (max - min)) * 106;
   const d = values.map((v, i) =>
     v == null ? "" : `${i > 0 && values[i - 1] != null ? "L" : "M"}${at(i)},${y(v)}`).join(" ");
   return <figure>
-    <label>图表指标 <select aria-label="图表指标" value={metricId} onChange={e => setMetricId(e.target.value)}>
+    <label>图表指标 <select aria-label="图表指标" value={metricId} onChange={e => {
+      setMetricId(e.target.value); metricChanged?.(e.target.value);
+    }}>
       {course.metrics.map(item => <option key={item.id} value={item.id}>{item.label}（{item.unit}）</option>)}
     </select></label>
     {finite.length ? <><svg className="lesson-series" viewBox="0 0 595 171" role="img"
       aria-label={`${metric.label}随事件变化，当前值 ${showValue(values[tick])} ${metric.unit}`}
       onClick={e => {
         const bounds = e.currentTarget.getBoundingClientRect();
-        const offset = ((e.clientX - bounds.left) / bounds.width * 595 - 52) / 510;
-        change(Math.max(0, Math.min(end, Math.round(offset * end))));
+        const offset = ((e.clientX - bounds.left) / bounds.width * 595 - left) / (right - left);
+        change(Math.max(0, Math.min(end, Math.round(offset * end))), metricId);
       }}>
-      <line className="gridline" x1="52" x2="562" y1="137" y2="137"/>
-      <line className="gridline" x1="52" x2="562" y1="31" y2="31"/>
-      <text x="46" y="34" textAnchor="end">{showValue(max)}</text>
-      {min !== max && <text x="46" y="141" textAnchor="end">{showValue(min)}</text>}
-      <text x="562" y="162" textAnchor="end">事件 {end}</text>
+      <line className="gridline" x1={left} x2={right} y1="137" y2="137"/>
+      <line className="gridline" x1={left} x2={right} y1="31" y2="31"/>
+      <text x={left - 6} y="34" textAnchor="end">{showValue(max)}</text>
+      {min !== max && <text x={left - 6} y="141" textAnchor="end">{showValue(min)}</text>}
+      <text x={right} y="162" textAnchor="end">事件 {end}</text>
+      {interval && <rect className="metric-interval" x={at(interval[0])} y="24"
+        width={at(interval[1]) - at(interval[0])} height="119" fill="currentColor" opacity=".12"/>}
       <path className="demand" d={d}/>
       <line className="gridline" x1={at(tick)} x2={at(tick)} y1="24" y2="143"/>
       {values[tick] != null && <circle className="selected-point" cx={at(tick)} cy={y(values[tick]!)} r="5"/>}
@@ -124,7 +133,7 @@ export function MetricChart({ course, frames, tick, change }: {
         <tbody>{values.slice(from, tick + 3).map((value, offset) => {
           const position = from + offset;
           return <tr key={position}><th scope="row"><button className="text-button"
-            aria-current={position === tick ? "step" : undefined} onClick={() => change(position)}>事件 {position}</button></th>
+            aria-current={position === tick ? "step" : undefined} onClick={() => change(position, metricId)}>事件 {position}</button></th>
             <td>{value == null ? "缺失" : showValue(value)}</td></tr>;
         })}</tbody>
       </table>

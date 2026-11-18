@@ -1,0 +1,589 @@
+{
+  "schema_version": 3,
+  "case_id": "commons_governance",
+  "content_version": "1.0.0",
+  "case_version": "1.0.0",
+  "source_ids": [
+    "S06"
+  ],
+  "outcomes": [
+    {
+      "id": "commons_governance.1",
+      "version": 1,
+      "concept_ids": [
+        "C10"
+      ],
+      "performance": "按取用后存量计算再生和期末资源",
+      "evidence_requirement": "首次无该题提示且达到该任务的规则判据",
+      "phase": "explain",
+      "task": "从 S100、H20 和指定再生函数求 S′",
+      "transfer": "辨认地下水模型的季节条件"
+    },
+    {
+      "id": "commons_governance.2",
+      "version": 1,
+      "concept_ids": [
+        "C03"
+      ],
+      "performance": "核对罚款、检查费用与管护预算",
+      "evidence_requirement": "首次无该题提示且达到该任务的规则判据",
+      "phase": "observe",
+      "task": "计算管护账户和净资源损耗",
+      "transfer": "水渠检查支出与缴费转移"
+    },
+    {
+      "id": "commons_governance.3",
+      "version": 1,
+      "concept_ids": [
+        "C16"
+      ],
+      "performance": "比较配额和监督对取用与资源再生的作用",
+      "evidence_requirement": "首次无该题提示且达到该任务的规则判据",
+      "phase": "compare",
+      "task": "识别共同初态与具体处理",
+      "transfer": "考虑降雨与取用权共同变化"
+    }
+  ],
+  "items": [
+    {
+      "id": "commons-bridge",
+      "version": 1,
+      "variant_id": "commons-bridge",
+      "family_id": "commons_governance.1",
+      "outcome_ids": [
+        "commons_governance.1"
+      ],
+      "kind": "numeric",
+      "prompt": "本期开始存量 130，实际取走 10。再生前存量是多少？",
+      "context": {
+        "kind": "authored_model_exercise"
+      },
+      "assessment_role": "practice",
+      "response_schema": {
+        "fields": [
+          {
+            "id": "n1",
+            "label": "再生前存量",
+            "unit": "单位"
+          }
+        ]
+      },
+      "evaluator": {
+        "id": "numeric_v1",
+        "version": 1,
+        "answers": [
+          120.0
+        ]
+      },
+      "feedback": {
+        "hint": "把题中给出的数量、规则和单位写成一步算式。",
+        "explanation": "先实际取用，130−10＝120。",
+        "misconception_code": "regenerate_from_opening_stock"
+      }
+    },
+    {
+      "id": "commons-growth",
+      "version": 1,
+      "variant_id": "commons-growth",
+      "family_id": "commons_governance.1",
+      "outcome_ids": [
+        "commons_governance.1"
+      ],
+      "kind": "numeric",
+      "prompt": "期初 150、实际取用 30，K＝240，r＝0.55。下期存量多少？",
+      "context": {
+        "kind": "authored_model_exercise"
+      },
+      "assessment_role": "independent",
+      "response_schema": {
+        "fields": [
+          {
+            "id": "n1",
+            "label": "下期存量",
+            "unit": "单位"
+          }
+        ]
+      },
+      "evaluator": {
+        "id": "numeric_v1",
+        "version": 1,
+        "answers": [
+          153.0
+        ]
+      },
+      "feedback": {
+        "hint": "把题中给出的数量、规则和单位写成一步算式。",
+        "explanation": "余 120，再生 0.55×120×0.5＝33，下期 153。",
+        "misconception_code": "regenerate_from_opening_stock"
+      }
+    },
+    {
+      "id": "commons-ledger",
+      "version": 1,
+      "variant_id": "commons-ledger",
+      "family_id": "commons_governance.2",
+      "outcome_ids": [
+        "commons_governance.2"
+      ],
+      "kind": "numeric",
+      "prompt": "管护账户期初 8，检查支出 2，收到合计扣缴 5。期末账户余额？",
+      "context": {
+        "kind": "authored_model_exercise"
+      },
+      "assessment_role": "independent",
+      "response_schema": {
+        "fields": [
+          {
+            "id": "n1",
+            "label": "管护余额",
+            "unit": "代币"
+          }
+        ]
+      },
+      "evaluator": {
+        "id": "numeric_v1",
+        "version": 1,
+        "answers": [
+          11.0
+        ]
+      },
+      "feedback": {
+        "hint": "把题中给出的数量、规则和单位写成一步算式。",
+        "explanation": "8−2＋5＝11，罚款在群体账中需同付出端抵消。",
+        "misconception_code": "all_fees_destroy_value"
+      }
+    },
+    {
+      "id": "commons-policy",
+      "version": 1,
+      "variant_id": "commons-policy",
+      "family_id": "commons_governance.3",
+      "outcome_ids": [
+        "commons_governance.3"
+      ],
+      "kind": "single_choice",
+      "prompt": "要核验限额对当期实际取用的影响，应保持哪些量？",
+      "context": {
+        "kind": "authored_model_exercise"
+      },
+      "assessment_role": "independent",
+      "response_schema": {
+        "options": [
+          {
+            "id": "option-0",
+            "label": "固定人口、期初存量、再生参数和当期共同冲击"
+          },
+          {
+            "id": "option-1",
+            "label": "同时将人口和限额减半"
+          },
+          {
+            "id": "option-2",
+            "label": "固定两组期末存量"
+          }
+        ]
+      },
+      "evaluator": {
+        "id": "choice_v1",
+        "version": 1,
+        "answer": "option-0"
+      },
+      "feedback": {
+        "hint": "逐项检查题干给出的规则和观察口径。",
+        "explanation": "同时改变人口会把两个处理混在一起。",
+        "misconception_code": "mixed_treatments_single_cause"
+      }
+    },
+    {
+      "id": "commons-aquifer",
+      "version": 1,
+      "variant_id": "commons-aquifer",
+      "family_id": "commons_governance.1",
+      "outcome_ids": [
+        "commons_governance.1"
+      ],
+      "kind": "single_choice",
+      "prompt": "一个地下水模型使用相同取用量，但降雨补给有季节性。应怎样迁移课程计算？",
+      "context": {
+        "kind": "authored_model_exercise"
+      },
+      "assessment_role": "transfer",
+      "response_schema": {
+        "options": [
+          {
+            "id": "option-1",
+            "label": "直接沿用 0.55 不再验证"
+          },
+          {
+            "id": "option-2",
+            "label": "把每个周期的实际取用视为补给"
+          },
+          {
+            "id": "option-0",
+            "label": "按本地补给季节改写增长项，继续按取用余额记账"
+          }
+        ]
+      },
+      "evaluator": {
+        "id": "choice_v1",
+        "version": 1,
+        "answer": "option-0"
+      },
+      "feedback": {
+        "hint": "逐项检查题干给出的规则和观察口径。",
+        "explanation": "存量恒等关系可迁移，补给函数需要实地资料。",
+        "misconception_code": "regenerate_from_opening_stock"
+      }
+    },
+    {
+      "id": "commons-canal",
+      "version": 1,
+      "variant_id": "commons-canal",
+      "family_id": "commons_governance.2",
+      "outcome_ids": [
+        "commons_governance.2"
+      ],
+      "kind": "numeric",
+      "prompt": "水渠使用者缴费 7 进入共同资金，共同体花 2 请人检查。合计净减少多少？",
+      "context": {
+        "kind": "authored_model_exercise"
+      },
+      "assessment_role": "transfer",
+      "response_schema": {
+        "fields": [
+          {
+            "id": "n1",
+            "label": "群体净支出",
+            "unit": "元"
+          }
+        ]
+      },
+      "evaluator": {
+        "id": "numeric_v1",
+        "version": 1,
+        "answers": [
+          2.0
+        ]
+      },
+      "feedback": {
+        "hint": "把题中给出的数量、规则和单位写成一步算式。",
+        "explanation": "缴费 7 在共同体内部抵消，检查耗用计 2。",
+        "misconception_code": "all_fees_destroy_value"
+      }
+    },
+    {
+      "id": "commons-drought",
+      "version": 1,
+      "variant_id": "commons-drought",
+      "family_id": "commons_governance.3",
+      "outcome_ids": [
+        "commons_governance.3"
+      ],
+      "kind": "single_choice",
+      "prompt": "加严限额的年份同时遭遇干旱。期末存量降低能否直接归因给限额？",
+      "context": {
+        "kind": "authored_model_exercise"
+      },
+      "assessment_role": "transfer",
+      "response_schema": {
+        "options": [
+          {
+            "id": "option-0",
+            "label": "需在相同补给条件对照限额，再辨认两项贡献"
+          },
+          {
+            "id": "option-1",
+            "label": "可以归因给限额"
+          },
+          {
+            "id": "option-2",
+            "label": "干旱确定和存量无关"
+          }
+        ]
+      },
+      "evaluator": {
+        "id": "choice_v1",
+        "version": 1,
+        "answer": "option-0"
+      },
+      "feedback": {
+        "hint": "逐项检查题干给出的规则和观察口径。",
+        "explanation": "补给变化与限额变化都是候选原因。",
+        "misconception_code": "mixed_treatments_single_cause"
+      }
+    },
+    {
+      "id": "review-1",
+      "version": 1,
+      "variant_id": "review-1",
+      "family_id": "commons_governance.1",
+      "outcome_ids": [
+        "commons_governance.1"
+      ],
+      "kind": "numeric",
+      "prompt": "资源余量 120，K＝240，r 改为 0.3。再生量是多少？",
+      "context": {
+        "kind": "authored_model_exercise"
+      },
+      "assessment_role": "review",
+      "response_schema": {
+        "fields": [
+          {
+            "id": "n1",
+            "label": "再生量",
+            "unit": "单位"
+          }
+        ]
+      },
+      "evaluator": {
+        "id": "numeric_v1",
+        "version": 1,
+        "answers": [
+          18.0
+        ]
+      },
+      "feedback": {
+        "hint": "把题中给出的数量、规则和单位写成一步算式。",
+        "explanation": "0.3×120×0.5＝18。",
+        "misconception_code": "regenerate_from_opening_stock"
+      }
+    },
+    {
+      "id": "review-2",
+      "version": 1,
+      "variant_id": "review-2",
+      "family_id": "commons_governance.2",
+      "outcome_ids": [
+        "commons_governance.2"
+      ],
+      "kind": "numeric",
+      "prompt": "收入 30，内部扣缴 4，管护实际检查支出 3。群体净收益是多少？",
+      "context": {
+        "kind": "authored_model_exercise"
+      },
+      "assessment_role": "review",
+      "response_schema": {
+        "fields": [
+          {
+            "id": "n1",
+            "label": "群体净收益",
+            "unit": "代币"
+          }
+        ]
+      },
+      "evaluator": {
+        "id": "numeric_v1",
+        "version": 1,
+        "answers": [
+          27.0
+        ]
+      },
+      "feedback": {
+        "hint": "把题中给出的数量、规则和单位写成一步算式。",
+        "explanation": "扣缴抵消，30−3＝27。",
+        "misconception_code": "all_fees_destroy_value"
+      }
+    },
+    {
+      "id": "review-3",
+      "version": 1,
+      "variant_id": "review-3",
+      "family_id": "commons_governance.3",
+      "outcome_ids": [
+        "commons_governance.3"
+      ],
+      "kind": "single_choice",
+      "prompt": "两组同样的累计收入，其中一组期末存量更低。还应报告什么？",
+      "context": {
+        "kind": "authored_model_exercise"
+      },
+      "assessment_role": "review",
+      "response_schema": {
+        "options": [
+          {
+            "id": "option-0",
+            "label": "保留存量差作为后续供给条件"
+          },
+          {
+            "id": "option-1",
+            "label": "可以忽略，因为收入相同"
+          },
+          {
+            "id": "option-2",
+            "label": "需要把收入乘以期末存量"
+          }
+        ]
+      },
+      "evaluator": {
+        "id": "choice_v1",
+        "version": 1,
+        "answer": "option-0"
+      },
+      "feedback": {
+        "hint": "逐项检查题干给出的规则和观察口径。",
+        "explanation": "收入和资源基础回答不同的问题。",
+        "misconception_code": "mixed_treatments_single_cause"
+      }
+    }
+  ],
+  "activities": [
+    {
+      "id": "commons-bridge",
+      "phase": "explain",
+      "kind": "assessment",
+      "outcome_ids": [
+        "commons_governance.1"
+      ],
+      "content_ref": "commons-bridge",
+      "assessment_item_ids": [
+        "commons-bridge"
+      ],
+      "completion_rule": "submit_or_skip",
+      "next_activity_id": "commons-growth",
+      "remediation_activity_id": "worked-example"
+    },
+    {
+      "id": "commons-growth",
+      "phase": "explain",
+      "kind": "assessment",
+      "outcome_ids": [
+        "commons_governance.1"
+      ],
+      "content_ref": "commons-growth",
+      "assessment_item_ids": [
+        "commons-growth"
+      ],
+      "completion_rule": "submit_or_skip",
+      "next_activity_id": "commons-ledger"
+    },
+    {
+      "id": "commons-ledger",
+      "phase": "explain",
+      "kind": "assessment",
+      "outcome_ids": [
+        "commons_governance.2"
+      ],
+      "content_ref": "commons-ledger",
+      "assessment_item_ids": [
+        "commons-ledger"
+      ],
+      "completion_rule": "submit_or_skip",
+      "next_activity_id": "commons-policy"
+    },
+    {
+      "id": "commons-policy",
+      "phase": "explain",
+      "kind": "assessment",
+      "outcome_ids": [
+        "commons_governance.3"
+      ],
+      "content_ref": "commons-policy",
+      "assessment_item_ids": [
+        "commons-policy"
+      ],
+      "completion_rule": "submit_or_skip",
+      "next_activity_id": null
+    },
+    {
+      "id": "commons-aquifer",
+      "phase": "notebook",
+      "kind": "assessment",
+      "outcome_ids": [
+        "commons_governance.1"
+      ],
+      "content_ref": "commons-aquifer",
+      "assessment_item_ids": [
+        "commons-aquifer"
+      ],
+      "completion_rule": "submit_or_skip",
+      "next_activity_id": "commons-canal"
+    },
+    {
+      "id": "commons-canal",
+      "phase": "notebook",
+      "kind": "assessment",
+      "outcome_ids": [
+        "commons_governance.2"
+      ],
+      "content_ref": "commons-canal",
+      "assessment_item_ids": [
+        "commons-canal"
+      ],
+      "completion_rule": "submit_or_skip",
+      "next_activity_id": "commons-drought"
+    },
+    {
+      "id": "commons-drought",
+      "phase": "notebook",
+      "kind": "assessment",
+      "outcome_ids": [
+        "commons_governance.3"
+      ],
+      "content_ref": "commons-drought",
+      "assessment_item_ids": [
+        "commons-drought"
+      ],
+      "completion_rule": "submit_or_skip",
+      "next_activity_id": null
+    },
+    {
+      "id": "review-1",
+      "phase": "notebook",
+      "kind": "review",
+      "outcome_ids": [
+        "commons_governance.1"
+      ],
+      "content_ref": "review-1",
+      "assessment_item_ids": [
+        "review-1"
+      ],
+      "completion_rule": "submit_or_skip",
+      "next_activity_id": null
+    },
+    {
+      "id": "review-2",
+      "phase": "notebook",
+      "kind": "review",
+      "outcome_ids": [
+        "commons_governance.2"
+      ],
+      "content_ref": "review-2",
+      "assessment_item_ids": [
+        "review-2"
+      ],
+      "completion_rule": "submit_or_skip",
+      "next_activity_id": null
+    },
+    {
+      "id": "review-3",
+      "phase": "notebook",
+      "kind": "review",
+      "outcome_ids": [
+        "commons_governance.3"
+      ],
+      "content_ref": "review-3",
+      "assessment_item_ids": [
+        "review-3"
+      ],
+      "completion_rule": "submit_or_skip",
+      "next_activity_id": null
+    },
+    {
+      "id": "worked-example",
+      "phase": "explain",
+      "kind": "example",
+      "outcome_ids": [
+        "commons_governance.1"
+      ],
+      "content_ref": "worked-example",
+      "assessment_item_ids": [],
+      "completion_rule": "read_or_skip",
+      "next_activity_id": null,
+      "return_activity_id": "commons-bridge",
+      "text": "期初存量 100，取走 20，余 80。K＝240、r＝0.55 时再生约 29.33，下期约 109.33。检查支出减少资源收益，社区账户收到的罚款属于转移。"
+    }
+  ],
+  "required_comparisons": [
+    "quota"
+  ]
+}

@@ -86,3 +86,18 @@
   .schelling-local-compare { grid-template-columns: minmax(0, 1fr); }
   .schelling-metrics { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 }
+
+.emergence-studio { margin-block: 20px; }
+.emergence-studio > summary { font-weight: 700; }
+.emergence-section {
+  border-block-start: 1px solid var(--line);
+  margin-block-start: 18px;
+  padding-block-start: 12px;
+}
+.emergence-section > h3 { margin-block: 0 8px; }
+.emergence-section > p { max-inline-size: 70ch; }
+.emergence-section figure { margin-inline: 0; }
+.emergence-section .table-scroll { overflow-x: auto; }
+.emergence-section :is(button, select) { min-block-size: 44px; }
+.emergence-section select { max-inline-size: 100%; }
+.emergence-identities dd { margin-inline-start: 0; overflow-wrap: anywhere; }

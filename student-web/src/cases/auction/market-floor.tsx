@@ -4,6 +4,8 @@ import { PriceChart } from "../../charts";
 import { eventHref } from "../../contracts";
 import type { AuctionEvidence } from "./auction-study";
 import { useAuctionSelection } from "./selection-context";
+import { CompactViews, LedgerEvidence } from "../../emergence/trace-view";
+import { AuctionStructureTask } from "./structure-task";
 
 const eventNames: Record<string, string> = {
   market_open: "市场开盘", market_close: "市场收盘", order_submitted: "报价入簿",
@@ -68,8 +70,9 @@ function PlaybackController() {
   </section>;
 }
 
-export function MarketFloor({ cite, evidence, explaining }: {
+export function MarketFloor({ cite, evidence, explaining, explore }: {
   cite: (evidence: AuctionEvidence) => void; evidence: AuctionEvidence[]; explaining: boolean;
+  explore?: boolean;
 }) {
   const { view, mode, seekEvidence, pinned, pin, selectedActor, selectActor } = useAuctionSelection();
   const actorPicker = useRef<HTMLSelectElement>(null);
@@ -87,8 +90,8 @@ export function MarketFloor({ cite, evidence, explaining }: {
     return lowest === null ? event.price : Math.min(lowest, event.price);
   }, null);
   const captured = view.evidence && evidence.some(item => item.run_id === view.run_id && item.seq === view.evidence?.seq);
-  return <section className="auction-floor" aria-label="双向拍卖交易大厅">
-    <PlaybackController/>
+  const focus = { run_id: view.run_id, result_hash: view.result_hash, tick: view.tick, case_id: "double_auction" };
+  const world = <>
     <div className="auction-floor-grid">
       <section className="auction-tape">
         <div className="auction-heading-row">
@@ -179,5 +182,11 @@ export function MarketFloor({ cite, evidence, explaining }: {
         </div>}
       </aside>
     </div>
+    <LedgerEvidence view={focus} metric="last_price" actor={actor} seek={seekEvidence} initialOpen={explore}/>
+    {explaining && <AuctionStructureTask/>}
+  </>;
+  return <section className="auction-floor" aria-label="双向拍卖交易大厅">
+    <PlaybackController/>
+    {explore ? <CompactViews view={focus} actor={actor} seek={seekEvidence}>{world}</CompactViews> : world}
   </section>;
 }

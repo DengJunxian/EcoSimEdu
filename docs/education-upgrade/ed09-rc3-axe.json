@@ -1,0 +1,32 @@
+{
+  "release": "1.1.0-rc.3",
+  "browser": "Playwright WebKit 27.2",
+  "region": "课堂练习",
+  "rules": [
+    "wcag2a",
+    "wcag2aa",
+    "wcag21aa"
+  ],
+  "checks": {
+    "auction-1440": {
+      "version": "4.14.0",
+      "violations": [],
+      "manuals": []
+    },
+    "auction-320": {
+      "version": "4.14.0",
+      "violations": [],
+      "manuals": []
+    },
+    "schelling_segregation": {
+      "version": "4.14.0",
+      "violations": [],
+      "manuals": []
+    },
+    "svb_run": {
+      "version": "4.14.0",
+      "violations": [],
+      "manuals": []
+    }
+  }
+}

@@ -8,6 +8,7 @@ import re
 from .auction_view import project_auction
 from .flagship_view import project_flagship
 from .lesson_scenes import load_lesson_scenes
+from .learning_content import load_learning_package
 from .projection import frame_metrics, metric_registry
 from .tutor import EVENT_NUMBER, HISTORICAL_CUES, SYSTEM_REQUEST, _id_mentioned, _normalize, answer_tutor
 from .tutor_hints import HINTS, SPECIAL_HINTS
@@ -15,6 +16,12 @@ from .tutor_hints import HINTS, SPECIAL_HINTS
 _UUID = re.compile(r"\b[0-9a-f]{8}(?:-[0-9a-f]{4}){3}-[0-9a-f]{12}\b")
 _ACTOR = re.compile(r"(?<![a-z0-9])[a-z]{1,2}\d{1,4}(?![a-z0-9])")
 _ASSERTED_NUMBER = re.compile(r"(?:等于|为|变成|是|=|有|达到)\s*([+-]?\d+(?:\.\d+)?)")
+_METRIC_ASSERTION = re.compile(
+    rf"(?:{EVENT_NUMBER.pattern}\s*(?:中|的)?\s*[,，]?\s*|当前\s*)?"
+    r"(?P<metric>[\w ]+?)\s*(?:等于|为|是|=)\s*"
+    r"(?P<number>[+-]?\d+(?:\.\d+)?)\s*(?P<unit>[^\d\s?。,.!+-]*?)\s*(?:吗|么)?[?。.!]?"
+)
+_PRIVATE_METRICS = {"surplus", "platform_cash"}
 _FACT_CUES = ("多少", "什么数", "发生了", "发生什么", "第几个", "我看到", "开局的数据", "有没有发生", "当前事件")
 _ROLE_CUES = ("我是谁", "扮演", "我的角色", "我的任务", "我的身份", "我能做", "我的权限", "我负责")
 _CONCEPT_CUES = ("什么是", "是什么", "指什么", "含义", "怎么定义", "指的是")
@@ -100,7 +107,7 @@ def _observation(case, event, view, question):
     matched = [entry for entry in registry if _normalize(entry["label"]) in question
                or _id_mentioned(entry["id"], question)]
     for entry in matched or registry:
-        if entry["id"] in {"surplus", "platform_cash"}:
+        if entry["id"] in _PRIVATE_METRICS:
             continue
         number = metrics.get(entry["id"])
         if type(number) in (int, float) and math.isfinite(number):
@@ -112,6 +119,52 @@ def _project(case_id, run, tick):
     if case_id == "double_auction":
         return project_auction(run, tick)
     return project_flagship(run, tick)
+
+
+def _learning_help(case_id, scene, context, level):
+    package = load_learning_package(case_id)
+    if package is None:
+        return None
+    activity = next((row for row in package["activities"] if row["id"] == context.activity_id
+                     and row["phase"] == scene), None)
+    if not activity or context.item_id not in activity["assessment_item_ids"]:
+        return None
+    item = next((row for row in package["items"] if row["id"] == context.item_id
+                 and row["version"] == context.item_version), None)
+    if not item:
+        return None
+    feedback = item["feedback"]
+    if context.explanation_draft is not None:
+        fields = {"claim": "论断", "micro": "主体行动", "aggregation": "互动结果", "conditions": "成立条件",
+                  "alternative_explanation": "替代解释"}
+        missing = [label for key, label in fields.items() if not context.explanation_draft.get(key, "").strip()]
+        claim = "可以补上" + "、".join(missing) + "。" if missing else "草稿包含论断、机制、条件和替代解释。"
+        action = "选一条已引用事件，指出它如何支持一个具体机制步骤。"
+        reply = _reply("learning", level, claim, action, scope="structure_only")
+        reply["coach_options"] = {
+            "evidence": action,
+            "conditions": ("哪项条件一变，你的结论就需要重新检验？"
+                           if not context.explanation_draft.get("conditions", "").strip()
+                           else "给一个保留你已写条件的反例，解释还需要查哪个运行事件。"),
+        }
+        return reply
+    if level == 3:
+        return _reply("learning", level, feedback["explanation"], "换一个新条件再次作答。", scope="authored_exercise")
+    evaluator = item["evaluator"]
+    expected = evaluator.get("answers", evaluator.get("answer"))
+    response = context.response
+    if response is None or expected is None:
+        return _reply("learning", level, feedback["hint"], "先写一步，再提交核对。", scope="authored_exercise")
+    if response == expected:
+        return _reply("learning", level, "这次作答符合本题判据。", "试着说明这一步为什么成立。",
+                      scope="authored_exercise")
+    if item["kind"] == "numeric" and isinstance(response, list) and len(response) == len(expected):
+        fields = item["response_schema"]["fields"]
+        mismatches = "、".join(field["label"] for field, value, target in zip(fields, response, expected) if value != target)
+        claim = f"先核对{mismatches}。{feedback['hint']}"
+    else:
+        claim = feedback["hint"]
+    return _reply("learning", level, claim, "按题目的条件修订后再提交。", scope="authored_exercise")
 
 
 def task_answer(case, context, run):
@@ -179,9 +232,33 @@ def task_answer(case, context, run):
         return decline("导师使用当前场景的公开事件和规则。", "private_information",
                        "改问公开动作、成交记录或相关规则。")
 
+    if context.learning_context is not None and question in {"给我本题提示", "核对解释结构"}:
+        response = _learning_help(case_id, context.scene, context.learning_context, level)
+        return response or decline("当前活动或题目版本无法核对。", "learning_context_unavailable")
+
     if _ASSERTED_NUMBER.search(question):
-        return decline("先从当前事件直接读取数值，才能核对问题中的数字。", "unverified_number",
-                       "查询当前事件与指标，或在对照面板选择两处观察点。")
+        assertion = _METRIC_ASSERTION.fullmatch(question)
+        entry = next((entry for entry in metric_registry(case) if assertion
+                      and assertion["metric"].strip() in {_normalize(entry["label"]), entry["id"]}
+                      and entry["id"] not in _PRIVATE_METRICS), None)
+        if not entry or mentioned_actors:
+            return decline("请指定一个公开指标，例如「当前银行现金为 0 吗」。", "unverified_number")
+        if assertion["unit"] and assertion["unit"] != _normalize(entry["unit"]):
+            return decline(f'「{entry["label"]}」以{entry["unit"]}计，请按该单位重新核对。', "metric_unit_mismatch")
+        selected_tick = tick if event_tick is None else event_tick
+        event = events.get(selected_tick)
+        if not event or event["tick"] == 0:
+            return decline("当前范围还没有可核对的结果事件。", "event_unavailable")
+        selected = view if selected_tick == tick else _project(case_id, run, selected_tick)
+        value = frame_metrics(selected["frame"]).get(entry["id"])
+        if type(value) not in (int, float) or not math.isfinite(value):
+            return decline("该事件没有这个指标的可见数值。", "event_unavailable")
+        matches = math.isclose(float(assertion["number"]), value, rel_tol=entry.get("relative_tolerance", 0),
+                               abs_tol=entry.get("absolute_tolerance", 0))
+        verdict = "与记录一致" if matches else "与记录有差异"
+        return _reply("mechanism", level,
+                      f'所问数值{verdict}。事件 {event["seq"]} 的{entry["label"]}为 {value} {entry["unit"]}。',
+                      "打开事件核对指标和单位。", kind="observation", citations=[_event_ref(run, event)])
 
     hints = HINTS[case_id]
     if case_id == "svb_run":
@@ -233,7 +310,9 @@ def task_answer(case, context, run):
         else:
             action = "先选一个预测，把判断依据写成可观察的条件。"
     elif intent == "comparison":
-        action = "保持初始状态一致，只改一项规则，在同一观察时点对照。"
+        action = ("政策对照固定相关初态，只改待检验规则。初始处理先说明改了哪部分初态，"
+                  "例如资产组合或空间布局，并记录其余共同条件。两类实验都按同一经济时钟对齐。"
+                  "如果多个因素一起变化，只能解释组合差异。")
         scope = "paired_evidence_required"
     citations = []
     claim = hints[level - 1]

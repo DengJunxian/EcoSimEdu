@@ -1,0 +1,502 @@
+{
+  "$defs": {
+    "Activity": {
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "title": "Id",
+          "type": "string"
+        },
+        "phase": {
+          "enum": [
+            "intro",
+            "predict",
+            "bid",
+            "observe",
+            "explain",
+            "compare",
+            "notebook"
+          ],
+          "title": "Phase",
+          "type": "string"
+        },
+        "kind": {
+          "enum": [
+            "assessment",
+            "example",
+            "review"
+          ],
+          "title": "Kind",
+          "type": "string"
+        },
+        "outcome_ids": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Outcome Ids",
+          "type": "array"
+        },
+        "content_ref": {
+          "title": "Content Ref",
+          "type": "string"
+        },
+        "assessment_item_ids": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Assessment Item Ids",
+          "type": "array"
+        },
+        "completion_rule": {
+          "enum": [
+            "submit_or_skip",
+            "read_or_skip"
+          ],
+          "title": "Completion Rule",
+          "type": "string"
+        },
+        "next_activity_id": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Next Activity Id"
+        },
+        "remediation_activity_id": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Remediation Activity Id"
+        },
+        "return_activity_id": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Return Activity Id"
+        },
+        "text": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Text"
+        }
+      },
+      "required": [
+        "id",
+        "phase",
+        "kind",
+        "outcome_ids",
+        "content_ref",
+        "assessment_item_ids",
+        "completion_rule",
+        "next_activity_id"
+      ],
+      "title": "Activity",
+      "type": "object"
+    },
+    "Context": {
+      "additionalProperties": false,
+      "properties": {
+        "kind": {
+          "const": "authored_model_exercise",
+          "title": "Kind",
+          "type": "string"
+        }
+      },
+      "required": [
+        "kind"
+      ],
+      "title": "Context",
+      "type": "object"
+    },
+    "Evaluator": {
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "enum": [
+            "choice_v1",
+            "numeric_v1",
+            "ordering_v1",
+            "structure_v1"
+          ],
+          "title": "Id",
+          "type": "string"
+        },
+        "version": {
+          "const": 1,
+          "title": "Version",
+          "type": "integer"
+        },
+        "answer": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Answer"
+        },
+        "answers": {
+          "anyOf": [
+            {
+              "items": {
+                "anyOf": [
+                  {
+                    "type": "integer"
+                  },
+                  {
+                    "type": "number"
+                  }
+                ]
+              },
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Answers"
+        }
+      },
+      "required": [
+        "id",
+        "version"
+      ],
+      "title": "Evaluator",
+      "type": "object"
+    },
+    "Feedback": {
+      "additionalProperties": false,
+      "properties": {
+        "hint": {
+          "title": "Hint",
+          "type": "string"
+        },
+        "explanation": {
+          "title": "Explanation",
+          "type": "string"
+        },
+        "misconception_code": {
+          "title": "Misconception Code",
+          "type": "string"
+        }
+      },
+      "required": [
+        "hint",
+        "explanation",
+        "misconception_code"
+      ],
+      "title": "Feedback",
+      "type": "object"
+    },
+    "Item": {
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "title": "Id",
+          "type": "string"
+        },
+        "version": {
+          "exclusiveMinimum": 0,
+          "title": "Version",
+          "type": "integer"
+        },
+        "variant_id": {
+          "title": "Variant Id",
+          "type": "string"
+        },
+        "family_id": {
+          "title": "Family Id",
+          "type": "string"
+        },
+        "outcome_ids": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Outcome Ids",
+          "type": "array"
+        },
+        "kind": {
+          "enum": [
+            "single_choice",
+            "numeric",
+            "ordering",
+            "structured_explanation"
+          ],
+          "title": "Kind",
+          "type": "string"
+        },
+        "prompt": {
+          "title": "Prompt",
+          "type": "string"
+        },
+        "context": {
+          "$ref": "#/$defs/Context"
+        },
+        "assessment_role": {
+          "enum": [
+            "practice",
+            "independent",
+            "transfer",
+            "review"
+          ],
+          "title": "Assessment Role",
+          "type": "string"
+        },
+        "response_schema": {
+          "$ref": "#/$defs/Response"
+        },
+        "evaluator": {
+          "$ref": "#/$defs/Evaluator"
+        },
+        "feedback": {
+          "$ref": "#/$defs/Feedback"
+        }
+      },
+      "required": [
+        "id",
+        "version",
+        "variant_id",
+        "family_id",
+        "outcome_ids",
+        "kind",
+        "prompt",
+        "context",
+        "assessment_role",
+        "response_schema",
+        "evaluator",
+        "feedback"
+      ],
+      "title": "Item",
+      "type": "object"
+    },
+    "NumericField": {
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "title": "Id",
+          "type": "string"
+        },
+        "label": {
+          "title": "Label",
+          "type": "string"
+        },
+        "unit": {
+          "title": "Unit",
+          "type": "string"
+        }
+      },
+      "required": [
+        "id",
+        "label",
+        "unit"
+      ],
+      "title": "NumericField",
+      "type": "object"
+    },
+    "Option": {
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "title": "Id",
+          "type": "string"
+        },
+        "label": {
+          "title": "Label",
+          "type": "string"
+        }
+      },
+      "required": [
+        "id",
+        "label"
+      ],
+      "title": "Option",
+      "type": "object"
+    },
+    "Outcome": {
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "title": "Id",
+          "type": "string"
+        },
+        "version": {
+          "exclusiveMinimum": 0,
+          "title": "Version",
+          "type": "integer"
+        },
+        "concept_ids": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Concept Ids",
+          "type": "array"
+        },
+        "performance": {
+          "title": "Performance",
+          "type": "string"
+        },
+        "evidence_requirement": {
+          "title": "Evidence Requirement",
+          "type": "string"
+        },
+        "phase": {
+          "enum": [
+            "intro",
+            "predict",
+            "bid",
+            "observe",
+            "explain",
+            "compare",
+            "notebook"
+          ],
+          "title": "Phase",
+          "type": "string"
+        },
+        "task": {
+          "title": "Task",
+          "type": "string"
+        },
+        "transfer": {
+          "title": "Transfer",
+          "type": "string"
+        }
+      },
+      "required": [
+        "id",
+        "version",
+        "concept_ids",
+        "performance",
+        "evidence_requirement",
+        "phase",
+        "task",
+        "transfer"
+      ],
+      "title": "Outcome",
+      "type": "object"
+    },
+    "Response": {
+      "additionalProperties": false,
+      "properties": {
+        "fields": {
+          "default": [],
+          "items": {
+            "$ref": "#/$defs/NumericField"
+          },
+          "title": "Fields",
+          "type": "array"
+        },
+        "options": {
+          "default": [],
+          "items": {
+            "$ref": "#/$defs/Option"
+          },
+          "title": "Options",
+          "type": "array"
+        }
+      },
+      "title": "Response",
+      "type": "object"
+    }
+  },
+  "additionalProperties": false,
+  "properties": {
+    "schema_version": {
+      "const": 3,
+      "title": "Schema Version",
+      "type": "integer"
+    },
+    "case_id": {
+      "title": "Case Id",
+      "type": "string"
+    },
+    "case_version": {
+      "title": "Case Version",
+      "type": "string"
+    },
+    "content_version": {
+      "title": "Content Version",
+      "type": "string"
+    },
+    "source_ids": {
+      "items": {
+        "type": "string"
+      },
+      "title": "Source Ids",
+      "type": "array"
+    },
+    "required_comparisons": {
+      "items": {
+        "type": "string"
+      },
+      "title": "Required Comparisons",
+      "type": "array"
+    },
+    "outcomes": {
+      "items": {
+        "$ref": "#/$defs/Outcome"
+      },
+      "title": "Outcomes",
+      "type": "array"
+    },
+    "items": {
+      "items": {
+        "$ref": "#/$defs/Item"
+      },
+      "title": "Items",
+      "type": "array"
+    },
+    "activities": {
+      "items": {
+        "$ref": "#/$defs/Activity"
+      },
+      "title": "Activities",
+      "type": "array"
+    }
+  },
+  "required": [
+    "schema_version",
+    "case_id",
+    "case_version",
+    "content_version",
+    "source_ids",
+    "required_comparisons",
+    "outcomes",
+    "items",
+    "activities"
+  ],
+  "title": "LearningPackage",
+  "type": "object"
+}

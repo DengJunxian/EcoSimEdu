@@ -1,0 +1,755 @@
+{
+  "schema_version": 3,
+  "case_id": "svb_run",
+  "content_version": "1.0.0",
+  "case_version": "1.0.0",
+  "source_ids": [
+    "S01",
+    "SVB-RESOLUTION",
+    "S29"
+  ],
+  "outcomes": [
+    {
+      "id": "svb_run.1",
+      "version": 1,
+      "concept_ids": [
+        "C05"
+      ],
+      "performance": "用账表分别计算权益、现金和待付",
+      "evidence_requirement": "首次无该题提示且达到该任务的规则判据",
+      "phase": "explain",
+      "task": "从申请及实付还原账表",
+      "transfer": "区分供应商账面权益和即日支付约束"
+    },
+    {
+      "id": "svb_run.2",
+      "version": 1,
+      "concept_ids": [
+        "C08"
+      ],
+      "performance": "用消息、阈值和请求定位一条可核对的传导链",
+      "evidence_requirement": "首次无该题提示且达到该任务的规则判据",
+      "phase": "observe",
+      "task": "排序消息与结算事件",
+      "transfer": "检验重复消息能否提供额外证据"
+    },
+    {
+      "id": "svb_run.3",
+      "version": 1,
+      "concept_ids": [
+        "C16"
+      ],
+      "performance": "给现金组合对照列出处理、共同条件与结论边界",
+      "evidence_requirement": "首次无该题提示且达到该任务的规则判据",
+      "phase": "compare",
+      "task": "辨认证券换现金与增资的差异",
+      "transfer": "说明同时改变消息网络与资产组合时的归因边界"
+    }
+  ],
+  "items": [
+    {
+      "id": "svb-complete",
+      "version": 1,
+      "variant_id": "svb-complete",
+      "family_id": "svb_run.1",
+      "outcome_ids": [
+        "svb_run.1"
+      ],
+      "kind": "numeric",
+      "prompt": "初始现金 20、证券 30、贷款 50、存款 80。借 10，再卖掉账面 10 的证券并收到 8，随后实付 25。填写期末现金、存款和权益。",
+      "context": {
+        "kind": "authored_model_exercise"
+      },
+      "assessment_role": "practice",
+      "response_schema": {
+        "fields": [
+          {
+            "id": "n1",
+            "label": "现金",
+            "unit": "资金单位"
+          },
+          {
+            "id": "n2",
+            "label": "存款",
+            "unit": "资金单位"
+          },
+          {
+            "id": "n3",
+            "label": "权益",
+            "unit": "资金单位"
+          }
+        ]
+      },
+      "evaluator": {
+        "id": "numeric_v1",
+        "version": 1,
+        "answers": [
+          13,
+          55,
+          18
+        ]
+      },
+      "feedback": {
+        "hint": "让借款同时进入现金和负债，实付同时扣现金和存款。",
+        "explanation": "现金 20＋10＋8−25＝13，存款 55，权益 13＋20＋50−55−10＝18。",
+        "misconception_code": "liquidity_is_equity"
+      }
+    },
+    {
+      "id": "svb-independent",
+      "version": 1,
+      "variant_id": "svb-independent",
+      "family_id": "svb_run.1",
+      "outcome_ids": [
+        "svb_run.1"
+      ],
+      "kind": "numeric",
+      "prompt": "现金 12、证券 28、贷款 40、存款 65、支持借款 5。新申请 18，实付 8，无其他待付。填写实付后的现金、存款、待付和权益。",
+      "context": {
+        "kind": "authored_model_exercise"
+      },
+      "assessment_role": "independent",
+      "response_schema": {
+        "fields": [
+          {
+            "id": "n1",
+            "label": "现金",
+            "unit": "资金单位"
+          },
+          {
+            "id": "n2",
+            "label": "存款",
+            "unit": "资金单位"
+          },
+          {
+            "id": "n3",
+            "label": "待付",
+            "unit": "资金单位"
+          },
+          {
+            "id": "n4",
+            "label": "权益",
+            "unit": "资金单位"
+          }
+        ]
+      },
+      "evaluator": {
+        "id": "numeric_v1",
+        "version": 1,
+        "answers": [
+          4,
+          57,
+          10,
+          10
+        ]
+      },
+      "feedback": {
+        "hint": "用实付额同步更新现金和存款，用申请额减实付额计算待付。",
+        "explanation": "现金 4，存款 57，待付 10，权益 4＋28＋40−57−5＝10。",
+        "misconception_code": "request_is_payment"
+      }
+    },
+    {
+      "id": "svb-message-chain",
+      "version": 1,
+      "variant_id": "svb-message-chain",
+      "family_id": "svb_run.2",
+      "outcome_ids": [
+        "svb_run.2"
+      ],
+      "kind": "ordering",
+      "prompt": "给定一笔消息确实跨过储户提款阈值，按时间排列四步。",
+      "context": {
+        "kind": "authored_model_exercise"
+      },
+      "assessment_role": "independent",
+      "response_schema": {
+        "options": [
+          {
+            "id": "pay",
+            "label": "银行清结算"
+          },
+          {
+            "id": "observe",
+            "label": "储户收到已记录的申请消息"
+          },
+          {
+            "id": "threshold",
+            "label": "风险分达到阈值"
+          },
+          {
+            "id": "request",
+            "label": "储户提交申请"
+          }
+        ]
+      },
+      "evaluator": {
+        "id": "ordering_v1",
+        "version": 1,
+        "answer": [
+          "observe",
+          "threshold",
+          "request",
+          "pay"
+        ]
+      },
+      "feedback": {
+        "hint": "规则根据可见消息更新风险分，银行晚于申请处理。",
+        "explanation": "先收到消息，再更新风险分，随后申请，最后清结算。",
+        "misconception_code": "sequence_proves_cause"
+      }
+    },
+    {
+      "id": "svb-portfolios",
+      "version": 1,
+      "variant_id": "svb-portfolios",
+      "family_id": "svb_run.3",
+      "outcome_ids": [
+        "svb_run.3"
+      ],
+      "kind": "single_choice",
+      "prompt": "同种子下，组 B 在冲击前把部分证券换成等值现金。这项处理同时直接改变什么？",
+      "context": {
+        "kind": "authored_model_exercise"
+      },
+      "assessment_role": "independent",
+      "response_schema": {
+        "options": [
+          {
+            "id": "cash_only",
+            "label": "只有现金，证券敞口保持"
+          },
+          {
+            "id": "new_equity",
+            "label": "现金和初始权益增加"
+          },
+          {
+            "id": "composition",
+            "label": "现金增、证券减，初始权益保持"
+          }
+        ]
+      },
+      "evaluator": {
+        "id": "choice_v1",
+        "version": 1,
+        "answer": "composition"
+      },
+      "feedback": {
+        "hint": "交易发生在共同冲击前，按同一估值交换。",
+        "explanation": "等值重配改变现金和后续重估敞口，初始权益不变。",
+        "misconception_code": "mixed_treatments_single_cause"
+      }
+    },
+    {
+      "id": "svb-supplier",
+      "version": 1,
+      "variant_id": "svb-supplier",
+      "family_id": "svb_run.1",
+      "outcome_ids": [
+        "svb_run.1"
+      ],
+      "kind": "single_choice",
+      "prompt": "企业今日应付 20，现金 10，明日应收 30。其他资产与负债未知。今日可以确认什么？",
+      "context": {
+        "kind": "authored_model_exercise"
+      },
+      "assessment_role": "transfer",
+      "response_schema": {
+        "options": [
+          {
+            "id": "loss",
+            "label": "权益已经为负"
+          },
+          {
+            "id": "gap",
+            "label": "没有其他资金时缺现金 10，权益尚不能判断"
+          },
+          {
+            "id": "safe",
+            "label": "没有支付缺口"
+          }
+        ]
+      },
+      "evaluator": {
+        "id": "choice_v1",
+        "version": 1,
+        "answer": "gap"
+      },
+      "feedback": {
+        "hint": "把今天能动用的金额与明日应收分开。",
+        "explanation": "今天现金缺口为 10。净资产需要其余资产和负债。",
+        "misconception_code": "liquidity_is_equity"
+      }
+    },
+    {
+      "id": "svb-repeat-message",
+      "version": 1,
+      "variant_id": "svb-repeat-message",
+      "family_id": "svb_run.2",
+      "outcome_ids": [
+        "svb_run.2"
+      ],
+      "kind": "single_choice",
+      "prompt": "两位同事转发同一条未经核对的供应商停供消息。用它评估短缺时，怎样计算信息来源？",
+      "context": {
+        "kind": "authored_model_exercise"
+      },
+      "assessment_role": "transfer",
+      "response_schema": {
+        "options": [
+          {
+            "id": "two",
+            "label": "两项彼此独立的新证据"
+          },
+          {
+            "id": "one",
+            "label": "追到共同源头，视为一项来源"
+          },
+          {
+            "id": "none",
+            "label": "重复转发证明消息错误"
+          }
+        ]
+      },
+      "evaluator": {
+        "id": "choice_v1",
+        "version": 1,
+        "answer": "one"
+      },
+      "feedback": {
+        "hint": "沿消息链查看两次转发是否依赖同一来源。",
+        "explanation": "转发路径有两条，有关停供的原始来源只有一条。",
+        "misconception_code": "actions_are_independent_signals"
+      }
+    },
+    {
+      "id": "svb-multiple-changes",
+      "version": 1,
+      "variant_id": "svb-multiple-changes",
+      "family_id": "svb_run.3",
+      "outcome_ids": [
+        "svb_run.3"
+      ],
+      "kind": "single_choice",
+      "prompt": "两家工厂的教学对照同时改变现金余额和供应商预付款规则，之后拖欠减少。可以归因给什么？",
+      "context": {
+        "kind": "authored_model_exercise"
+      },
+      "assessment_role": "transfer",
+      "response_schema": {
+        "options": [
+          {
+            "id": "cash",
+            "label": "只归因给现金"
+          },
+          {
+            "id": "rule",
+            "label": "只归因给预付款规则"
+          },
+          {
+            "id": "both",
+            "label": "归因范围限于这组组合改变"
+          }
+        ]
+      },
+      "evaluator": {
+        "id": "choice_v1",
+        "version": 1,
+        "answer": "both"
+      },
+      "feedback": {
+        "hint": "检查两组之间还有哪些差异。",
+        "explanation": "需要单独改变现金或预付款再比较，才能分辨各自的效果。",
+        "misconception_code": "mixed_treatments_single_cause"
+      }
+    },
+    {
+      "id": "review-1",
+      "version": 1,
+      "variant_id": "review-1",
+      "family_id": "svb_run.1",
+      "outcome_ids": [
+        "svb_run.1"
+      ],
+      "kind": "numeric",
+      "prompt": "现金 8、证券 25、贷款 60、存款 75、支持借款 6，实付 7 后，权益为多少？",
+      "context": {
+        "kind": "authored_model_exercise"
+      },
+      "assessment_role": "review",
+      "response_schema": {
+        "fields": [
+          {
+            "id": "value",
+            "label": "权益",
+            "unit": "资金单位"
+          }
+        ]
+      },
+      "evaluator": {
+        "id": "numeric_v1",
+        "version": 1,
+        "answers": [
+          12
+        ]
+      },
+      "feedback": {
+        "hint": "先写下当前题目的计数或记账口径。",
+        "explanation": "现金与存款各减 7，权益仍为 8＋25＋60−75−6＝12。",
+        "misconception_code": "liquidity_is_equity"
+      }
+    },
+    {
+      "id": "review-2",
+      "version": 1,
+      "variant_id": "review-2",
+      "family_id": "svb_run.2",
+      "outcome_ids": [
+        "svb_run.2"
+      ],
+      "kind": "numeric",
+      "prompt": "储户从 18 分起，观察到两次独立的邻居首次申请（各加 12 分），上一轮无急售、无待付。风险分多少？",
+      "context": {
+        "kind": "authored_model_exercise"
+      },
+      "assessment_role": "review",
+      "response_schema": {
+        "fields": [
+          {
+            "id": "value",
+            "label": "风险分",
+            "unit": "点"
+          }
+        ]
+      },
+      "evaluator": {
+        "id": "numeric_v1",
+        "version": 1,
+        "answers": [
+          42
+        ]
+      },
+      "feedback": {
+        "hint": "先写下当前题目的计数或记账口径。",
+        "explanation": "两条独立事件各加 12，风险分 18＋24＝42。",
+        "misconception_code": "actions_are_independent_signals"
+      }
+    },
+    {
+      "id": "review-3",
+      "version": 1,
+      "variant_id": "review-3",
+      "family_id": "svb_run.3",
+      "outcome_ids": [
+        "svb_run.3"
+      ],
+      "kind": "numeric",
+      "prompt": "银行按每单位 10 的价格把 30 单位证券换成现金，再遇到每单位证券估值下降 1。相较原组合，证券重估损失少多少？",
+      "context": {
+        "kind": "authored_model_exercise"
+      },
+      "assessment_role": "review",
+      "response_schema": {
+        "fields": [
+          {
+            "id": "value",
+            "label": "重估损失减少",
+            "unit": "资金单位"
+          }
+        ]
+      },
+      "evaluator": {
+        "id": "numeric_v1",
+        "version": 1,
+        "answers": [
+          30
+        ]
+      },
+      "feedback": {
+        "hint": "先写下当前题目的计数或记账口径。",
+        "explanation": "少持有 30 单位，每单位重估下降 1，损失少 30。",
+        "misconception_code": "mixed_treatments_single_cause"
+      }
+    },
+    {
+      "id": "em-svb-run-explain",
+      "version": 1,
+      "variant_id": "em-svb-run-explain",
+      "family_id": "svb_run.emergence",
+      "outcome_ids": [
+        "svb_run.1",
+        "svb_run.2"
+      ],
+      "kind": "ordering",
+      "prompt": "为核对一笔已完成的分次付款，将队列证据按观察顺序排列。",
+      "context": {
+        "kind": "authored_model_exercise"
+      },
+      "assessment_role": "independent",
+      "response_schema": {
+        "options": [
+          {
+            "id": "step-1",
+            "label": "用申请编号查原提款事件"
+          },
+          {
+            "id": "step-2",
+            "label": "检查同编号的实际到账和剩余待付"
+          },
+          {
+            "id": "step-3",
+            "label": "回到账表复算这次实付对现金与存款负债的影响"
+          }
+        ]
+      },
+      "evaluator": {
+        "id": "ordering_v1",
+        "version": 1,
+        "answer": [
+          "step-1",
+          "step-2",
+          "step-3"
+        ]
+      },
+      "feedback": {
+        "hint": "先确认你看到的是什么记录，再判断它能支持哪一步。",
+        "explanation": "同一申请可以分多次付清。实付使现金和存款负债等额减少，排队金额仍是银行的负债。",
+        "misconception_code": "liquidity_is_equity"
+      }
+    },
+    {
+      "id": "em-svb-run-notebook",
+      "version": 1,
+      "variant_id": "em-svb-run-notebook",
+      "family_id": "svb_run.emergence",
+      "outcome_ids": [
+        "svb_run.1",
+        "svb_run.2"
+      ],
+      "kind": "structured_explanation",
+      "prompt": "把已经看到的待付链与供应链的积压比较。解释一次到账或到货前后，哪个存量变化，哪个还是义务。",
+      "context": {
+        "kind": "authored_model_exercise"
+      },
+      "assessment_role": "transfer",
+      "response_schema": {
+        "fields": [
+          {
+            "id": "criterion-1",
+            "label": "银行待付保留在哪个账户",
+            "unit": "说明"
+          },
+          {
+            "id": "criterion-2",
+            "label": "供应链积压的资源约束",
+            "unit": "说明"
+          },
+          {
+            "id": "criterion-3",
+            "label": "分别要找哪种实际事件",
+            "unit": "说明"
+          }
+        ]
+      },
+      "evaluator": {
+        "id": "structure_v1",
+        "version": 1
+      },
+      "feedback": {
+        "hint": "先确认你看到的是什么记录，再判断它能支持哪一步。",
+        "explanation": "实付对应银行现金和存款负债的变化。供应链实际交货减少库存并履行实物订单，各有独立的计量单位。",
+        "misconception_code": "liquidity_is_equity"
+      }
+    }
+  ],
+  "activities": [
+    {
+      "id": "svb-complete",
+      "phase": "explain",
+      "kind": "assessment",
+      "outcome_ids": [
+        "svb_run.1"
+      ],
+      "content_ref": "svb-complete",
+      "assessment_item_ids": [
+        "svb-complete"
+      ],
+      "completion_rule": "submit_or_skip",
+      "next_activity_id": "svb-independent",
+      "remediation_activity_id": "worked-example"
+    },
+    {
+      "id": "svb-independent",
+      "phase": "explain",
+      "kind": "assessment",
+      "outcome_ids": [
+        "svb_run.1"
+      ],
+      "content_ref": "svb-independent",
+      "assessment_item_ids": [
+        "svb-independent"
+      ],
+      "completion_rule": "submit_or_skip",
+      "next_activity_id": "svb-message-chain"
+    },
+    {
+      "id": "svb-message-chain",
+      "phase": "explain",
+      "kind": "assessment",
+      "outcome_ids": [
+        "svb_run.2"
+      ],
+      "content_ref": "svb-message-chain",
+      "assessment_item_ids": [
+        "svb-message-chain"
+      ],
+      "completion_rule": "submit_or_skip",
+      "next_activity_id": "svb-portfolios"
+    },
+    {
+      "id": "svb-portfolios",
+      "phase": "explain",
+      "kind": "assessment",
+      "outcome_ids": [
+        "svb_run.3"
+      ],
+      "content_ref": "svb-portfolios",
+      "assessment_item_ids": [
+        "svb-portfolios"
+      ],
+      "completion_rule": "submit_or_skip",
+      "next_activity_id": "em-svb-run-explain"
+    },
+    {
+      "id": "svb-supplier",
+      "phase": "notebook",
+      "kind": "assessment",
+      "outcome_ids": [
+        "svb_run.1"
+      ],
+      "content_ref": "svb-supplier",
+      "assessment_item_ids": [
+        "svb-supplier"
+      ],
+      "completion_rule": "submit_or_skip",
+      "next_activity_id": "svb-repeat-message"
+    },
+    {
+      "id": "svb-repeat-message",
+      "phase": "notebook",
+      "kind": "assessment",
+      "outcome_ids": [
+        "svb_run.2"
+      ],
+      "content_ref": "svb-repeat-message",
+      "assessment_item_ids": [
+        "svb-repeat-message"
+      ],
+      "completion_rule": "submit_or_skip",
+      "next_activity_id": "svb-multiple-changes"
+    },
+    {
+      "id": "svb-multiple-changes",
+      "phase": "notebook",
+      "kind": "assessment",
+      "outcome_ids": [
+        "svb_run.3"
+      ],
+      "content_ref": "svb-multiple-changes",
+      "assessment_item_ids": [
+        "svb-multiple-changes"
+      ],
+      "completion_rule": "submit_or_skip",
+      "next_activity_id": "em-svb-run-notebook"
+    },
+    {
+      "id": "worked-example",
+      "phase": "explain",
+      "kind": "example",
+      "outcome_ids": [
+        "svb_run.1"
+      ],
+      "content_ref": "worked-example",
+      "assessment_item_ids": [],
+      "completion_rule": "read_or_skip",
+      "next_activity_id": null,
+      "return_activity_id": "svb-complete",
+      "text": "现金 10、证券市值 18、贷款 22、存款 40，权益 10。借入 5 使现金变 15、负债多 5，权益不变。账面 9 的证券卖得 6，权益减 3。实付 12 时现金与存款各减 12，权益仍为 7。"
+    },
+    {
+      "id": "review-1",
+      "phase": "notebook",
+      "kind": "review",
+      "outcome_ids": [
+        "svb_run.1"
+      ],
+      "content_ref": "review-1",
+      "assessment_item_ids": [
+        "review-1"
+      ],
+      "completion_rule": "submit_or_skip",
+      "next_activity_id": null
+    },
+    {
+      "id": "review-2",
+      "phase": "notebook",
+      "kind": "review",
+      "outcome_ids": [
+        "svb_run.2"
+      ],
+      "content_ref": "review-2",
+      "assessment_item_ids": [
+        "review-2"
+      ],
+      "completion_rule": "submit_or_skip",
+      "next_activity_id": null
+    },
+    {
+      "id": "review-3",
+      "phase": "notebook",
+      "kind": "review",
+      "outcome_ids": [
+        "svb_run.3"
+      ],
+      "content_ref": "review-3",
+      "assessment_item_ids": [
+        "review-3"
+      ],
+      "completion_rule": "submit_or_skip",
+      "next_activity_id": null
+    },
+    {
+      "id": "em-svb-run-explain",
+      "phase": "explain",
+      "kind": "assessment",
+      "outcome_ids": [
+        "svb_run.1",
+        "svb_run.2"
+      ],
+      "content_ref": "em-svb-run-explain",
+      "assessment_item_ids": [
+        "em-svb-run-explain"
+      ],
+      "completion_rule": "submit_or_skip",
+      "next_activity_id": null
+    },
+    {
+      "id": "em-svb-run-notebook",
+      "phase": "notebook",
+      "kind": "assessment",
+      "outcome_ids": [
+        "svb_run.1",
+        "svb_run.2"
+      ],
+      "content_ref": "em-svb-run-notebook",
+      "assessment_item_ids": [
+        "em-svb-run-notebook"
+      ],
+      "completion_rule": "submit_or_skip",
+      "next_activity_id": null
+    }
+  ],
+  "required_comparisons": [
+    "liquidity_buffer"
+  ]
+}

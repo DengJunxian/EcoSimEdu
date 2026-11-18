@@ -32,6 +32,8 @@
 .svb-edge, .svb-graph marker path { stroke: var(--edge); fill: none; }
 .svb-graph marker path { fill: var(--edge); }
 .svb-edge { stroke-width: 3; }
+.svb-edge[role="button"] { cursor: pointer; }
+.svb-edge[role="button"]:is(:focus, [aria-pressed="true"]) { stroke-width: 7; }
 .svb-graph.messages .svb-edge { stroke-dasharray: 9 7; }
 .svb-graph.requests .svb-edge { stroke-dasharray: 2 6; stroke-linecap: round; }
 .svb-graph figcaption { padding: 0 10px 10px; }

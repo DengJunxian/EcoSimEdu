@@ -17,11 +17,18 @@ type PresetExport = {
   presets: { id: string; label: string }[];
 };
 
-function readFavorites(): string[] {
+export function readFavorites(): string[] {
   const raw: unknown = JSON.parse(localStorage.getItem(favoriteKey) ?? "[]");
   return Array.isArray(raw)
     ? courses.filter(course => raw.includes(course.case_id)).map(course => course.case_id)
     : [];
+}
+
+export function toggleCourseFavorite(courseId: string) {
+  const saved = readFavorites();
+  const updated = saved.includes(courseId) ? saved.filter(id => id !== courseId) : [...saved, courseId];
+  localStorage.setItem(favoriteKey, JSON.stringify(updated));
+  return updated;
 }
 
 export function teacherEnabled() {
@@ -103,10 +110,7 @@ export function LabTools({ caseId }: { caseId: string }) {
   function toggleFavorite(courseId: string) {
     setError("");
     try {
-      const saved = readFavorites();
-      const updated = saved.includes(courseId) ? saved.filter(id => id !== courseId) : [...saved, courseId];
-      localStorage.setItem(favoriteKey, JSON.stringify(updated));
-      setFavorites(updated);
+      setFavorites(toggleCourseFavorite(courseId));
     } catch {
       setError("无法保存收藏。请检查浏览器的存储设置。");
     }

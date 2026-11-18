@@ -4,6 +4,7 @@ import type { Grid, Scalar } from "../../lesson-types";
 import { GridView, showValue } from "../../lesson-view";
 import { coordinates, satisfied, type Counts } from "./neighborhood";
 import { Neighborhood, Practice } from "./neighborhood-view";
+import { EmergenceMicroscope, EmergencePrediction } from "./emergence-microscope";
 import "./schelling.css";
 
 const student = "A001";
@@ -114,7 +115,7 @@ function RunMap({ view, pinned, pin, seek, cite }: DomainPanelProps & { view: Fl
         </div>
       </details>
       <section className="schelling-changes">
-        <h3>邻域受影响的居民</h3>
+        <h3 id="schelling-neighbors" tabIndex={-1}>邻域受影响的居民</h3>
         {changes.length ? <>
           <p>一次搬迁可以改变邻居集合。对比前后状态，找出是否跨越阈值。</p>
           <div className="table-scroll"><table>
@@ -146,7 +147,7 @@ function CityMetrics({ view }: { view: FlagshipView }) {
 }
 
 export function SchellingPanel(props: DomainPanelProps) {
-  const { stage, briefing, view, comparison, action, course, cite, pinned } = props;
+  const { stage, briefing, view, comparison, action, course, cite, pinned, perspective } = props;
   const grid = openingGrid(briefing);
   if (stage === "intro") return <Practice/>;
   if (stage === "predict") return <>
@@ -154,6 +155,7 @@ export function SchellingPanel(props: DomainPanelProps) {
     {grid && grid.cells.indexOf(student) >= 0 && <Neighborhood grid={grid} cell={grid.cells.indexOf(student)}
       actor={student} threshold={getThreshold(course.scenarios.find(arm => arm.id === "baseline")?.parameters.threshold)}
       label="模型开局的 A001"/>}
+    <EmergencePrediction {...props}/>
   </>;
   if (stage === "bid") return grid ? <OpeningMap grid={grid} action={action} course={course}/> : null;
   if (!view) return null;
@@ -181,7 +183,8 @@ export function SchellingPanel(props: DomainPanelProps) {
   </>;
   if (stage !== "observe" && stage !== "explain") return null;
   return <>
-    {stage === "explain" && <CityMetrics view={view}/>}
-    <RunMap {...props} view={view}/>
+    {stage === "explain" && perspective !== "role" && <CityMetrics view={view}/>}
+    {perspective !== "role" && <RunMap {...props} view={view}/>}
+    <EmergenceMicroscope key={view.run_id} {...props} view={view}/>
   </>;
 }

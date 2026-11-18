@@ -17,11 +17,17 @@ from uuid import UUID
 from fastapi import FastAPI, HTTPException, Query, Request
 from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
-from pydantic import BaseModel, ConfigDict, Field, StrictInt
+from pydantic import model_validator, BaseModel, ConfigDict, Field, StrictInt
 
 from . import live, live_l2
 from .auction import BOUNDARIES, CASE, ENGINE_VERSION, ROOT, SCENARIOS, canonical_json, digest, run_auction
 from .auction_view import project_auction
+from .emergence import cascade as cascade_trace
+from .emergence import ledger as ledger_trace
+from .emergence import mechanisms
+from .emergence import schelling as schelling_trace
+from .emergence import svb as svb_trace
+from .emergence.schemas import EmergenceTrace, Perspective, source_ref
 from .flagship_view import CLASSROOMS, project_flagship
 from .lesson_scenes import ENGINE_VERSIONS, load_lesson_scenes
 from .lessons import CATALOG, briefing, load_case, simulate
@@ -31,7 +37,7 @@ from .tutor import answer_tutor
 
 PRESETS = ROOT / "cases/double_auction/presets.json.gz"
 BUILD = ROOT / "student-web/dist"
-VERSION = "1.0.0-rc.10"
+VERSION = "1.1.0-rc.4"
 EVENT_CACHE_BYTES = 24 * 1024 * 1024
 CANONICAL_RESULT_PREFIX = b'{"format":"canonical-result/1",'
 app = FastAPI(title="Civitas Economica", version=VERSION)
@@ -73,6 +79,27 @@ class MultiRoleRequest(BaseModel):
     budget_micros: int | None = Field(default=None, strict=True, ge=1, le=100_000_000)
 
 
+class TutorLearningContext(BaseModel):
+    model_config = ConfigDict(extra="forbid", allow_inf_nan=False)
+    activity_id: str = Field(min_length=1, max_length=80)
+    item_id: str = Field(min_length=1, max_length=80)
+    item_version: int = Field(strict=True, ge=1)
+    response: str | list[int | float | str] | None = None
+    explanation_draft: dict[str, str] | None = None
+
+    @model_validator(mode="after")
+    def bound_input(self):
+        if isinstance(self.response, (str, list)) and len(self.response) > 64:
+            raise ValueError("response too long")
+        if isinstance(self.response, list) and any(isinstance(item, str) and len(item) > 64 for item in self.response):
+            raise ValueError("response option too long")
+        if self.explanation_draft is not None and (
+                len(self.explanation_draft) > 5 or
+                any(len(key) > 30 or len(value) > 800 for key, value in self.explanation_draft.items())):
+            raise ValueError("draft too long")
+        return self
+
+
 class TutorRequest(BaseModel):
     model_config = ConfigDict(extra="forbid")
     case_id: str = Field(min_length=1, max_length=48)
@@ -86,6 +113,7 @@ class TutorRequest(BaseModel):
     hint_level: int = Field(default=1, strict=True, ge=1, le=3)
     evidence: list[TutorEvidence] = Field(default_factory=list, max_length=8)
     online_request_id: UUID | None = None
+    learning_context: TutorLearningContext | None = None
 
 
 def connect():
@@ -191,8 +219,17 @@ def case_briefing(case_id: str):
 
 
 @app.get("/api/cases/{case_id}/lesson")
-def case_lesson(case_id: str):
+def case_lesson(case_id: str, schema_version: int = 2):
     get_case(case_id)
+    if schema_version not in {2, 3}:
+        raise HTTPException(422, "LESSON_SCHEMA_NOT_AVAILABLE")
+    if schema_version == 3:
+        from .learning_content import load_learning_package
+
+        package = load_learning_package(case_id)
+        if package is None:
+            raise HTTPException(404, "LEARNING_PACKAGE_NOT_AVAILABLE")
+        return package
     return load_lesson_scenes(case_id)
 
 
@@ -238,7 +275,8 @@ def tutor(request: TutorRequest, http: Request = None):
     answer = task_answer(definition, request, run)
     selected_provider = provider()
     local = http is not None and http.client is not None and http.client.host in {"127.0.0.1", "::1"}
-    answer["online_available"] = local and selected_provider is not None and answer["kind"] == "observation"
+    answer["online_available"] = local and selected_provider is not None and (
+        answer["kind"] == "observation" or bool(answer.get("coach_options")))
     if request.online_request_id is not None:
         if http is not None:
             require_loopback(http)
@@ -576,6 +614,88 @@ def classroom_view(key: UUID, tick: int | Literal["close", "checkpoint"] = 0,
         raise HTTPException(404, "SNAPSHOT_NOT_AVAILABLE") from error
 
 
+def emergence_run(key, seq, as_of_seq):
+    run = get_run(key)
+    case_id = run["case_id"]
+    adapter = {"schelling_segregation": schelling_trace, "svb_run": svb_trace,
+               "information_cascade": cascade_trace, **ledger_trace.ADAPTERS}.get(case_id)
+    if (adapter is None or run["execution_status"] != "completed"
+            or run["case_version"] != get_case(case_id)["version"]
+            or run["result"]["engine_version"] not in {
+                ENGINE_VERSIONS[case_id], parameter_specs.EXTENDED_ENGINES.get(case_id)
+            }):
+        raise HTTPException(409, "TRACE_NOT_AVAILABLE")
+    if as_of_seq >= len(run["result"]["events"]):
+        raise HTTPException(404, "SNAPSHOT_NOT_AVAILABLE")
+    if seq > as_of_seq:
+        raise HTTPException(422, "FOCUS_NOT_VISIBLE")
+    return run, adapter
+
+
+@app.get("/api/emergence/cases/{case_id}/mechanisms")
+def emergence_mechanisms(case_id: str):
+    case = get_case(case_id)
+    if case_id not in mechanisms.SPECS:
+        raise HTTPException(404, "MECHANISM_SPEC_NOT_AVAILABLE")
+    return mechanisms.describe(case)
+
+
+@app.get("/api/emergence/runs/{key}/trace", response_model=EmergenceTrace)
+def emergence_trace(key: UUID, seq: int = Query(ge=0), as_of_seq: int = Query(ge=0),
+                    metric_id: str | None = Query(default=None, min_length=1, max_length=32),
+                    perspective: Perspective = "system",
+                    actor_id: str | None = Query(default=None, min_length=1, max_length=16)):
+    run, adapter = emergence_run(key, seq, as_of_seq)
+    metric = metric_id or next(iter(adapter.METRICS))
+    if metric not in adapter.METRICS:
+        raise HTTPException(422, "METRIC_NOT_AVAILABLE")
+    if perspective == "role" and actor_id not in (None, adapter.ROLE_ACTOR):
+        raise HTTPException(422, "ACTOR_NOT_VISIBLE")
+    frame = run["result"]["snapshots"][seq]
+    actors = frame["grid"]["cells"] if "grid" in frame else frame.get("entities", frame.get("accounts", {}))
+    if actor_id and actor_id not in actors:
+        raise HTTPException(404, "ACTOR_NOT_AVAILABLE")
+    return adapter.trace(run, seq, as_of_seq, metric, perspective, actor_id)
+
+
+@app.get("/api/emergence/runs/{key}/relations")
+def emergence_relations(key: UUID, seq: int = Query(ge=0), as_of_seq: int = Query(ge=0),
+                        perspective: Perspective = "system"):
+    run, adapter = emergence_run(key, seq, as_of_seq)
+    trace = adapter.trace(run, seq, as_of_seq, next(iter(adapter.METRICS)), perspective)
+    return {"case_id": trace.case_id, "run_id": trace.run_id, "result_hash": trace.result_hash,
+            "as_of_seq": as_of_seq, "relations": [node for node in trace.nodes if node.kind == "relation"]}
+
+
+@app.get("/api/emergence/runs/{key}/aggregate")
+def emergence_aggregate(key: UUID, from_seq: int = Query(ge=0), to_seq: int = Query(ge=0),
+                        as_of_seq: int = Query(ge=0), metric_id: str = Query(min_length=1, max_length=32)):
+    run, adapter = emergence_run(key, to_seq, as_of_seq)
+    if from_seq > to_seq:
+        raise HTTPException(422, "INVALID_INTERVAL")
+    case_id = run["case_id"]
+    if metric_id not in adapter.METRICS:
+        raise HTTPException(422, "METRIC_NOT_AVAILABLE")
+    events = run["result"]["events"]
+    frames = run["result"]["snapshots"]
+    visible = set(mechanisms.SPECS[case_id]["events"])
+    choice_shares = (project_flagship(run, to_seq)["public_choice_a_pct"]
+                     if metric_id == "public_choice_a_pct" else None)
+
+    def point(seq):
+        frame = frames[seq]
+        return {"value": choice_shares[seq] if choice_shares is not None else frame.get("metrics", frame).get(metric_id),
+                "source_ref": source_ref(run, events[seq])}
+
+    start, end = point(from_seq), point(to_seq)
+    return {"case_id": case_id, "run_id": run["run_id"], "result_hash": run["result_hash"],
+            "as_of_seq": as_of_seq, "metric_id": metric_id, "claim_kind": "observed_transition",
+            "start": start, "end": end,
+            "delta": end["value"] - start["value"] if start["value"] is not None and end["value"] is not None else None,
+            "events": [{"source_ref": source_ref(run, event)} for event in events[from_seq + 1:to_seq + 1]
+                       if event["event_type"] in visible]}
+
+
 @app.get("/api/runs/{key}/snapshots/{tick}")
 def seek(key: UUID, tick: int):
     with closing(connect()) as conn:
@@ -773,10 +893,19 @@ if BUILD.is_dir():
     @app.get("/experiments/multi-role", include_in_schema=False)
     @app.get("/compare", include_in_schema=False)
     @app.get("/paths", include_in_schema=False)
+    @app.get("/emergence", include_in_schema=False)
+    @app.get("/review", include_in_schema=False)
+    @app.get("/practice", include_in_schema=False)
+    @app.get("/teach", include_in_schema=False)
+    @app.get("/concepts", include_in_schema=False)
     @app.get("/notes", include_in_schema=False)
     @app.get("/experiments", include_in_schema=False)
     def student_page():
         return FileResponse(BUILD / "index.html")
+
+    @app.get("/concepts/{concept_id}", include_in_schema=False)
+    def student_concept_page(concept_id: str):
+        return student_page()
 
     @app.get("/learn/{case_id}", include_in_schema=False)
     def flagship_page(case_id: str):

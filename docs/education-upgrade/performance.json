@@ -1,0 +1,88 @@
+{
+  "n": 9,
+  "device": "macOS 27.0 arm64",
+  "browser": "Chrome 158.0.8127.36",
+  "scope": "Playwright real browser. Warm in-lesson activity opening and entry submission. Restore measures reload to saved text and migration evidence, observed via requestAnimationFrame polling.",
+  "stats": {
+    "first_activity_ms": {
+      "median": 7.7,
+      "p95_nearest_rank": 12.4,
+      "min": 5.3
+    },
+    "submit_ms": {
+      "median": 30.6,
+      "p95_nearest_rank": 34.3,
+      "min": 29.3
+    },
+    "restore_ms": {
+      "median": 343.8,
+      "p95_nearest_rank": 358.0,
+      "min": 329.9
+    }
+  },
+  "samples": [
+    {
+      "case": "beer_game",
+      "width": 390,
+      "first_activity_ms": 5.310790613293648,
+      "submit_ms": 29.38666706904769,
+      "restore_ms": 330.92008298262954
+    },
+    {
+      "case": "carbon_market",
+      "width": 768,
+      "first_activity_ms": 7.654957938939333,
+      "submit_ms": 29.303292278200388,
+      "restore_ms": 345.46708408743143
+    },
+    {
+      "case": "commons_governance",
+      "width": 768,
+      "first_activity_ms": 8.740582969039679,
+      "submit_ms": 29.893665574491024,
+      "restore_ms": 329.9273340962827
+    },
+    {
+      "case": "flash_crash",
+      "width": 1440,
+      "first_activity_ms": 8.835625369101763,
+      "submit_ms": 34.25362519919872,
+      "restore_ms": 343.23408314958215
+    },
+    {
+      "case": "gamestop",
+      "width": 320,
+      "first_activity_ms": 8.932209108024836,
+      "submit_ms": 32.73120801895857,
+      "restore_ms": 341.0543752834201
+    },
+    {
+      "case": "information_cascade",
+      "width": 320,
+      "first_activity_ms": 12.437874916940928,
+      "submit_ms": 32.49941719695926,
+      "restore_ms": 350.13675037771463
+    },
+    {
+      "case": "lemons_market",
+      "width": 1440,
+      "first_activity_ms": 6.550624966621399,
+      "submit_ms": 30.70866595953703,
+      "restore_ms": 358.00470830872655
+    },
+    {
+      "case": "public_goods",
+      "width": 390,
+      "first_activity_ms": 7.542250212281942,
+      "submit_ms": 29.28195893764496,
+      "restore_ms": 353.4891661256552
+    },
+    {
+      "case": "school_matching",
+      "width": 320,
+      "first_activity_ms": 7.1303751319646835,
+      "submit_ms": 30.58158280327916,
+      "restore_ms": 343.7790418975055
+    }
+  ]
+}

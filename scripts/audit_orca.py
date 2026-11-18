@@ -10,6 +10,7 @@ from uuid import uuid4
 from playwright.sync_api import expect, sync_playwright
 
 from scripts.benchmark_student_lab import call, local_server
+from services.simulation.lesson_scenes import load_lesson_scenes
 from services.simulation.lessons import load_case
 
 
@@ -28,7 +29,67 @@ def open_run(page, url, case_id):
     return f"{url}/?case={case_id}&run={run_id}", result
 
 
-def audit(log, executable):
+def audit_education(page, url, navigate, observe, focus):
+    task = page.get_by_role("region", name="课堂练习")
+
+    def button(label):
+        return page.get_by_role("button", name=label, exact=True)
+
+    navigate(url + "/learn/double_auction", button("领取买家身份"))
+    button("领取买家身份").click()
+    page.get_by_role("radio", name="不确定", exact=True).check()
+    button("去报价").click()
+    page.get_by_label("开局限价").fill("1")
+    page.get_by_role("checkbox", name="我接受这笔单会留到成交或收盘").check()
+    button("提交开局报价").click()
+    button("快进到收盘").click()
+    button("进入剩余解释").click()
+    seller = task.get_by_role("spinbutton", name="卖方剩余（代币）")
+    platform = task.get_by_role("spinbutton", name="平台收入（代币）")
+    observe("auction_amount_label", lambda: focus(seller), ["卖方剩余", "代币"])
+    observe("auction_tab_amount", lambda: key("Tab"), ["平台收入", "代币"])
+    expect(platform).to_be_focused()
+    seller.fill("12")
+    platform.fill("2")
+    focus(button("提交作答"))
+    observe("auction_wrong_answer", lambda: key("Return"), ["再核对这一步"])
+    expect(task.get_by_text("再核对这一步", exact=True)).to_be_visible()
+    focus(button("看完整例题"))
+    observe("auction_example_focus", lambda: key("Return"), ["看一个完整例题"])
+    expect(task.get_by_role("heading", name="看一个完整例题")).to_be_focused()
+    focus(button("返回原题"))
+    observe("auction_return_focus", lambda: key("Return"), ["练习 heading"])
+    expect(task.get_by_role("heading", name="练习", exact=True)).to_be_focused()
+
+    for case, name, amount, wrong, phrase in [
+        ("svb_run", "现金（资金单位）", "15", ["55", "18"], "现金"),
+        ("schelling_segregation", "已占邻居数（人）", "8", ["60"], "已占邻居数"),
+    ]:
+        scenes = load_lesson_scenes(case)["scenes"]
+        question = next(item for item in scenes[1]["questions"] if item.get("kind") == "prediction")
+        uncertain = next(item["label"] for item in question["options"] if item["id"] == "unknown")
+        navigate(f"{url}/learn/{case}", button("开始学习"))
+        button("开始学习").click()
+        page.get_by_role("group", name=question["prompt"], exact=True).get_by_role(
+            "radio", name=uncertain, exact=True).check()
+        button("选择行动").click()
+        button("运行基础实验").click()
+        button("快进到结束").click()
+        button("进入解释").click()
+        inputs = task.get_by_role("spinbutton")
+        observe(f"{case}_amount_label", lambda: focus(task.get_by_role("spinbutton", name=name)), [phrase])
+        for index, value in enumerate([amount, *wrong]):
+            inputs.nth(index).fill(value)
+        focus(button("提交作答"))
+        observe(f"{case}_wrong_answer", lambda: key("Return"), ["再核对这一步"])
+        expect(task.get_by_text("再核对这一步", exact=True)).to_be_visible()
+
+    teaching = page.get_by_role("heading", name="双向拍卖教学活动")
+    observe("teaching_title", lambda: navigate(url + "/teach?case=double_auction", teaching), ["双向拍卖教学活动 · EcoSimEdu"])
+    observe("teaching_demo_link", lambda: focus(page.get_by_role("link", name="打开隔离展示课堂")), ["打开隔离展示课堂"])
+
+
+def audit(log, executable, education=False):
     with TemporaryDirectory(prefix="civitas-orca-") as tmp, \
             local_server(Path(tmp) / "runs.sqlite3") as (url, _, _), sync_playwright() as p:
         browser = p.chromium.launch(executable_path=executable, headless=False,
@@ -40,7 +101,7 @@ def audit(log, executable):
         records = []
 
         def observe(name, action, expected):
-            with log.open("rb") as speech:
+            with log.open("rb", buffering=0) as speech:
                 start = speech.seek(0, 2)
                 action()
                 deadline = monotonic() + 8
@@ -72,6 +133,12 @@ def audit(log, executable):
             locator.focus()
             expect(locator).to_be_focused()
             sleep(0.25)
+
+        if education:
+            audit_education(page, url, navigate, observe, focus)
+            version = browser.version
+            browser.close()
+            return {"browser": version, "scope": "education-upgrade", "viewport_width": 390, "observations": records}
 
         address, result = open_run(page, url, "svb_run")
         end = len(result["snapshots"]) - 1
@@ -133,8 +200,9 @@ if __name__ == "__main__":
     parser.add_argument("--speech-log", type=Path, required=True)
     parser.add_argument("--output", type=Path, required=True)
     parser.add_argument("--chromium", default="/usr/bin/chromium")
+    parser.add_argument("--education", action="store_true", help="Walk the upgraded classroom and teaching page.")
     args = parser.parse_args()
-    report = audit(args.speech_log, args.chromium)
+    report = audit(args.speech_log, args.chromium, args.education)
     args.output.write_text(json.dumps(report, ensure_ascii=False, indent=2) + "\n")
     if not all(row["passed"] for row in report["observations"]):
         raise SystemExit(1)

@@ -1,0 +1,710 @@
+{
+  "schema_version": 3,
+  "case_id": "beer_game",
+  "content_version": "1.0.0",
+  "case_version": "1.0.0",
+  "source_ids": [
+    "S12",
+    "S13"
+  ],
+  "outcomes": [
+    {
+      "id": "beer_game.1",
+      "version": 1,
+      "concept_ids": [
+        "C04"
+      ],
+      "performance": "区分订单、实物在途、到货与积压",
+      "evidence_requirement": "首次无该题提示且达到该任务的规则判据",
+      "phase": "observe",
+      "task": "分解已订未到和实物在途",
+      "transfer": "零售到货与付款时差"
+    },
+    {
+      "id": "beer_game.2",
+      "version": 1,
+      "concept_ids": [
+        "C13"
+      ],
+      "performance": "由在库、已订未到和积压计算库存位置",
+      "evidence_requirement": "首次无该题提示且达到该任务的规则判据",
+      "phase": "explain",
+      "task": "计算 7＋11−4 并解释补单口径",
+      "transfer": "辨认未发货对补货的影响"
+    },
+    {
+      "id": "beer_game.3",
+      "version": 1,
+      "concept_ids": [
+        "C16"
+      ],
+      "performance": "在同一需求轨迹下辨认延迟或共享信息处理",
+      "evidence_requirement": "首次无该题提示且达到该任务的规则判据",
+      "phase": "compare",
+      "task": "说明方差分母为零的结果",
+      "transfer": "区分需求和产能冲击"
+    }
+  ],
+  "items": [
+    {
+      "id": "beer-bridge",
+      "version": 1,
+      "variant_id": "beer-bridge",
+      "family_id": "beer_game.1",
+      "outcome_ids": [
+        "beer_game.1"
+      ],
+      "kind": "numeric",
+      "prompt": "已订未到 11，其中运输在途 6。尚未发出的订单量多少？",
+      "context": {
+        "kind": "authored_model_exercise"
+      },
+      "assessment_role": "practice",
+      "response_schema": {
+        "fields": [
+          {
+            "id": "n1",
+            "label": "未发出订单",
+            "unit": "件"
+          }
+        ]
+      },
+      "evaluator": {
+        "id": "numeric_v1",
+        "version": 1,
+        "answers": [
+          5.0
+        ]
+      },
+      "feedback": {
+        "hint": "把题中给出的数量、规则和单位写成一步算式。",
+        "explanation": "11−6＝5。",
+        "misconception_code": "request_is_payment"
+      }
+    },
+    {
+      "id": "beer-arrivals",
+      "version": 1,
+      "variant_id": "beer-arrivals",
+      "family_id": "beer_game.1",
+      "outcome_ids": [
+        "beer_game.1"
+      ],
+      "kind": "numeric",
+      "prompt": "上一周已订未到 11，本周下单 4，到货 6。期末已订未到？",
+      "context": {
+        "kind": "authored_model_exercise"
+      },
+      "assessment_role": "independent",
+      "response_schema": {
+        "fields": [
+          {
+            "id": "n1",
+            "label": "已订未到",
+            "unit": "件"
+          }
+        ]
+      },
+      "evaluator": {
+        "id": "numeric_v1",
+        "version": 1,
+        "answers": [
+          9.0
+        ]
+      },
+      "feedback": {
+        "hint": "把题中给出的数量、规则和单位写成一步算式。",
+        "explanation": "11＋4−6＝9。到货才从已订未到量扣除。",
+        "misconception_code": "request_is_payment"
+      }
+    },
+    {
+      "id": "beer-position",
+      "version": 1,
+      "variant_id": "beer-position",
+      "family_id": "beer_game.2",
+      "outcome_ids": [
+        "beer_game.2"
+      ],
+      "kind": "numeric",
+      "prompt": "在库 12，已订未到 9，积压 5，库存位置是多少？",
+      "context": {
+        "kind": "authored_model_exercise"
+      },
+      "assessment_role": "independent",
+      "response_schema": {
+        "fields": [
+          {
+            "id": "n1",
+            "label": "库存位置",
+            "unit": "件"
+          }
+        ]
+      },
+      "evaluator": {
+        "id": "numeric_v1",
+        "version": 1,
+        "answers": [
+          16.0
+        ]
+      },
+      "feedback": {
+        "hint": "把题中给出的数量、规则和单位写成一步算式。",
+        "explanation": "12＋9−5＝16。",
+        "misconception_code": "order_is_arrival"
+      }
+    },
+    {
+      "id": "beer-variance",
+      "version": 1,
+      "variant_id": "beer-variance",
+      "family_id": "beer_game.3",
+      "outcome_ids": [
+        "beer_game.3"
+      ],
+      "kind": "single_choice",
+      "prompt": "观察窗内终端需求每周恰好 4，牛鞭比怎样报告？",
+      "context": {
+        "kind": "authored_model_exercise"
+      },
+      "assessment_role": "independent",
+      "response_schema": {
+        "options": [
+          {
+            "id": "option-0",
+            "label": "终端方差为零，牛鞭比留空"
+          },
+          {
+            "id": "option-1",
+            "label": "牛鞭比为 0"
+          },
+          {
+            "id": "option-2",
+            "label": "牛鞭比为无穷并可比较大小"
+          }
+        ]
+      },
+      "evaluator": {
+        "id": "choice_v1",
+        "version": 1,
+        "answer": "option-0"
+      },
+      "feedback": {
+        "hint": "逐项检查题干给出的规则和观察口径。",
+        "explanation": "模型约定分母为零时留空。",
+        "misconception_code": "mixed_treatments_single_cause"
+      }
+    },
+    {
+      "id": "beer-delivery",
+      "version": 1,
+      "variant_id": "beer-delivery",
+      "family_id": "beer_game.1",
+      "outcome_ids": [
+        "beer_game.1"
+      ],
+      "kind": "single_choice",
+      "prompt": "门店线上下单后，供应商接单但尚未发货。在 POS 的实物盘点中计入这些数量吗？",
+      "context": {
+        "kind": "authored_model_exercise"
+      },
+      "assessment_role": "transfer",
+      "response_schema": {
+        "options": [
+          {
+            "id": "option-1",
+            "label": "直接增加在库"
+          },
+          {
+            "id": "option-2",
+            "label": "视为已经售给终端"
+          },
+          {
+            "id": "option-0",
+            "label": "实物盘点保持原库存，同时在未到货订单账上记录"
+          }
+        ]
+      },
+      "evaluator": {
+        "id": "choice_v1",
+        "version": 1,
+        "answer": "option-0"
+      },
+      "feedback": {
+        "hint": "逐项检查题干给出的规则和观察口径。",
+        "explanation": "订单属于计划承诺，盘点计实物。",
+        "misconception_code": "request_is_payment"
+      }
+    },
+    {
+      "id": "beer-replenish",
+      "version": 1,
+      "variant_id": "beer-replenish",
+      "family_id": "beer_game.2",
+      "outcome_ids": [
+        "beer_game.2"
+      ],
+      "kind": "numeric",
+      "prompt": "门店在库 9，未发货订单 5，在途 4，积压 3。目标库存位置 20。按当前位置补多少？",
+      "context": {
+        "kind": "authored_model_exercise"
+      },
+      "assessment_role": "transfer",
+      "response_schema": {
+        "fields": [
+          {
+            "id": "n1",
+            "label": "补订量",
+            "unit": "件"
+          }
+        ]
+      },
+      "evaluator": {
+        "id": "numeric_v1",
+        "version": 1,
+        "answers": [
+          5.0
+        ]
+      },
+      "feedback": {
+        "hint": "把题中给出的数量、规则和单位写成一步算式。",
+        "explanation": "位置 9＋5＋4−3＝15，补 5。",
+        "misconception_code": "order_is_arrival"
+      }
+    },
+    {
+      "id": "beer-capacity",
+      "version": 1,
+      "variant_id": "beer-capacity",
+      "family_id": "beer_game.3",
+      "outcome_ids": [
+        "beer_game.3"
+      ],
+      "kind": "single_choice",
+      "prompt": "看到上游订单暴涨，且仓库产能同期下降。如何辨认终端需求冲击？",
+      "context": {
+        "kind": "authored_model_exercise"
+      },
+      "assessment_role": "transfer",
+      "response_schema": {
+        "options": [
+          {
+            "id": "option-0",
+            "label": "将终端实际需求序列与供给产能分别记录并对齐"
+          },
+          {
+            "id": "option-1",
+            "label": "直接用订单暴涨代表终端需求"
+          },
+          {
+            "id": "option-2",
+            "label": "用到货减少推定需求减少"
+          }
+        ]
+      },
+      "evaluator": {
+        "id": "choice_v1",
+        "version": 1,
+        "answer": "option-0"
+      },
+      "feedback": {
+        "hint": "逐项检查题干给出的规则和观察口径。",
+        "explanation": "上游订单受反馈，供给短缺会放大局部变化。",
+        "misconception_code": "mixed_treatments_single_cause"
+      }
+    },
+    {
+      "id": "review-1",
+      "version": 1,
+      "variant_id": "review-1",
+      "family_id": "beer_game.1",
+      "outcome_ids": [
+        "beer_game.1"
+      ],
+      "kind": "numeric",
+      "prompt": "本周新下单 7、发货 3、到货 1，已订未到净增加多少？",
+      "context": {
+        "kind": "authored_model_exercise"
+      },
+      "assessment_role": "review",
+      "response_schema": {
+        "fields": [
+          {
+            "id": "n1",
+            "label": "未到货净增",
+            "unit": "件"
+          }
+        ]
+      },
+      "evaluator": {
+        "id": "numeric_v1",
+        "version": 1,
+        "answers": [
+          6.0
+        ]
+      },
+      "feedback": {
+        "hint": "把题中给出的数量、规则和单位写成一步算式。",
+        "explanation": "7−1＝6，发货仍在供给线。",
+        "misconception_code": "request_is_payment"
+      }
+    },
+    {
+      "id": "review-2",
+      "version": 1,
+      "variant_id": "review-2",
+      "family_id": "beer_game.2",
+      "outcome_ids": [
+        "beer_game.2"
+      ],
+      "kind": "numeric",
+      "prompt": "在库 2、已订未到 12、积压 4，库存位置？",
+      "context": {
+        "kind": "authored_model_exercise"
+      },
+      "assessment_role": "review",
+      "response_schema": {
+        "fields": [
+          {
+            "id": "n1",
+            "label": "库存位置",
+            "unit": "件"
+          }
+        ]
+      },
+      "evaluator": {
+        "id": "numeric_v1",
+        "version": 1,
+        "answers": [
+          10.0
+        ]
+      },
+      "feedback": {
+        "hint": "把题中给出的数量、规则和单位写成一步算式。",
+        "explanation": "2＋12−4＝10。",
+        "misconception_code": "order_is_arrival"
+      }
+    },
+    {
+      "id": "review-3",
+      "version": 1,
+      "variant_id": "review-3",
+      "family_id": "beer_game.3",
+      "outcome_ids": [
+        "beer_game.3"
+      ],
+      "kind": "single_choice",
+      "prompt": "想比较共享需求信号，应改什么输入？",
+      "context": {
+        "kind": "authored_model_exercise"
+      },
+      "assessment_role": "review",
+      "response_schema": {
+        "options": [
+          {
+            "id": "option-0",
+            "label": "仅让对照组收到终端需求，其余共同输入保持"
+          },
+          {
+            "id": "option-1",
+            "label": "同时修改运输时滞"
+          },
+          {
+            "id": "option-2",
+            "label": "先更改终端需求再比较"
+          }
+        ]
+      },
+      "evaluator": {
+        "id": "choice_v1",
+        "version": 1,
+        "answer": "option-0"
+      },
+      "feedback": {
+        "hint": "逐项检查题干给出的规则和观察口径。",
+        "explanation": "共享信息属于单独处理。",
+        "misconception_code": "mixed_treatments_single_cause"
+      }
+    },
+    {
+      "id": "em-beer-game-explain",
+      "version": 1,
+      "variant_id": "em-beer-game-explain",
+      "family_id": "beer_game.emergence",
+      "outcome_ids": [
+        "beer_game.1",
+        "beer_game.2"
+      ],
+      "kind": "ordering",
+      "prompt": "按证据链排序，从某周偏大的订货查到后续库存反馈。",
+      "context": {
+        "kind": "authored_model_exercise"
+      },
+      "assessment_role": "independent",
+      "response_schema": {
+        "options": [
+          {
+            "id": "step-1",
+            "label": "定位某角色本周实际下达的订单"
+          },
+          {
+            "id": "step-2",
+            "label": "核对上游实际发货和此批次实际到货的周次"
+          },
+          {
+            "id": "step-3",
+            "label": "把真实到货与实发带入库存账表，再观察后续补单"
+          }
+        ]
+      },
+      "evaluator": {
+        "id": "ordering_v1",
+        "version": 1,
+        "answer": [
+          "step-1",
+          "step-2",
+          "step-3"
+        ]
+      },
+      "feedback": {
+        "hint": "先确认你看到的是什么记录，再判断它能支持哪一步。",
+        "explanation": "订单、发货与到货是不同的事件。只有到货和实际出库进入实物库存核算。",
+        "misconception_code": "request_is_payment"
+      }
+    },
+    {
+      "id": "em-beer-game-notebook",
+      "version": 1,
+      "variant_id": "em-beer-game-notebook",
+      "family_id": "beer_game.emergence",
+      "outcome_ids": [
+        "beer_game.1",
+        "beer_game.2"
+      ],
+      "kind": "structured_explanation",
+      "prompt": "从门店积压迁移到银行待付。提出一项能用真实事件查证的延迟解释，并说明两者计量口径。",
+      "context": {
+        "kind": "authored_model_exercise"
+      },
+      "assessment_role": "transfer",
+      "response_schema": {
+        "fields": [
+          {
+            "id": "criterion-1",
+            "label": "两边各积压何种义务",
+            "unit": "说明"
+          },
+          {
+            "id": "criterion-2",
+            "label": "实物库存与银行现金的用途",
+            "unit": "说明"
+          },
+          {
+            "id": "criterion-3",
+            "label": "可反查的来源与替代条件",
+            "unit": "说明"
+          }
+        ]
+      },
+      "evaluator": {
+        "id": "structure_v1",
+        "version": 1
+      },
+      "feedback": {
+        "hint": "先确认你看到的是什么记录，再判断它能支持哪一步。",
+        "explanation": "两种模型都受流量约束，金融待付还要和存款负债、净资产分别看。需要实际事件证实路径。",
+        "misconception_code": "request_is_payment"
+      }
+    }
+  ],
+  "activities": [
+    {
+      "id": "beer-bridge",
+      "phase": "explain",
+      "kind": "assessment",
+      "outcome_ids": [
+        "beer_game.1"
+      ],
+      "content_ref": "beer-bridge",
+      "assessment_item_ids": [
+        "beer-bridge"
+      ],
+      "completion_rule": "submit_or_skip",
+      "next_activity_id": "beer-arrivals",
+      "remediation_activity_id": "worked-example"
+    },
+    {
+      "id": "beer-arrivals",
+      "phase": "explain",
+      "kind": "assessment",
+      "outcome_ids": [
+        "beer_game.1"
+      ],
+      "content_ref": "beer-arrivals",
+      "assessment_item_ids": [
+        "beer-arrivals"
+      ],
+      "completion_rule": "submit_or_skip",
+      "next_activity_id": "beer-position"
+    },
+    {
+      "id": "beer-position",
+      "phase": "explain",
+      "kind": "assessment",
+      "outcome_ids": [
+        "beer_game.2"
+      ],
+      "content_ref": "beer-position",
+      "assessment_item_ids": [
+        "beer-position"
+      ],
+      "completion_rule": "submit_or_skip",
+      "next_activity_id": "beer-variance"
+    },
+    {
+      "id": "beer-variance",
+      "phase": "explain",
+      "kind": "assessment",
+      "outcome_ids": [
+        "beer_game.3"
+      ],
+      "content_ref": "beer-variance",
+      "assessment_item_ids": [
+        "beer-variance"
+      ],
+      "completion_rule": "submit_or_skip",
+      "next_activity_id": "em-beer-game-explain"
+    },
+    {
+      "id": "beer-delivery",
+      "phase": "notebook",
+      "kind": "assessment",
+      "outcome_ids": [
+        "beer_game.1"
+      ],
+      "content_ref": "beer-delivery",
+      "assessment_item_ids": [
+        "beer-delivery"
+      ],
+      "completion_rule": "submit_or_skip",
+      "next_activity_id": "beer-replenish"
+    },
+    {
+      "id": "beer-replenish",
+      "phase": "notebook",
+      "kind": "assessment",
+      "outcome_ids": [
+        "beer_game.2"
+      ],
+      "content_ref": "beer-replenish",
+      "assessment_item_ids": [
+        "beer-replenish"
+      ],
+      "completion_rule": "submit_or_skip",
+      "next_activity_id": "beer-capacity"
+    },
+    {
+      "id": "beer-capacity",
+      "phase": "notebook",
+      "kind": "assessment",
+      "outcome_ids": [
+        "beer_game.3"
+      ],
+      "content_ref": "beer-capacity",
+      "assessment_item_ids": [
+        "beer-capacity"
+      ],
+      "completion_rule": "submit_or_skip",
+      "next_activity_id": "em-beer-game-notebook"
+    },
+    {
+      "id": "review-1",
+      "phase": "notebook",
+      "kind": "review",
+      "outcome_ids": [
+        "beer_game.1"
+      ],
+      "content_ref": "review-1",
+      "assessment_item_ids": [
+        "review-1"
+      ],
+      "completion_rule": "submit_or_skip",
+      "next_activity_id": null
+    },
+    {
+      "id": "review-2",
+      "phase": "notebook",
+      "kind": "review",
+      "outcome_ids": [
+        "beer_game.2"
+      ],
+      "content_ref": "review-2",
+      "assessment_item_ids": [
+        "review-2"
+      ],
+      "completion_rule": "submit_or_skip",
+      "next_activity_id": null
+    },
+    {
+      "id": "review-3",
+      "phase": "notebook",
+      "kind": "review",
+      "outcome_ids": [
+        "beer_game.3"
+      ],
+      "content_ref": "review-3",
+      "assessment_item_ids": [
+        "review-3"
+      ],
+      "completion_rule": "submit_or_skip",
+      "next_activity_id": null
+    },
+    {
+      "id": "worked-example",
+      "phase": "explain",
+      "kind": "example",
+      "outcome_ids": [
+        "beer_game.1"
+      ],
+      "content_ref": "worked-example",
+      "assessment_item_ids": [],
+      "completion_rule": "read_or_skip",
+      "next_activity_id": null,
+      "return_activity_id": "beer-bridge",
+      "text": "在库 7、已订未到 11、积压 4，库存位置为 14。若运输在途 6，已订未到的另外 5 尚未发出。重复补单会积存在供给线上。"
+    },
+    {
+      "id": "em-beer-game-explain",
+      "phase": "explain",
+      "kind": "assessment",
+      "outcome_ids": [
+        "beer_game.1",
+        "beer_game.2"
+      ],
+      "content_ref": "em-beer-game-explain",
+      "assessment_item_ids": [
+        "em-beer-game-explain"
+      ],
+      "completion_rule": "submit_or_skip",
+      "next_activity_id": null
+    },
+    {
+      "id": "em-beer-game-notebook",
+      "phase": "notebook",
+      "kind": "assessment",
+      "outcome_ids": [
+        "beer_game.1",
+        "beer_game.2"
+      ],
+      "content_ref": "em-beer-game-notebook",
+      "assessment_item_ids": [
+        "em-beer-game-notebook"
+      ],
+      "completion_rule": "submit_or_skip",
+      "next_activity_id": null
+    }
+  ],
+  "required_comparisons": [
+    "shared"
+  ]
+}

@@ -1,0 +1,727 @@
+{
+  "schema_version": 3,
+  "case_id": "schelling_segregation",
+  "content_version": "1.0.0",
+  "case_version": "1.0.0",
+  "source_ids": [
+    "S04",
+    "S04-N"
+  ],
+  "outcomes": [
+    {
+      "id": "schelling_segregation.1",
+      "version": 1,
+      "concept_ids": [
+        "C06"
+      ],
+      "performance": "计算未搬居民的邻居比例及阈值状态",
+      "evidence_requirement": "首次无该题提示且达到该任务的规则判据",
+      "phase": "explain",
+      "task": "计算 B 搬离前后的同类比例",
+      "transfer": "判断边界位置的有效分母"
+    },
+    {
+      "id": "schelling_segregation.2",
+      "version": 1,
+      "concept_ids": [
+        "C07"
+      ],
+      "performance": "解释满意率与同类邻接率怎样汇总",
+      "evidence_requirement": "首次无该题提示且达到该任务的规则判据",
+      "phase": "observe",
+      "task": "辨认局部满意与全图同类边",
+      "transfer": "分析阈值为零的分群初态"
+    },
+    {
+      "id": "schelling_segregation.3",
+      "version": 1,
+      "concept_ids": [
+        "C18"
+      ],
+      "performance": "区分模型停止条件与现实分群解释",
+      "evidence_requirement": "首次无该题提示且达到该任务的规则判据",
+      "phase": "compare",
+      "task": "判断达到轮数上限所支持的结论",
+      "transfer": "为校园分群比较提出可辨异的资料"
+    }
+  ],
+  "items": [
+    {
+      "id": "sch-complete",
+      "version": 1,
+      "variant_id": "sch-complete",
+      "family_id": "schelling_segregation.1",
+      "outcome_ids": [
+        "schelling_segregation.1"
+      ],
+      "kind": "numeric",
+      "prompt": "中央住户 A 周围有 3 个 A、2 个 B、3 个空位。填同类比例的分母与百分数。",
+      "context": {
+        "kind": "authored_model_exercise"
+      },
+      "assessment_role": "practice",
+      "response_schema": {
+        "fields": [
+          {
+            "id": "n1",
+            "label": "已占邻居数",
+            "unit": "人"
+          },
+          {
+            "id": "n2",
+            "label": "同类比例",
+            "unit": "%"
+          }
+        ]
+      },
+      "evaluator": {
+        "id": "numeric_v1",
+        "version": 1,
+        "answers": [
+          5,
+          60
+        ]
+      },
+      "feedback": {
+        "hint": "只数已占的邻格。",
+        "explanation": "分母 3＋2＝5。比例 3／5＝60%。",
+        "misconception_code": "empty_as_neighbor"
+      }
+    },
+    {
+      "id": "sch-independent",
+      "version": 1,
+      "variant_id": "sch-independent",
+      "family_id": "schelling_segregation.1",
+      "outcome_ids": [
+        "schelling_segregation.1"
+      ],
+      "kind": "numeric",
+      "prompt": "中央住户 A 周围有 2 个 A、3 个 B、3 个空位。一名 B 搬走，中央不移动。填搬离前与搬离后的同类邻居百分数。",
+      "context": {
+        "kind": "authored_model_exercise"
+      },
+      "assessment_role": "independent",
+      "response_schema": {
+        "fields": [
+          {
+            "id": "n1",
+            "label": "搬离前",
+            "unit": "%"
+          },
+          {
+            "id": "n2",
+            "label": "搬离后",
+            "unit": "%"
+          }
+        ]
+      },
+      "evaluator": {
+        "id": "numeric_v1",
+        "version": 1,
+        "answers": [
+          40,
+          50
+        ]
+      },
+      "feedback": {
+        "hint": "分子不变，只重新计数已占邻居。",
+        "explanation": "搬离前 2／5＝40%，搬离后 2／4＝50%，恰好达到 50% 阈值。",
+        "misconception_code": "empty_as_neighbor"
+      }
+    },
+    {
+      "id": "sch-global",
+      "version": 1,
+      "variant_id": "sch-global",
+      "family_id": "schelling_segregation.2",
+      "outcome_ids": [
+        "schelling_segregation.2"
+      ],
+      "kind": "single_choice",
+      "prompt": "比较两张地图的同类邻接率，应该统计哪些对象？",
+      "context": {
+        "kind": "authored_model_exercise"
+      },
+      "assessment_role": "independent",
+      "response_schema": {
+        "options": [
+          {
+            "id": "people",
+            "label": "满意的人数"
+          },
+          {
+            "id": "edges",
+            "label": "已占格之间的无向邻接边"
+          },
+          {
+            "id": "tiles",
+            "label": "所有格子，包括空位"
+          }
+        ]
+      },
+      "evaluator": {
+        "id": "choice_v1",
+        "version": 1,
+        "answer": "edges"
+      },
+      "feedback": {
+        "hint": "寻找图中两端都有人占据的邻接关系。",
+        "explanation": "分母是全部已占格之间的无向邻接边，同类边按同一口径计入分子。",
+        "misconception_code": "satisfied_means_mixed"
+      }
+    },
+    {
+      "id": "sch-stop",
+      "version": 1,
+      "variant_id": "sch-stop",
+      "family_id": "schelling_segregation.3",
+      "outcome_ids": [
+        "schelling_segregation.3"
+      ],
+      "kind": "single_choice",
+      "prompt": "模拟达到八轮上限，最后一轮仍有居民搬迁。怎样报告终止？",
+      "context": {
+        "kind": "authored_model_exercise"
+      },
+      "assessment_role": "independent",
+      "response_schema": {
+        "options": [
+          {
+            "id": "limit",
+            "label": "因达到轮数上限停止，稳定性待核验"
+          },
+          {
+            "id": "stable",
+            "label": "达到稳定均衡"
+          },
+          {
+            "id": "mixed",
+            "label": "必然达到充分混居"
+          }
+        ]
+      },
+      "evaluator": {
+        "id": "choice_v1",
+        "version": 1,
+        "answer": "limit"
+      },
+      "feedback": {
+        "hint": "查看终止原因是否来自轮数限制。",
+        "explanation": "八轮上限足以说明运行停止。稳定判断需要核查全员满意或无可搬迁等实际停止条件。",
+        "misconception_code": "model_is_observation"
+      }
+    },
+    {
+      "id": "sch-boundary",
+      "version": 1,
+      "variant_id": "sch-boundary",
+      "family_id": "schelling_segregation.1",
+      "outcome_ids": [
+        "schelling_segregation.1"
+      ],
+      "kind": "single_choice",
+      "prompt": "车间座位排列遵守本课邻域约定。左上角 A 周围两个邻格为 B，另一格空置。邻域分母是多少？",
+      "context": {
+        "kind": "authored_model_exercise"
+      },
+      "assessment_role": "transfer",
+      "response_schema": {
+        "options": [
+          {
+            "id": "eight",
+            "label": "8"
+          },
+          {
+            "id": "three",
+            "label": "3"
+          },
+          {
+            "id": "two",
+            "label": "2"
+          }
+        ]
+      },
+      "evaluator": {
+        "id": "choice_v1",
+        "version": 1,
+        "answer": "two"
+      },
+      "feedback": {
+        "hint": "场地边界之外没有邻格。空位没有居民。",
+        "explanation": "两个 B 占据邻格，分母为 2。",
+        "misconception_code": "empty_as_neighbor"
+      }
+    },
+    {
+      "id": "sch-zero-threshold",
+      "version": 1,
+      "variant_id": "sch-zero-threshold",
+      "family_id": "schelling_segregation.2",
+      "outcome_ids": [
+        "schelling_segregation.2"
+      ],
+      "kind": "single_choice",
+      "prompt": "两个社团初态分群。所有自动成员的最低同类比例设为 0%，无人工搬迁，使用本课自动规则。一轮后会发生什么？",
+      "context": {
+        "kind": "authored_model_exercise"
+      },
+      "assessment_role": "transfer",
+      "response_schema": {
+        "options": [
+          {
+            "id": "mix",
+            "label": "自动搬迁到均匀混合"
+          },
+          {
+            "id": "fixed",
+            "label": "自动成员均已满意，格局保持"
+          },
+          {
+            "id": "segregated",
+            "label": "每个成员都必须搬到同类人旁"
+          }
+        ]
+      },
+      "evaluator": {
+        "id": "choice_v1",
+        "version": 1,
+        "answer": "fixed"
+      },
+      "feedback": {
+        "hint": "自动搬迁的触发前提是什么？",
+        "explanation": "阈值为 0% 时已占邻域都达标，无邻居也按本规则视为满意。自动更新不会打散初态。",
+        "misconception_code": "satisfied_means_mixed"
+      }
+    },
+    {
+      "id": "sch-club",
+      "version": 1,
+      "variant_id": "sch-club",
+      "family_id": "schelling_segregation.3",
+      "outcome_ids": [
+        "schelling_segregation.3"
+      ],
+      "kind": "single_choice",
+      "prompt": "校园社团按专业分群。要辨认偏好和活动时间安排的作用，优先找哪项资料？",
+      "context": {
+        "kind": "authored_model_exercise"
+      },
+      "assessment_role": "transfer",
+      "response_schema": {
+        "options": [
+          {
+            "id": "snapshot",
+            "label": "再看同一时点的合照"
+          },
+          {
+            "id": "count",
+            "label": "统计社团海报数量"
+          },
+          {
+            "id": "opportunity",
+            "label": "比较拥有相同活动时间选择机会的同学的报名信息"
+          }
+        ]
+      },
+      "evaluator": {
+        "id": "choice_v1",
+        "version": 1,
+        "answer": "opportunity"
+      },
+      "feedback": {
+        "hint": "需要观测谁拥有可比选择机会。",
+        "explanation": "相同选择机会下的报名记录有助于把时间约束和选择偏好分开。",
+        "misconception_code": "model_is_observation"
+      }
+    },
+    {
+      "id": "review-1",
+      "version": 1,
+      "variant_id": "review-1",
+      "family_id": "schelling_segregation.1",
+      "outcome_ids": [
+        "schelling_segregation.1"
+      ],
+      "kind": "numeric",
+      "prompt": "中央 A 的邻域有 2 个 A、2 个 B 和 4 个空位。同类比例是多少？",
+      "context": {
+        "kind": "authored_model_exercise"
+      },
+      "assessment_role": "review",
+      "response_schema": {
+        "fields": [
+          {
+            "id": "value",
+            "label": "同类比例",
+            "unit": "%"
+          }
+        ]
+      },
+      "evaluator": {
+        "id": "numeric_v1",
+        "version": 1,
+        "answers": [
+          50
+        ]
+      },
+      "feedback": {
+        "hint": "先写下当前题目的计数或记账口径。",
+        "explanation": "已占邻居 4 位，2／4＝50%。",
+        "misconception_code": "empty_as_neighbor"
+      }
+    },
+    {
+      "id": "review-2",
+      "version": 1,
+      "variant_id": "review-2",
+      "family_id": "schelling_segregation.2",
+      "outcome_ids": [
+        "schelling_segregation.2"
+      ],
+      "kind": "numeric",
+      "prompt": "满员的一行四格依次是 A、A、B、B。只计不跨边界的相邻边，同类边有几条？",
+      "context": {
+        "kind": "authored_model_exercise"
+      },
+      "assessment_role": "review",
+      "response_schema": {
+        "fields": [
+          {
+            "id": "value",
+            "label": "同类边数",
+            "unit": "条"
+          }
+        ]
+      },
+      "evaluator": {
+        "id": "numeric_v1",
+        "version": 1,
+        "answers": [
+          2
+        ]
+      },
+      "feedback": {
+        "hint": "先写下当前题目的计数或记账口径。",
+        "explanation": "三条边中 AA 和 BB 各一条。",
+        "misconception_code": "satisfied_means_mixed"
+      }
+    },
+    {
+      "id": "review-3",
+      "version": 1,
+      "variant_id": "review-3",
+      "family_id": "schelling_segregation.3",
+      "outcome_ids": [
+        "schelling_segregation.3"
+      ],
+      "kind": "numeric",
+      "prompt": "三个同类住户挨在一行，阈值设为 75%，四周为空。每位都有同类邻居并满足阈值。无学生动作，本轮自动迁居多少次？",
+      "context": {
+        "kind": "authored_model_exercise"
+      },
+      "assessment_role": "review",
+      "response_schema": {
+        "fields": [
+          {
+            "id": "value",
+            "label": "自动迁居",
+            "unit": "次"
+          }
+        ]
+      },
+      "evaluator": {
+        "id": "numeric_v1",
+        "version": 1,
+        "answers": [
+          0
+        ]
+      },
+      "feedback": {
+        "hint": "先写下当前题目的计数或记账口径。",
+        "explanation": "每位已达到阈值，因此都不触发迁居。",
+        "misconception_code": "model_is_observation"
+      }
+    },
+    {
+      "id": "em-schelling-segregation-explain",
+      "version": 1,
+      "variant_id": "em-schelling-segregation-explain",
+      "family_id": "schelling_segregation.emergence",
+      "outcome_ids": [
+        "schelling_segregation.1",
+        "schelling_segregation.2"
+      ],
+      "kind": "ordering",
+      "prompt": "把一次真实搬迁的三层核查按证据顺序排好。",
+      "context": {
+        "kind": "authored_model_exercise"
+      },
+      "assessment_role": "independent",
+      "response_schema": {
+        "options": [
+          {
+            "id": "step-1",
+            "label": "定位搬迁者、原址与新址"
+          },
+          {
+            "id": "step-2",
+            "label": "核对受影响住户的已占邻居与阈值"
+          },
+          {
+            "id": "step-3",
+            "label": "用全图占用邻接对复算同类邻接率"
+          }
+        ]
+      },
+      "evaluator": {
+        "id": "ordering_v1",
+        "version": 1,
+        "answer": [
+          "step-1",
+          "step-2",
+          "step-3"
+        ]
+      },
+      "feedback": {
+        "hint": "先确认你看到的是什么记录，再判断它能支持哪一步。",
+        "explanation": "邻域改变的是局部可见集合。全图同类邻接率以全部占用邻接对为分母，满意率以全部居民为分母。",
+        "misconception_code": "empty_as_neighbor"
+      }
+    },
+    {
+      "id": "em-schelling-segregation-notebook",
+      "version": 1,
+      "variant_id": "em-schelling-segregation-notebook",
+      "family_id": "schelling_segregation.emergence",
+      "outcome_ids": [
+        "schelling_segregation.1",
+        "schelling_segregation.2"
+      ],
+      "kind": "structured_explanation",
+      "prompt": "从居住隔离迁移到公开行动的级联。挑选你能实际查到的事件，提出一种仅凭末态无法区分的机制。",
+      "context": {
+        "kind": "authored_model_exercise"
+      },
+      "assessment_role": "transfer",
+      "response_schema": {
+        "fields": [
+          {
+            "id": "criterion-1",
+            "label": "空间邻居与已观察行动的不同",
+            "unit": "说明"
+          },
+          {
+            "id": "criterion-2",
+            "label": "需要检查的运行事件",
+            "unit": "说明"
+          },
+          {
+            "id": "criterion-3",
+            "label": "只知道末态时的解释边界",
+            "unit": "说明"
+          }
+        ]
+      },
+      "evaluator": {
+        "id": "structure_v1",
+        "version": 1
+      },
+      "feedback": {
+        "hint": "先确认你看到的是什么记录，再判断它能支持哪一步。",
+        "explanation": "搬迁即时改变空间邻接，序贯行动是否更新信念还取决于可见性和行为策略。",
+        "misconception_code": "empty_as_neighbor"
+      }
+    }
+  ],
+  "activities": [
+    {
+      "id": "sch-complete",
+      "phase": "explain",
+      "kind": "assessment",
+      "outcome_ids": [
+        "schelling_segregation.1"
+      ],
+      "content_ref": "sch-complete",
+      "assessment_item_ids": [
+        "sch-complete"
+      ],
+      "completion_rule": "submit_or_skip",
+      "next_activity_id": "sch-independent",
+      "remediation_activity_id": "worked-example"
+    },
+    {
+      "id": "sch-independent",
+      "phase": "explain",
+      "kind": "assessment",
+      "outcome_ids": [
+        "schelling_segregation.1"
+      ],
+      "content_ref": "sch-independent",
+      "assessment_item_ids": [
+        "sch-independent"
+      ],
+      "completion_rule": "submit_or_skip",
+      "next_activity_id": "sch-global"
+    },
+    {
+      "id": "sch-global",
+      "phase": "explain",
+      "kind": "assessment",
+      "outcome_ids": [
+        "schelling_segregation.2"
+      ],
+      "content_ref": "sch-global",
+      "assessment_item_ids": [
+        "sch-global"
+      ],
+      "completion_rule": "submit_or_skip",
+      "next_activity_id": "sch-stop"
+    },
+    {
+      "id": "sch-stop",
+      "phase": "explain",
+      "kind": "assessment",
+      "outcome_ids": [
+        "schelling_segregation.3"
+      ],
+      "content_ref": "sch-stop",
+      "assessment_item_ids": [
+        "sch-stop"
+      ],
+      "completion_rule": "submit_or_skip",
+      "next_activity_id": "em-schelling-segregation-explain"
+    },
+    {
+      "id": "sch-boundary",
+      "phase": "notebook",
+      "kind": "assessment",
+      "outcome_ids": [
+        "schelling_segregation.1"
+      ],
+      "content_ref": "sch-boundary",
+      "assessment_item_ids": [
+        "sch-boundary"
+      ],
+      "completion_rule": "submit_or_skip",
+      "next_activity_id": "sch-zero-threshold"
+    },
+    {
+      "id": "sch-zero-threshold",
+      "phase": "notebook",
+      "kind": "assessment",
+      "outcome_ids": [
+        "schelling_segregation.2"
+      ],
+      "content_ref": "sch-zero-threshold",
+      "assessment_item_ids": [
+        "sch-zero-threshold"
+      ],
+      "completion_rule": "submit_or_skip",
+      "next_activity_id": "sch-club"
+    },
+    {
+      "id": "sch-club",
+      "phase": "notebook",
+      "kind": "assessment",
+      "outcome_ids": [
+        "schelling_segregation.3"
+      ],
+      "content_ref": "sch-club",
+      "assessment_item_ids": [
+        "sch-club"
+      ],
+      "completion_rule": "submit_or_skip",
+      "next_activity_id": "em-schelling-segregation-notebook"
+    },
+    {
+      "id": "worked-example",
+      "phase": "explain",
+      "kind": "example",
+      "outcome_ids": [
+        "schelling_segregation.1"
+      ],
+      "content_ref": "worked-example",
+      "assessment_item_ids": [],
+      "completion_rule": "read_or_skip",
+      "next_activity_id": null,
+      "return_activity_id": "sch-complete",
+      "text": "中央住户 A 周围有 2 个 A、4 个 B、2 个空位。比例 2／6≈33.3%，在 30% 阈值下满意。空位和中央住户自己都不计为邻居。"
+    },
+    {
+      "id": "review-1",
+      "phase": "notebook",
+      "kind": "review",
+      "outcome_ids": [
+        "schelling_segregation.1"
+      ],
+      "content_ref": "review-1",
+      "assessment_item_ids": [
+        "review-1"
+      ],
+      "completion_rule": "submit_or_skip",
+      "next_activity_id": null
+    },
+    {
+      "id": "review-2",
+      "phase": "notebook",
+      "kind": "review",
+      "outcome_ids": [
+        "schelling_segregation.2"
+      ],
+      "content_ref": "review-2",
+      "assessment_item_ids": [
+        "review-2"
+      ],
+      "completion_rule": "submit_or_skip",
+      "next_activity_id": null
+    },
+    {
+      "id": "review-3",
+      "phase": "notebook",
+      "kind": "review",
+      "outcome_ids": [
+        "schelling_segregation.3"
+      ],
+      "content_ref": "review-3",
+      "assessment_item_ids": [
+        "review-3"
+      ],
+      "completion_rule": "submit_or_skip",
+      "next_activity_id": null
+    },
+    {
+      "id": "em-schelling-segregation-explain",
+      "phase": "explain",
+      "kind": "assessment",
+      "outcome_ids": [
+        "schelling_segregation.1",
+        "schelling_segregation.2"
+      ],
+      "content_ref": "em-schelling-segregation-explain",
+      "assessment_item_ids": [
+        "em-schelling-segregation-explain"
+      ],
+      "completion_rule": "submit_or_skip",
+      "next_activity_id": null
+    },
+    {
+      "id": "em-schelling-segregation-notebook",
+      "phase": "notebook",
+      "kind": "assessment",
+      "outcome_ids": [
+        "schelling_segregation.1",
+        "schelling_segregation.2"
+      ],
+      "content_ref": "em-schelling-segregation-notebook",
+      "assessment_item_ids": [
+        "em-schelling-segregation-notebook"
+      ],
+      "completion_rule": "submit_or_skip",
+      "next_activity_id": null
+    }
+  ],
+  "required_comparisons": [
+    "zero"
+  ]
+}

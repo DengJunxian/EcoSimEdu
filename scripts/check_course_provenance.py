@@ -69,6 +69,10 @@ def inventory():
              "项目维护的课程序列")
     register("cases/boundaries.json", "teaching_input", "RC9", CATALOG, "每课一个固定边界输入",
              "项目手工定义的动作及规则参数", "python -m scripts.check_boundaries")
+    register("cases/learning-outcomes.json", "authored_learning_design", "1", CATALOG, "每门课三项目标",
+             "项目编写的目标、任务与迁移映射", "python -m scripts.check_learning_packages")
+    register("content/concepts.json", "authored_learning_design", "1", CATALOG, "每项独立概念及其先修",
+             "课内概念、误解定义与跨课连接", "python -m scripts.check_learning_packages")
     for case_id in CATALOG:
         case = load_case(case_id)
         path = f"cases/{case_id}/case.json"
@@ -85,6 +89,12 @@ def inventory():
                 register(scene_path, kind, scene["content_version"], [case_id], "每课一份场景定义",
                          f"项目编写的教学任务、反馈与证据选择器（{scope}）",
                          "python -m services.simulation.lesson_scenes")
+
+        path = f"cases/{case_id}/learning-v3.json"
+        package = read(ROOT / path)
+        register(path, "authored_model_exercise", package["content_version"], [case_id], "每课一份可执行学习包",
+                 "项目编写的练习、参考解、暴露作用域、复习与活动。真实运行由独立数据契约提供。",
+                 "python -m scripts.check_learning_packages")
 
     register("cases/double_auction/presets.json.gz", "precomputed_simulation", "RC9 / double-auction/1",
              ["double_auction"], "每个冻结情景一条含事件、快照与指标的轨迹",
@@ -145,7 +155,7 @@ def inventory():
         for path in (ROOT / "cases").rglob("*")
         if path.suffix in {".json", ".gz"} and path not in {SOURCE_FILE, ASSET_FILE}
     }, "Unregistered data file in cases/"
-    return {"schema_version": 1, "content_release": "1.0.0-rc.9", "courses": course_lineage, "files": files,
+    return {"schema_version": 1, "content_release": "1.1.0-rc.1", "courses": course_lineage, "files": files,
             "runtime_records": [
                 {"kind": "computed_rule", "export_origin": "offline_simulation", "cases": list(CATALOG),
                  "method": "指定版本的课件、引擎、种子、情景和学生动作；运行时计算"},

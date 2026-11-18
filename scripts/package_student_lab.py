@@ -17,7 +17,7 @@ CORE = [
       ("__init__", "evolution", "market_rules", "order_book", "session_rules", "trade_tape")],
 ]
 SCRIPTS = ["audit_orca", "audit_student_accessibility", "benchmark_student_lab", "case_seed_matrix", "check_boundaries",
-           "check_course_provenance", "check_lesson_catalog", "generate_auction_presets",
+           "check_course_provenance", "check_lesson_catalog", "check_learning_packages", "generate_auction_presets",
            "lab_backup", "package_student_lab", "validate_live_lab"]
 KEY_PATTERN = re.compile(
     rb"sk-proj-[A-Za-z0-9_-]{40,}|sk-[0-9a-f]{32}\b|gh[pousr]_[A-Za-z0-9]{25,}|"
@@ -31,7 +31,7 @@ def payload():
     paths.update(ROOT / name for name in ("PRODUCT.md", "STUDENT_LAB.md", "requirements-edu.lock",
                                           "requirements-edu-dev.lock", "docs/release/check_feedback.py"))
     for prefix, extensions in {
-        "cases": {".json", ".md", ".gz"}, "docs": {".md", ".json", ".txt"},
+        "cases": {".json", ".md", ".gz"}, "content": {".json"}, "docs": {".md", ".json", ".txt"},
         "schemas": {".json"}, "services/simulation": {".py"}, "tests": {".py", ".json"},
         "student-web/src": {".tsx", ".ts", ".css"}, "student-web/dist": {".html", ".js", ".css"},
     }.items():

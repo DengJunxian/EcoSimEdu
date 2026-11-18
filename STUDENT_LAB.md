@@ -54,3 +54,19 @@ uv pip sync --python .venv/bin/python requirements-edu-dev.lock
 ```
 
 来源原文定位、教学资产版本和再分发范围见[来源与数据资产核验](docs/audit/source-asset-verification.md)。E2E 默认使用本机 Google Chrome 和独立数据库。Linux Chromium 的复跑方式见[开发指南](docs/developer-guide.md)。完整仓库可用 `.venv/bin/python -m scripts.audit_education_baseline` 复跑 WP00，旧应用使用自身依赖并通过 `streamlit run app.py` 启动。操作与证据见[用户指南](docs/user-guide.md)、[开发指南](docs/developer-guide.md)和[升级验收](docs/upgrade/acceptance.md)。
+
+## 教育升级 1.1 候选版
+
+案例详情展示学习目标。十二课保留原运行方式，在解释和笔记阶段加入自编练习、题目反馈及迁移任务。作答存在此浏览器的 IndexedDB。可从实验笔记导出作答记录，课堂的运行引用依赖原 SQLite 数据库。
+
+复习、概念、跨课任务和教学活动页均可在本机打开。教学展示使用独立档案。参数对照中的实验计划会在运行前保存，结果处可把同一观察点的两组运行带回课堂解释卡。解释卡的结构检查和事件引用核对各有状态。
+
+发布前运行 `python -m scripts.check_learning_packages`。1.1.0-rc.3 的实测与已知边界见[本地候选验收](docs/education-upgrade/release-acceptance.md)。
+
+## Emergence Studio 候选版
+
+启动本机服务后，从首页的「从微观到宏观」进入十二课机制索引。新手可以从居住隔离开始，保留入场预测，沿 A001 的动作、受影响邻居和两项全图指标追踪一次真实搬迁。图表的数据表支持键盘反查。完成基准回放后可用相同种子和阈值重跑另一种初态，引用两侧记录并导出解释卡。
+
+硅谷银行、信息级联、双向拍卖、公共物品和啤酒游戏也提供机制证据或双向回查。解释卡记录引用用途及是否使用结构提示，浏览器原有作答、笔记及归档保持可恢复。课程与解释均可在本机运行。查看[专项进度](docs/emergence/progress.md)与[验收说明](docs/emergence/09_acceptance.md)。
+
+原事件页和完整运行导出用于本机复盘。课堂证据按选定时点读取。单机实验室适合观察和学习，可用的账号隔离与考试安全需要另行部署设计。

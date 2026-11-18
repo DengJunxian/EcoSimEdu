@@ -1,5 +1,7 @@
+import type { Phase } from "./education-types";
 import type { ComponentType } from "react";
 import type { Course, Event, Frame, LessonRun } from "../lesson-types";
+import type { PairRef, SourceRef } from "./flagship-study";
 
 export const fieldFlagships = [
   "svb_run", "schelling_segregation", "information_cascade", "public_goods", "commons_governance",
@@ -28,6 +30,7 @@ export type FlagshipView = Pick<LessonRun, "run_id" | "case_id" | "case_version"
   events: (Event & Record<string, unknown>)[];
   series: Pick<Frame, "metrics">[];
   details?: unknown;
+  public_choice_a_pct?: (number | null)[];
 };
 
 export type DomainPanelProps = {
@@ -45,6 +48,16 @@ export type DomainPanelProps = {
   review: boolean;
   record?: (key: string, value: string) => void;
   records?: Record<string, string>;
+  evidence?: SourceRef[];
+  comparisons?: PairRef[];
+  capture?: (pair: PairRef) => void;
+  contentVersion?: string;
+  demo?: boolean;
+  reviewUnlocked?: boolean;
+  hasRun?: boolean;
+  explore?: boolean;
+  perspective?: "role" | "system";
+  changePerspective?: (perspective: "role" | "system") => void;
 };
 
 export type FieldLesson = { caseId: FieldFlagship; Panel: ComponentType<DomainPanelProps>; defaultActor: string };
@@ -60,7 +73,7 @@ export type SceneQuestion = {
   options: { id: string; label: string; feedback: string }[];
 };
 export type Scene = {
-  id: string; title: string; question: string; objective: string; information: string[];
+  id: Phase; title: string; question: string; objective: string; information: string[];
   questions: SceneQuestion[]; next_scene: string | null;
   evidence?: { selector: SceneSelector; missing: string };
   rubric?: string;

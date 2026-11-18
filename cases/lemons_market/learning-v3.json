@@ -1,0 +1,579 @@
+{
+  "schema_version": 3,
+  "case_id": "lemons_market",
+  "content_version": "1.0.0",
+  "case_version": "1.0.0",
+  "source_ids": [
+    "S08"
+  ],
+  "outcomes": [
+    {
+      "id": "lemons_market.1",
+      "version": 1,
+      "concept_ids": [
+        "C11"
+      ],
+      "performance": "由出价推导愿售池构成与下一轮出价",
+      "evidence_requirement": "首次无该题提示且达到该任务的规则判据",
+      "phase": "explain",
+      "task": "沿质量 1 至 5 的愿售池递推",
+      "transfer": "评估二手设备认证可信度"
+    },
+    {
+      "id": "lemons_market.2",
+      "version": 1,
+      "concept_ids": [
+        "C17"
+      ],
+      "performance": "区分愿售、退出与签约证据",
+      "evidence_requirement": "首次无该题提示且达到该任务的规则判据",
+      "phase": "observe",
+      "task": "逐事件确认成交数量",
+      "transfer": "区分挂牌和最终成交"
+    },
+    {
+      "id": "lemons_market.3",
+      "version": 1,
+      "concept_ids": [
+        "C03"
+      ],
+      "performance": "将认证资源成本计入交易净收益",
+      "evidence_requirement": "首次无该题提示且达到该任务的规则判据",
+      "phase": "compare",
+      "task": "计算低质和高质成交的净收益",
+      "transfer": "比较保修成本与质量披露"
+    }
+  ],
+  "items": [
+    {
+      "id": "lemons-bridge",
+      "version": 1,
+      "variant_id": "lemons-bridge",
+      "family_id": "lemons_market.1",
+      "outcome_ids": [
+        "lemons_market.1"
+      ],
+      "kind": "numeric",
+      "prompt": "买家按愿售平均质量的 1.2 倍报价，愿售质量为 1、2、3 各一件。下一报价是多少？",
+      "context": {
+        "kind": "authored_model_exercise"
+      },
+      "assessment_role": "practice",
+      "response_schema": {
+        "fields": [
+          {
+            "id": "n1",
+            "label": "下一报价",
+            "unit": "代币"
+          }
+        ]
+      },
+      "evaluator": {
+        "id": "numeric_v1",
+        "version": 1,
+        "answers": [
+          2.4
+        ]
+      },
+      "feedback": {
+        "hint": "把题中给出的数量、规则和单位写成一步算式。",
+        "explanation": "平均 2，乘 1.2 得 2.4。",
+        "misconception_code": "lower_price_higher_surplus"
+      }
+    },
+    {
+      "id": "lemons-unravel",
+      "version": 1,
+      "variant_id": "lemons-unravel",
+      "family_id": "lemons_market.1",
+      "outcome_ids": [
+        "lemons_market.1"
+      ],
+      "kind": "numeric",
+      "prompt": "卖方最低接受价等于质量。愿售池原有质量 1、2、3，统一价从 2.4 变为 1.8。现在还有几件愿售？",
+      "context": {
+        "kind": "authored_model_exercise"
+      },
+      "assessment_role": "independent",
+      "response_schema": {
+        "fields": [
+          {
+            "id": "n1",
+            "label": "愿售件数",
+            "unit": "件"
+          }
+        ]
+      },
+      "evaluator": {
+        "id": "numeric_v1",
+        "version": 1,
+        "answers": [
+          1.0
+        ]
+      },
+      "feedback": {
+        "hint": "把题中给出的数量、规则和单位写成一步算式。",
+        "explanation": "质量 1 的保留价低于 1.8，其余两件退出。",
+        "misconception_code": "lower_price_higher_surplus"
+      }
+    },
+    {
+      "id": "lemons-event",
+      "version": 1,
+      "variant_id": "lemons-event",
+      "family_id": "lemons_market.2",
+      "outcome_ids": [
+        "lemons_market.2"
+      ],
+      "kind": "numeric",
+      "prompt": "挂牌有 12 件，当前价格下愿售 7，最终交割事件 5 条各一件。成交量是多少？",
+      "context": {
+        "kind": "authored_model_exercise"
+      },
+      "assessment_role": "independent",
+      "response_schema": {
+        "fields": [
+          {
+            "id": "n1",
+            "label": "成交量",
+            "unit": "件"
+          }
+        ]
+      },
+      "evaluator": {
+        "id": "numeric_v1",
+        "version": 1,
+        "answers": [
+          5.0
+        ]
+      },
+      "feedback": {
+        "hint": "把题中给出的数量、规则和单位写成一步算式。",
+        "explanation": "成交量依赖交割事件。愿售说明参与意愿。",
+        "misconception_code": "sequence_proves_cause"
+      }
+    },
+    {
+      "id": "lemons-net",
+      "version": 1,
+      "variant_id": "lemons-net",
+      "family_id": "lemons_market.3",
+      "outcome_ids": [
+        "lemons_market.3"
+      ],
+      "kind": "numeric",
+      "prompt": "一件物品给买方创造价值 6，卖方机会成本 5，认证耗用 0.5。成交净剩余？",
+      "context": {
+        "kind": "authored_model_exercise"
+      },
+      "assessment_role": "independent",
+      "response_schema": {
+        "fields": [
+          {
+            "id": "n1",
+            "label": "净剩余",
+            "unit": "代币"
+          }
+        ]
+      },
+      "evaluator": {
+        "id": "numeric_v1",
+        "version": 1,
+        "answers": [
+          0.5
+        ]
+      },
+      "feedback": {
+        "hint": "把题中给出的数量、规则和单位写成一步算式。",
+        "explanation": "6−5−0.5＝0.5。",
+        "misconception_code": "all_fees_destroy_value"
+      }
+    },
+    {
+      "id": "lemons-repairs",
+      "version": 1,
+      "variant_id": "lemons-repairs",
+      "family_id": "lemons_market.1",
+      "outcome_ids": [
+        "lemons_market.1"
+      ],
+      "kind": "single_choice",
+      "prompt": "二手设备平台引入验真制度。什么证据最能支持质量不确定性降低？",
+      "context": {
+        "kind": "authored_model_exercise"
+      },
+      "assessment_role": "transfer",
+      "response_schema": {
+        "options": [
+          {
+            "id": "option-1",
+            "label": "只查发现价上涨"
+          },
+          {
+            "id": "option-2",
+            "label": "只查验真页面访问量"
+          },
+          {
+            "id": "option-0",
+            "label": "独立验真后的错报率和同条件质量分布"
+          }
+        ]
+      },
+      "evaluator": {
+        "id": "choice_v1",
+        "version": 1,
+        "answer": "option-0"
+      },
+      "feedback": {
+        "hint": "逐项检查题干给出的规则和观察口径。",
+        "explanation": "价格与流量无法单独识别认证准确度。",
+        "misconception_code": "lower_price_higher_surplus"
+      }
+    },
+    {
+      "id": "lemons-rental",
+      "version": 1,
+      "variant_id": "lemons-rental",
+      "family_id": "lemons_market.2",
+      "outcome_ids": [
+        "lemons_market.2"
+      ],
+      "kind": "numeric",
+      "prompt": "十份房源申请进入候选名单，三份已签约。当前应报告多少签约？",
+      "context": {
+        "kind": "authored_model_exercise"
+      },
+      "assessment_role": "transfer",
+      "response_schema": {
+        "fields": [
+          {
+            "id": "n1",
+            "label": "签约",
+            "unit": "份"
+          }
+        ]
+      },
+      "evaluator": {
+        "id": "numeric_v1",
+        "version": 1,
+        "answers": [
+          3.0
+        ]
+      },
+      "feedback": {
+        "hint": "把题中给出的数量、规则和单位写成一步算式。",
+        "explanation": "候选机会尚未兑现，按已签记录报告。",
+        "misconception_code": "sequence_proves_cause"
+      }
+    },
+    {
+      "id": "lemons-warranty",
+      "version": 1,
+      "variant_id": "lemons-warranty",
+      "family_id": "lemons_market.3",
+      "outcome_ids": [
+        "lemons_market.3"
+      ],
+      "kind": "single_choice",
+      "prompt": "给售价与成交均相同的两种保修方案评价净价值，先核对什么？",
+      "context": {
+        "kind": "authored_model_exercise"
+      },
+      "assessment_role": "transfer",
+      "response_schema": {
+        "options": [
+          {
+            "id": "option-0",
+            "label": "保修减少的预期损失和实际维修成本"
+          },
+          {
+            "id": "option-1",
+            "label": "只比较账面收费"
+          },
+          {
+            "id": "option-2",
+            "label": "只核对同一交易数量"
+          }
+        ]
+      },
+      "evaluator": {
+        "id": "choice_v1",
+        "version": 1,
+        "answer": "option-0"
+      },
+      "feedback": {
+        "hint": "逐项检查题干给出的规则和观察口径。",
+        "explanation": "保修改变真实服务及风险，费用不能代替资源成本。",
+        "misconception_code": "all_fees_destroy_value"
+      }
+    },
+    {
+      "id": "review-1",
+      "version": 1,
+      "variant_id": "review-1",
+      "family_id": "lemons_market.1",
+      "outcome_ids": [
+        "lemons_market.1"
+      ],
+      "kind": "numeric",
+      "prompt": "质量 2、4 各一件，愿售价分别为 2、4。统一价 3.6 后，按剩余平均质量的 1.2 倍出价是多少？",
+      "context": {
+        "kind": "authored_model_exercise"
+      },
+      "assessment_role": "review",
+      "response_schema": {
+        "fields": [
+          {
+            "id": "n1",
+            "label": "新报价",
+            "unit": "代币"
+          }
+        ]
+      },
+      "evaluator": {
+        "id": "numeric_v1",
+        "version": 1,
+        "answers": [
+          2.4
+        ]
+      },
+      "feedback": {
+        "hint": "把题中给出的数量、规则和单位写成一步算式。",
+        "explanation": "质量 4 退出，新平均质量 2。",
+        "misconception_code": "lower_price_higher_surplus"
+      }
+    },
+    {
+      "id": "review-2",
+      "version": 1,
+      "variant_id": "review-2",
+      "family_id": "lemons_market.2",
+      "outcome_ids": [
+        "lemons_market.2"
+      ],
+      "kind": "numeric",
+      "prompt": "四件愿售商品中有一件完成交割、三件尚未签约。交割率以四件愿售为分母是多少？",
+      "context": {
+        "kind": "authored_model_exercise"
+      },
+      "assessment_role": "review",
+      "response_schema": {
+        "fields": [
+          {
+            "id": "n1",
+            "label": "交割率",
+            "unit": "%"
+          }
+        ]
+      },
+      "evaluator": {
+        "id": "numeric_v1",
+        "version": 1,
+        "answers": [
+          25.0
+        ]
+      },
+      "feedback": {
+        "hint": "把题中给出的数量、规则和单位写成一步算式。",
+        "explanation": "1/4＝25%。",
+        "misconception_code": "sequence_proves_cause"
+      }
+    },
+    {
+      "id": "review-3",
+      "version": 1,
+      "variant_id": "review-3",
+      "family_id": "lemons_market.3",
+      "outcome_ids": [
+        "lemons_market.3"
+      ],
+      "kind": "numeric",
+      "prompt": "买方价值 8，卖方成本 5，验真实际耗用 2。剩余？",
+      "context": {
+        "kind": "authored_model_exercise"
+      },
+      "assessment_role": "review",
+      "response_schema": {
+        "fields": [
+          {
+            "id": "n1",
+            "label": "净剩余",
+            "unit": "代币"
+          }
+        ]
+      },
+      "evaluator": {
+        "id": "numeric_v1",
+        "version": 1,
+        "answers": [
+          1.0
+        ]
+      },
+      "feedback": {
+        "hint": "把题中给出的数量、规则和单位写成一步算式。",
+        "explanation": "8−5−2＝1。",
+        "misconception_code": "all_fees_destroy_value"
+      }
+    }
+  ],
+  "activities": [
+    {
+      "id": "lemons-bridge",
+      "phase": "explain",
+      "kind": "assessment",
+      "outcome_ids": [
+        "lemons_market.1"
+      ],
+      "content_ref": "lemons-bridge",
+      "assessment_item_ids": [
+        "lemons-bridge"
+      ],
+      "completion_rule": "submit_or_skip",
+      "next_activity_id": "lemons-unravel",
+      "remediation_activity_id": "worked-example"
+    },
+    {
+      "id": "lemons-unravel",
+      "phase": "explain",
+      "kind": "assessment",
+      "outcome_ids": [
+        "lemons_market.1"
+      ],
+      "content_ref": "lemons-unravel",
+      "assessment_item_ids": [
+        "lemons-unravel"
+      ],
+      "completion_rule": "submit_or_skip",
+      "next_activity_id": "lemons-event"
+    },
+    {
+      "id": "lemons-event",
+      "phase": "explain",
+      "kind": "assessment",
+      "outcome_ids": [
+        "lemons_market.2"
+      ],
+      "content_ref": "lemons-event",
+      "assessment_item_ids": [
+        "lemons-event"
+      ],
+      "completion_rule": "submit_or_skip",
+      "next_activity_id": "lemons-net"
+    },
+    {
+      "id": "lemons-net",
+      "phase": "explain",
+      "kind": "assessment",
+      "outcome_ids": [
+        "lemons_market.3"
+      ],
+      "content_ref": "lemons-net",
+      "assessment_item_ids": [
+        "lemons-net"
+      ],
+      "completion_rule": "submit_or_skip",
+      "next_activity_id": null
+    },
+    {
+      "id": "lemons-repairs",
+      "phase": "notebook",
+      "kind": "assessment",
+      "outcome_ids": [
+        "lemons_market.1"
+      ],
+      "content_ref": "lemons-repairs",
+      "assessment_item_ids": [
+        "lemons-repairs"
+      ],
+      "completion_rule": "submit_or_skip",
+      "next_activity_id": "lemons-rental"
+    },
+    {
+      "id": "lemons-rental",
+      "phase": "notebook",
+      "kind": "assessment",
+      "outcome_ids": [
+        "lemons_market.2"
+      ],
+      "content_ref": "lemons-rental",
+      "assessment_item_ids": [
+        "lemons-rental"
+      ],
+      "completion_rule": "submit_or_skip",
+      "next_activity_id": "lemons-warranty"
+    },
+    {
+      "id": "lemons-warranty",
+      "phase": "notebook",
+      "kind": "assessment",
+      "outcome_ids": [
+        "lemons_market.3"
+      ],
+      "content_ref": "lemons-warranty",
+      "assessment_item_ids": [
+        "lemons-warranty"
+      ],
+      "completion_rule": "submit_or_skip",
+      "next_activity_id": null
+    },
+    {
+      "id": "review-1",
+      "phase": "notebook",
+      "kind": "review",
+      "outcome_ids": [
+        "lemons_market.1"
+      ],
+      "content_ref": "review-1",
+      "assessment_item_ids": [
+        "review-1"
+      ],
+      "completion_rule": "submit_or_skip",
+      "next_activity_id": null
+    },
+    {
+      "id": "review-2",
+      "phase": "notebook",
+      "kind": "review",
+      "outcome_ids": [
+        "lemons_market.2"
+      ],
+      "content_ref": "review-2",
+      "assessment_item_ids": [
+        "review-2"
+      ],
+      "completion_rule": "submit_or_skip",
+      "next_activity_id": null
+    },
+    {
+      "id": "review-3",
+      "phase": "notebook",
+      "kind": "review",
+      "outcome_ids": [
+        "lemons_market.3"
+      ],
+      "content_ref": "review-3",
+      "assessment_item_ids": [
+        "review-3"
+      ],
+      "completion_rule": "submit_or_skip",
+      "next_activity_id": null
+    },
+    {
+      "id": "worked-example",
+      "phase": "explain",
+      "kind": "example",
+      "outcome_ids": [
+        "lemons_market.1"
+      ],
+      "content_ref": "worked-example",
+      "assessment_item_ids": [],
+      "completion_rule": "read_or_skip",
+      "next_activity_id": null,
+      "return_activity_id": "lemons-bridge",
+      "text": "质量为 1 到 5，各一件。统一报价 3.6 时，成本随质量上升，高质量退出。愿售池收缩为 1 到 3，新报价 2.4。用后续交割事件才能确定成交。"
+    }
+  ],
+  "required_comparisons": [
+    "informed"
+  ]
+}

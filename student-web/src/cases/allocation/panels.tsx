@@ -1,4 +1,6 @@
 import { useState } from "react";
+import { FeedbackExplanation } from "../../emergence/feedback-explanation";
+import { LedgerEvidence } from "../../emergence/trace-view";
 import { showValue } from "../../lesson-view";
 import type { DomainPanelProps, FlagshipView } from "../../learning/flagship-types";
 import type { Scalar } from "../../lesson-types";
@@ -234,7 +236,14 @@ export function MatchingPanel({ stage, action, briefing, view, comparison, pinne
 const chain = ["零售商", "批发商", "分销商", "工厂"];
 type Batch = { sender: string; receiver: string; amount: number; sent: number; due: number; origin_seq?: number };
 
-export function BeerPanel({ stage, action, view, comparison, pinned, pin, seek, cite }: DomainPanelProps) {
+function variance(values: number[]) {
+  if (values.length < 2 || values.some(x => !Number.isFinite(x))) return null;
+  const average = values.reduce((total, item) => total + item, 0) / values.length;
+  return values.reduce((total, item) => total + (item - average) ** 2, 0) / values.length;
+}
+
+export function BeerPanel(props: DomainPanelProps) {
+  const { stage, action, view, comparison, pinned, pin, seek, cite } = props;
   if (!view) {
     if (stage !== "intro" && stage !== "predict" && stage !== "bid") return null;
     return <section className="allocation-panel" aria-label="四级供应链的开局">
@@ -271,6 +280,12 @@ export function BeerPanel({ stage, action, view, comparison, pinned, pin, seek, 
   const visibleEvents = earlier(view);
   const studentWeek = visibleEvents.find(event => event.week === 5);
   const receiveWeek = visibleEvents.find(event => event.week === 6 && event.demand_received);
+  const weeks = visibleEvents.filter(event => event.event_type === "week_end");
+  const demandVariance = variance(weeks.map(event => (event.demand_received as Record<string, number>)?.["零售商"]));
+  const shipped = role === "零售商" ? Number(active.delivered) - Number(visibleEvents.at(-2)?.delivered) :
+    dispatches.filter(batch => batch.sender === role).reduce((total, batch) => total + batch.amount, 0);
+  const stock = Number(prior?.["期末库存"]), arrivalsTotal = Number(state["本周到货"]);
+  const verified = !!prior && stock + arrivalsTotal - shipped === state["期末库存"];
 
   return <section className="allocation-panel" aria-label="订单与实物在途">
     <h2>订单与实物在途</h2>
@@ -289,6 +304,9 @@ export function BeerPanel({ stage, action, view, comparison, pinned, pin, seek, 
         <p>库存位置 {value(state["库存位置"])} ＝ 库存 {value(state["期末库存"])} ＋ 已订未到 {inPipeline}
           − 积压 {value(state["期末积压"])}。</p>
         <p>其中实物在途 {physical} 件，已订待发 {inPipeline - physical} 件。</p>
+        {verified && <p><strong>算术恒等式</strong> · 期末库存 {stock}（期初）＋ {arrivalsTotal}（到货）
+          − {shipped}（实际发货）＝ {state["期末库存"]} 件。</p>}
+        <p><strong>模型规则</strong> · 需求预期、库存位置和积压进入本场自动订货。学生订单计划可以覆盖零售环节的自动值。</p>
       </section>
       <section>
         <h3>实际物流批次</h3>
@@ -305,5 +323,22 @@ export function BeerPanel({ stage, action, view, comparison, pinned, pin, seek, 
       {studentWeek && <button className="text-button" onClick={() => { pin("零售商"); seek(studentWeek.tick); }}>定位第 5 周零售订单</button>}
       {receiveWeek && <button className="text-button" onClick={() => { pin("批发商"); seek(receiveWeek.tick); }}>定位第 6 周批发收到订单</button>}
     </div>
+    <details>
+      <summary>核对各环节的订单放大</summary>
+      <p>使用截至当前的 {weeks.length} 个已完成周。每层订单的周度总体方差除以同周终端需求的总体方差。</p>
+      {!demandVariance ? <p>终端需求方差为零或周数不足，放大比无法计算。</p> :
+        <Facts rows={chain.map(name => {
+          const orders = variance(weeks.map(event => (event.orders as Record<string, number>)?.[name]));
+          return [name, orders == null ? "缺周记录" : value(orders / demandVariance)];
+        })}/>}
+      {weeks.length > 0 && <details><summary>反查 {role} 的订单样本</summary>
+        <ul>{weeks.map(event => <li key={event.seq}><button type="button" className="text-button" onClick={() => seek(event.tick)}>
+          第 {String(event.week)} 周 · {role}下单 {value((event.orders as Record<string, number> | null)?.[role])} 件
+        </button></li>)}</ul>
+      </details>}
+    </details>
+    <LedgerEvidence view={view} metric="retail_stock" actor={role} seek={tick => seek(tick)} initialOpen={props.explore}/>
+    {stage === "explain" && <FeedbackExplanation {...props} view={view} eventType="week_end"
+      prompt="用一个有周账本证据的环节说明：哪些订单尚未收到、实际发货怎样改变库存或积压、这种状态怎样反馈到后续订单？给出一份能检验另一种解释的对照。"/>}
   </section>;
 }

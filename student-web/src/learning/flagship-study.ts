@@ -1,12 +1,13 @@
 import { api } from "../contracts";
 import { checkStudy, storageKey, type Course, type Event } from "../lesson-types";
 import type { FieldFlagship, FlagshipView, SceneSelector, Tick } from "./flagship-types";
+import type { ComparisonConditions } from "./inquiry";
 
 export type SourceRef = {
   run_id: string; case_version: string; engine_version: string; result_hash: string;
   seq: number; tick: number; event_type: string; actor?: string;
 };
-export type PairRef = { base: SourceRef; branch: SourceRef; label: string };
+export type PairRef = { base: SourceRef; branch: SourceRef; label: string; kind?: "initial_layout" };
 type Response = { first: string; latest: string; original?: string };
 export type FieldStudy = {
   case_id: FieldFlagship; content_version: string; stage: number; unlocked: number; action: string;
@@ -27,7 +28,7 @@ const string = (value: unknown): value is string => typeof value === "string";
 const matchesPattern = (value: unknown, pattern: RegExp): value is string =>
   string(value) && pattern.test(value);
 
-function reference(value: unknown): value is SourceRef {
+export function isSourceRef(value: unknown): value is SourceRef {
   return record(value) && matchesPattern(value.run_id, uuid) && matchesPattern(value.result_hash, hash) &&
     string(value.case_version) && string(value.engine_version) && number(value.seq) && number(value.tick) &&
     string(value.event_type) && (value.actor === undefined || string(value.actor));
@@ -46,17 +47,18 @@ export function parseFieldStudy(caseId: FieldFlagship, saved: unknown): FieldStu
       (saved.records !== undefined && (!record(saved.records) || !Object.values(saved.records).every(string))) ||
       !string(saved.confidence) || (saved.originalConfidence !== undefined && !string(saved.originalConfidence)) ||
       !string(saved.explanation) || !string(saved.condition) || !number(saved.updatedAt) ||
-      !Array.isArray(saved.evidence) || saved.evidence.length > 200 || !saved.evidence.every(reference) ||
+      !Array.isArray(saved.evidence) || saved.evidence.length > 200 || !saved.evidence.every(isSourceRef) ||
       !Array.isArray(saved.comparisons) || saved.comparisons.length > 100 || !saved.comparisons.every(value =>
-        record(value) && reference(value.base) && reference(value.branch) && string(value.label))) {
+        record(value) && isSourceRef(value.base) && isSourceRef(value.branch) && string(value.label) &&
+        (value.kind === undefined || caseId === "schelling_segregation" && value.kind === "initial_layout"))) {
     return null;
   }
   return saved as FieldStudy;
 }
 
-export function readFieldStudy(caseId: FieldFlagship) {
+export function readFieldStudy(caseId: FieldFlagship, key = fieldStudyKey(caseId)) {
   try {
-    const raw = localStorage.getItem(fieldStudyKey(caseId));
+    const raw = localStorage.getItem(key);
     if (raw === null) return { study: null, bad: false };
     const study = parseFieldStudy(caseId, JSON.parse(raw));
     return { study, bad: study === null };
@@ -107,3 +109,27 @@ export type Alignment = { axis_label: string; rows: {
 }[] };
 export const alignmentLabel = (data: Alignment, row: Alignment["rows"][number]) =>
   row.phase === "opening" ? "开局" : row.phase === "ending" ? "各自结束" : `${data.axis_label} ${row.checkpoint}`;
+
+export async function verifyLayoutPair(pair: PairRef, baseline: string, signal?: AbortSignal) {
+  if (pair.kind !== "initial_layout" || pair.base.run_id !== baseline) return false;
+  const [left, right, alignment] = await Promise.all([
+    getFieldView(pair.base.run_id, pair.base.tick, false, signal),
+    getFieldView(pair.branch.run_id, pair.branch.tick, false, signal),
+    api<Alignment & { conditions?: ComparisonConditions }>(
+      `/runs/${pair.base.run_id}/compare/${pair.branch.run_id}`, undefined, signal),
+  ]);
+  const matches = (view: FlagshipView, ref: SourceRef) => {
+    const event = view.events[ref.seq];
+    return view.case_id === "schelling_segregation" && view.run_id === ref.run_id && view.tick === ref.tick &&
+      view.result_hash === ref.result_hash && view.case_version === ref.case_version &&
+      view.engine_version === ref.engine_version && event?.seq === ref.seq && event.tick === ref.tick &&
+      event.event_type === ref.event_type && (!ref.actor || eventActors(event).includes(ref.actor));
+  };
+  const conditions = alignment.conditions;
+  const treatment = conditions?.treatments.initial_layout;
+  return matches(left, pair.base) && matches(right, pair.branch) && right.parent_run_id === left.run_id &&
+    conditions?.class === "initial_treatment" && Object.keys(conditions.treatments).length === 1 &&
+    treatment?.baseline === "seeded" && (treatment.branch === "mixed" || treatment.branch === "segregated") &&
+    alignment.rows.some(row => row.baseline?.tick === pair.base.tick && row.branch?.tick === pair.branch.tick &&
+      `初态对照 · ${alignmentLabel(alignment, row)}` === pair.label);
+}

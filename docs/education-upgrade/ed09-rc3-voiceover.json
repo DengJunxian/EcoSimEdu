@@ -1,0 +1,177 @@
+{
+  "date": "2026-11-18",
+  "release": "1.1.0-rc.3",
+  "platform": "macOS 27.0 (26A428), arm64",
+  "screen_reader": "VoiceOver 10",
+  "browsers": {
+    "safari": "Safari 27.0 (22625.1.29.11.27)",
+    "chrome": "Chrome 158.0.8127.36"
+  },
+  "origin": {
+    "safari": "http://127.0.0.1:18483",
+    "chrome": "http://127.0.0.1:18481"
+  },
+  "source": "Native VoiceOver caption window on isolated local classroom",
+  "tested_archive_sha256": "7ac9501123a35af01149fbf25bf8f13641994d722ebbd529a56968f17354d6af",
+  "font_points": {
+    "used": 12,
+    "restored": 22
+  },
+  "observations": {
+    "safari": [
+      {
+        "task": "auction_amount_label",
+        "status": "verified",
+        "caption_excerpt": "卖方剩余（代币）",
+        "image": "safari/auction_amount_label.png",
+        "sha256": "71734779d29f49adcf2740aeb683c2518b5d736b52134c4abcc10856e3e16f80"
+      },
+      {
+        "task": "auction_tab_amount",
+        "status": "verified",
+        "caption_excerpt": "平台收入（代币）",
+        "image": "safari/auction_tab_amount.png",
+        "sha256": "cc28c14ffb4328a2104e0c26916972a4fd54d2b508bec04992af065c800bdd3b"
+      },
+      {
+        "task": "auction_wrong_answer",
+        "status": "verified",
+        "caption_excerpt": "标题级别3，再核对这一步",
+        "image": "safari/auction_wrong_answer.png",
+        "sha256": "6fb6c0f63b5c796c3e502311f80afecf709e00345b46ec36de0ccaaf45c63ce4"
+      },
+      {
+        "task": "auction_example_focus",
+        "status": "verified",
+        "caption_excerpt": "标题级别2，看一个完整例题",
+        "image": "safari/auction_example_focus.png",
+        "sha256": "52be8bf663c52a1b4b4426c1685d1592a53ec547c8cca4b706e926c6e87ba347"
+      },
+      {
+        "task": "auction_return_focus",
+        "status": "verified",
+        "caption_excerpt": "标题级别2，练习",
+        "image": "safari/auction_return_focus.png",
+        "sha256": "0055274f6bdf8d3bc4ff18889ed2cf296823c85b0312f1b685845085ec0756b2"
+      },
+      {
+        "task": "svb_run_amount_label",
+        "status": "verified",
+        "caption_excerpt": "现金（资金单位）",
+        "image": "safari/svb_run_amount_label.png",
+        "sha256": "9023a9a07046a08bd4f831f7c627913bebf6cf977b8c5dc6d859cfb51fd0254a"
+      },
+      {
+        "task": "svb_run_wrong_answer",
+        "status": "verified",
+        "caption_excerpt": "标题级别3，再核对这一步",
+        "image": "safari/svb_run_wrong_answer.png",
+        "sha256": "db92d4bcf62a9454149eaf998e96e7995e8de13f940da1092f24e32c9e8f7f83"
+      },
+      {
+        "task": "schelling_segregation_amount_label",
+        "status": "verified",
+        "caption_excerpt": "已占邻居数（人）",
+        "image": "safari/schelling_segregation_amount_label.png",
+        "sha256": "c71d8dac76bea7529141c48a9d567874c75bbef7e7ca79bb7ea23661170b3165"
+      },
+      {
+        "task": "schelling_segregation_wrong_answer",
+        "status": "verified",
+        "caption_excerpt": "标题级别3，再核对这一步",
+        "image": "safari/schelling_segregation_wrong_answer.png",
+        "sha256": "4dc6843d4e2401ab7bb27ad70e4d47c5c063d6c82ccc08a7f2dad99779d2efaf"
+      },
+      {
+        "task": "teacher_title",
+        "status": "verified",
+        "caption_excerpt": "双向拍卖教学活动",
+        "image": "safari/teacher_title.png",
+        "sha256": "e84aeccf1c725fd4150dfbb3cec53ecc54fd0c3309836ef485d1ee302d3b75ff"
+      },
+      {
+        "task": "teacher_demo_link",
+        "status": "verified",
+        "caption_excerpt": "打开隔离展示课堂",
+        "image": "safari/teacher_demo_link.png",
+        "sha256": "4ea008bc8f49fadc32ef21ec73dcc2ee1483c0439b67cab3b285187d180c9e12"
+      }
+    ],
+    "chrome": [
+      {
+        "task": "auction_amount_label",
+        "status": "verified",
+        "caption_excerpt": "卖方剩余（代币）",
+        "image": "chrome/auction_amount_label.png",
+        "sha256": "7b5660927a84a4858c0675dc1a1a03d826d8bb8db112fb807f41a0b459147ca4"
+      },
+      {
+        "task": "auction_tab_amount",
+        "status": "verified",
+        "caption_excerpt": "平台收入（代币）",
+        "image": "chrome/auction_tab_amount.png",
+        "sha256": "bf24c9537e0a99f17dcd121fbd4025764a2d8ddfebb900e472df62362e43f14b"
+      },
+      {
+        "task": "auction_wrong_answer",
+        "status": "verified",
+        "caption_excerpt": "标题级别3，再核对这一步",
+        "image": "chrome/auction_wrong_answer.png",
+        "sha256": "4c1c13604e76ebbba3a76c310fee17e9a6ea025b940eba5530120c91b2eb55f6"
+      },
+      {
+        "task": "auction_example_focus",
+        "status": "verified",
+        "caption_excerpt": "标题级别2，看一个完整例题",
+        "image": "chrome/auction_example_focus.png",
+        "sha256": "70be294f096e68c6f02d06d2a33d00fdda87fa8723b39bb3f3c9c1c8b55152b0"
+      },
+      {
+        "task": "auction_return_focus",
+        "status": "verified",
+        "caption_excerpt": "标题级别2，练习",
+        "image": "chrome/auction_return_focus.png",
+        "sha256": "1458941ce0ad6d4fb1bbac5df2d60a8c451c92c267410ec35b72f2ee343aac14"
+      },
+      {
+        "task": "svb_run_amount_label",
+        "status": "verified",
+        "caption_excerpt": "现金（资金单位）",
+        "image": "chrome/svb_run_amount_label.png",
+        "sha256": "c1b7722ee67f1272d61dc07a992fb32e179aa115bc7810c1c1d46691b033e070"
+      },
+      {
+        "task": "svb_run_wrong_answer",
+        "status": "verified",
+        "caption_excerpt": "标题级别3，再核对这一步",
+        "image": "chrome/svb_run_wrong_answer.png",
+        "sha256": "4c1c13604e76ebbba3a76c310fee17e9a6ea025b940eba5530120c91b2eb55f6"
+      },
+      {
+        "task": "schelling_segregation_amount_label",
+        "status": "verified",
+        "caption_excerpt": "已占邻居数（人）",
+        "image": "chrome/schelling_segregation_amount_label.png",
+        "sha256": "4d4d755c3f5fab2e266bbf830350cabbab01e1fbda7f1ba9cf495ff437a7159d"
+      },
+      {
+        "task": "schelling_segregation_wrong_answer",
+        "status": "verified",
+        "caption_excerpt": "标题级别3，再核对这一步",
+        "image": "chrome/schelling_segregation_wrong_answer.png",
+        "sha256": "4c1c13604e76ebbba3a76c310fee17e9a6ea025b940eba5530120c91b2eb55f6"
+      },
+      {
+        "task": "teacher_title",
+        "status": "caption_not_observed"
+      },
+      {
+        "task": "teacher_demo_link",
+        "status": "verified",
+        "caption_excerpt": "打开隔离展示课堂",
+        "image": "chrome/teacher_demo_link.png",
+        "sha256": "2188162a75ea5feab091d33d7b9767e9dcdebf4cc299c7e233934e90d88d0430"
+      }
+    ]
+  }
+}

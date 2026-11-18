@@ -1,5 +1,8 @@
 import { useId, useState } from "react";
 import { eventHref } from "../../contracts";
+import { TraceClaims, TraceLenses, useTrace } from "../../emergence/trace-view";
+import { recordWorksheet } from "../../learning/worksheet-attempt";
+import { sourceRef } from "../../learning/flagship-study";
 import type { DomainPanelProps, FlagshipView } from "../../learning/flagship-types";
 import type { Event } from "../../lesson-types";
 import "./svb.css";
@@ -65,9 +68,33 @@ export function SvbPanel(props: DomainPanelProps) {
     return <div className="svb-domain">
       {stage === "explain" && <Ledger {...props} view={view}/>}
       <BankWorld {...props} view={view}/>
+      <BankTrace {...props} view={view}/>
     </div>;
   }
   return null;
+}
+
+function BankTrace({ view, pinned, cite, records, record, seek, explore }: DomainPanelProps & { view: FlagshipView }) {
+  const [open, setOpen] = useState(!!explore);
+  const response = useTrace(view, "cash", "system", pinned, open);
+  const event = view.events[view.tick];
+  const key = `svb-feedback/${view.run_id}/${view.tick}`;
+  return <details id="emergence-explore" open={open} onToggle={e => setOpen(e.currentTarget.open)}>
+    <summary>涌现显微镜 · 银行资金与储户反馈</summary>
+    {open && <>
+      <TraceLenses trace={response?.trace} perspective="system" seek={seek}/>
+      {response?.trace && <TraceClaims trace={response.trace} seek={seek}/>}
+      {response?.error && <p role="alert">当前时点缺少可核查的证据。{response.error}</p>}
+      {!response && <p role="status">正在核对本场证据…</p>}
+      {event?.event_type === "queue" && <fieldset className="field-question">
+        <legend>只有待付清单时，你还需要查什么才能判断银行有没有正权益？</legend>
+        <label className="field-input">用本次账表写一条解释
+          <textarea value={records?.[key] ?? ""} maxLength={500} onChange={e => record?.(key, e.target.value)}/>
+        </label>
+        <button type="button" onClick={() => cite(event.seq)}>引用该观察点</button>
+      </fieldset>}
+    </>}
+  </details>;
 }
 
 function BalanceChart({ view, seek }: Pick<DomainPanelProps, "seek"> & { view: FlagshipView }) {
@@ -122,8 +149,9 @@ function evidenceEdges(event: BankEvent | undefined): Edge[] {
 }
 
 const placements = [[106, 63], [514, 63], [106, 227], [514, 227]] as const;
-function BankGraph({ event, edges, total, pinned, pin, cash, queued }: {
+function BankGraph({ event, edges, total, pinned, pin, cash, queued, selected, choose }: {
   event?: BankEvent; edges: Edge[]; total: number; pinned: string; pin: DomainPanelProps["pin"]; cash: number | string; queued: number | string;
+  selected?: string; choose: (edge: Edge) => void;
 }) {
   const marker = useId();
   const actors = [...new Set([pinned, ...edges.flatMap(edge => [edge.from, edge.to])])]
@@ -133,7 +161,7 @@ function BankGraph({ event, edges, total, pinned, pin, cash, queued }: {
   const kind = event && isFlow(event.event_type) ? event.event_type : undefined;
   const shown = edges.filter(edge => positions.has(edge.from) && positions.has(edge.to));
   return <figure className={`svb-graph ${kind ?? ""}`}>
-    <svg viewBox="0 0 620 290" role="img" aria-label={`教学银行和当前储户关系，事件明细见下方列表`}>
+    <svg viewBox="0 0 620 290" role="group" aria-label="教学银行和当前储户关系">
       <defs><marker id={marker} markerWidth="9" markerHeight="9" refX="7" refY="4"
         orient="auto" markerUnits="userSpaceOnUse"><path d="M0 0L8 4L0 8Z"/></marker></defs>
       {shown.map(edge => {
@@ -144,6 +172,11 @@ function BankGraph({ event, edges, total, pinned, pin, cash, queued }: {
         const from = edge.from === "BANK" ? .43 : .13;
         const to = edge.to === "BANK" ? .57 : .86;
         return <path className="svb-edge" key={edge.id}
+          {...(kind === "messages" ? { role: "button", tabIndex: 0, "aria-label": `选择消息 ${edge.from} → ${edge.to}`,
+            "aria-pressed": selected === edge.id, onClick: () => choose(edge),
+            onKeyDown: (e: React.KeyboardEvent) => {
+              if (e.key === "Enter" || e.key === " ") { e.preventDefault(); choose(edge); }
+            } } : {})}
           d={kind === "messages" ?
             `M ${x1} ${y1} Q 310 ${y1 === y2 ? y1 - 38 : y2} ${x1 + dx * to} ${y1 + dy * to}` :
             `M ${x1 + dx * from} ${y1 + dy * from} L ${x1 + dx * to} ${y1 + dy * to}`}
@@ -168,11 +201,14 @@ function BankGraph({ event, edges, total, pinned, pin, cash, queued }: {
 function BankWorld({ view, pinned, pin, seek, cite }: Pick<DomainPanelProps, "pinned" | "pin" | "seek" | "cite"> & { view: FlagshipView }) {
   const [layer, setLayer] = useState<FlowKind | "current">("current");
   const [requestId, setRequestId] = useState("");
+  const [selected, setSelected] = useState<{ key: string; edge: Edge }>();
   const events = visibleEvents(view);
   const present = events.at(-1);
   const requestedFlow = layer === "current" ? present : events.filter(event => event.event_type === layer).at(-1);
   const flow = requestedFlow?.event_type && isFlow(requestedFlow.event_type) ? requestedFlow : undefined;
   const edges = evidenceEdges(flow);
+  const key = `${view.run_id}/${flow?.seq}`;
+  const message = selected?.key === key ? selected.edge : undefined;
   const focused = edges.filter(edge => [edge.from, edge.to].includes(pinned));
   const actor = view.frame.entities[pinned];
   const network = visibleDetails(view)?.network ?? {};
@@ -201,12 +237,25 @@ function BankWorld({ view, pinned, pin, seek, cite }: Pick<DomainPanelProps, "pi
             <button key={id} aria-pressed={layer === id} onClick={() => setLayer(id as typeof layer)}>{label}</button>)}
         </div>
         <BankGraph event={flow} edges={focused.length ? focused : edges} total={edges.length}
-          pinned={pinned} pin={pin} cash={metric(view, "cash")} queued={metric(view, "queued")}/>
+          pinned={pinned} pin={pin} cash={metric(view, "cash")} queued={metric(view, "queued")}
+          selected={message?.id} choose={edge => setSelected({ key, edge })}/>
+        {message && flow && <section aria-label="所选消息">
+          <p>{message.from} → {message.to} · 消息事件 {flow.seq}</p>
+          <div className="toolbar">
+            <button type="button" onClick={() => pin(message.from)}>固定发件人 {message.from}</button>
+            <button type="button" onClick={() => pin(message.to)}>固定收件人 {message.to}</button>
+            <button type="button" onClick={() => seek(flow.tick)}>定位消息事件 {flow.seq}</button>
+            {message.origin !== undefined && <button type="button"
+              onClick={() => seek(message.origin!)}>定位源提款 {message.origin}</button>}
+          </div>
+        </section>}
         {flow && <details>
           <summary>展开 {flowLabels[flow.event_type as FlowKind]}关系</summary>
           <ul className="svb-edge-list">
             {edges.map(edge => <li key={edge.id}>
               <span>{edge.from === "BANK" ? "银行" : edge.from} → {edge.to === "BANK" ? "银行" : edge.to} · {edge.text}</span>
+              {flow.event_type === "messages" && <button type="button" className="text-button"
+                onClick={() => setSelected({ key, edge })}>核对两端 {edge.from} → {edge.to}</button>}
               {edge.to !== "BANK" && <button className="text-button" onClick={() => pin(edge.to)}>追踪 {edge.to}</button>}
               {edge.from !== "BANK" && edge.to === "BANK" && <button className="text-button" onClick={() => pin(edge.from)}>追踪 {edge.from}</button>}
               {edge.origin !== undefined && <button className="text-button" onClick={() => seek(edge.origin!)}>来源事件 {edge.origin}</button>}
@@ -271,6 +320,8 @@ function Ledger({ view, pinned, pin, seek, cite, record, records }:
   Pick<DomainPanelProps, "pinned" | "pin" | "seek" | "cite" | "record" | "records"> & { view: FlagshipView }) {
   const [attempt, setAttempt] = useState<{ tick: number; feedback: string }>();
   const [classification, setClassification] = useState("");
+  const [saving, setSaving] = useState(false);
+  const [storageError, setStorageError] = useState(false);
   const events = visibleEvents(view);
   const event = events.at(-1);
   const bank = view.frame.entities.BANK;
@@ -312,18 +363,26 @@ function Ledger({ view, pinned, pin, seek, cite, record, records }:
       <label><input type="radio" name="svb-classification" checked={classification === "liability"} onChange={() => setClassification("liability")}/>负债</label>
     </div>{classification && <p role="status">{classification === "liability" ?
       "借款余额在负债一侧，借入的现金在资产一侧。" : "借入的现金可用来付款，尚欠支持机构的借款余额记在负债一侧。"}</p>}</fieldset>
-    <form className="svb-ledger-form" onSubmit={form => {
+    <form className="svb-ledger-form" onSubmit={async form => {
       form.preventDefault();
       const answer = new FormData(form.currentTarget).get("equity");
       if (typeof answer !== "string" || !answer.trim()) return;
       const correct = Number(answer) === bank["净资产"];
       const feedback = `作答 ${answer}。${correct ? "核对正确。" : "重查借款和存款负债，再相减。"} ${equation}。`;
+      setSaving(true);
+      setStorageError(false);
+      try {
+        if (event && event.tick === view.tick) await recordWorksheet("svb_run", "worksheet-svb",
+          [Number(answer)], [Number(bank["净资产"])], sourceRef(view, event));
+      } catch { setStorageError(true); }
+      finally { setSaving(false); }
       setAttempt({ tick: view.tick, feedback });
       record?.(recordKey, feedback);
     }}>
       <label>你算出的权益 <input key={view.tick} type="number" name="equity" required/></label>
-      <button>核对权益</button>
+      <button disabled={saving}>核对权益</button>
     </form>
+    {storageError && <p role="alert">这次账表练习未能存入作答档案。</p>}
     {previousAttempt && <p role="status">{previousAttempt}</p>}
     {!!rows.length && <details open>
       <summary>轮末待付清单（合计 {rows.reduce((sum, item) => sum + item.remaining, 0)}）</summary>

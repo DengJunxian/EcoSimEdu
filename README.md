@@ -6,6 +6,8 @@ EcoSimEdu 是一套面向经济学入门教学的互动实验室。学生可以�
 - 四门可选模型实验，支持服务端 GPT‑6 Luna API 接入、同条件规则对照和费用回执。
 - 无需 API 密钥即可运行基础课。高级实验使用本机服务进程中的供应商凭证。
 
+Emergence Studio 从首页「从微观到宏观」进入十二课机制索引。Schelling 支持按区间回查真实搬迁，跨课练习可引用银行兑付和订单簿事件，学生与教师可用 JSON 往返作答与复核。实现与实机旁白验证见 [Emergence Studio 进度](docs/emergence/progress.md)。
+
 ## 本机启动
 
 需要 Python 3.12、uv 和 Node.js 22.12 或更高版本。
