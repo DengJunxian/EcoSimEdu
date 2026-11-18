@@ -1,13 +1,11 @@
 import published from "../../cases/catalog.json";
+import courseFiles from "virtual:course-files";
 import curriculum from "../../docs/curriculum/knowledge-map.json";
 import type { Course } from "./lesson-types";
 
 export type CatalogCourse = Pick<Course, "case_id" | "version" | "title" | "subtitle" | "seed" | "identity" |
   "identity_label" | "minutes" | "intro" | "background" | "metrics" | "goals" | "glossary" | "lessons" | "sources">;
-const packages = import.meta.glob<CatalogCourse>(
-  "../../cases/*/case.json", { import: "default", eager: true },
-);
-export const catalog = published.map(id => packages[`../../cases/${id}/case.json`]);
+export const catalog = courseFiles.catalog;
 export const selectedCourse = new URLSearchParams(location.search).get("case") ?? published[0];
 export const paths = curriculum.paths;
 export const pathPreferenceKey = "civitas/learning-path";

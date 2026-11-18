@@ -2,7 +2,8 @@ import { lazy, Suspense, useEffect, useState } from "react";
 import { RestoreStudy } from "../learning/restore-study";
 import { FlagshipNotes } from "../learning/flagship-notes";
 import { readFieldStudy } from "../learning/flagship-study";
-import { fieldFlagships, isFieldFlagship, type SceneContent } from "../learning/flagship-types";
+import { fieldFlagships, isFieldFlagship } from "../learning/flagship-types";
+import courseFiles from "virtual:course-files";
 import auctionScenes from "../../../cases/double_auction/lesson-v2.json";
 import { caseHref, catalog, legacyCourseHref, paths, pathPreferenceKey, preferredPath, type CatalogCourse } from "../catalog";
 import { downloadJson, traceHref } from "../contracts";
@@ -19,9 +20,7 @@ const LearningRecords = lazy(() => import("../learning/learning-records").then(m
 
 const auction = catalog[0];
 const auctionHref = "/learn/double_auction";
-const scenePackages = import.meta.glob<SceneContent>("../../../cases/*/lesson-v2.json", { import: "default", eager: true });
-const fieldContent = Object.fromEntries(fieldFlagships.map(id => [id, scenePackages[`../../../cases/${id}/lesson-v2.json`]])) as
-  Record<typeof fieldFlagships[number], SceneContent>;
+const fieldContent = courseFiles.scenes;
 const featured = ["double_auction", "schelling_segregation", "svb_run", "public_goods", "information_cascade", "carbon_market"];
 const introductory = new Set(["double_auction", "schelling_segregation", "public_goods", "lemons_market", "information_cascade"]);
 const level = (course: CatalogCourse) => introductory.has(course.case_id) ? "入门" : "进阶";

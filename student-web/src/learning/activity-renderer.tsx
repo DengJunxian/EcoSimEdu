@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from "react";
+import published from "../../../cases/catalog.json";
 import { api } from "../contracts";
 import { orderedOptions } from "./assessment";
 import { AssessmentRenderer } from "./assessment-renderer";
@@ -11,9 +12,8 @@ import { worksheetLabels } from "./worksheet-attempt";
 import { migrateLegacy } from "./migration";
 import "./education.css";
 
-const packages = import.meta.glob("../../../cases/*/learning-v3.json");
 export function hasLearningPackage(caseId: string) {
-  return `../../../cases/${caseId}/learning-v3.json` in packages;
+  return published.includes(caseId);
 }
 
 const roleLabels = { independent: "独立应用", practice: "练习", transfer: "新情境应用", review: "复习" };

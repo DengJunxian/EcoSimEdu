@@ -34,6 +34,7 @@ def test_student_traces_a_real_move_and_submits_a_paired_explanation(
         page.get_by_label("预测依据").fill("阈值只检查局部，格局也受到起点影响。")
         page.get_by_role("button", name="选择行动", exact=True).press("Enter")
         page.get_by_role("combobox", name=re.compile("你是 A001")).select_option("move")
+        expect(page.locator(".schelling-world .grid-map-scroll")).to_have_css("overflow-x", "auto")
         with page.expect_response(lambda reply: "classroom-view?tick=0" in reply.url) as opening_reply:
             page.get_by_role("button", name="运行基础实验", exact=True).press("Enter")
         opening = opening_reply.value.json()

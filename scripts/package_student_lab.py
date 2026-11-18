@@ -37,7 +37,7 @@ def payload():
     }.items():
         paths.update(path for path in (ROOT / prefix).rglob("*")
                      if path.is_file() and path.suffix in extensions and not path.name.startswith("."))
-    paths.update(ROOT / "student-web" / name for name in ("index.html", "package.json", "package-lock.json", "tsconfig.json"))
+    paths.update(ROOT / "student-web" / name for name in ("build.js", "index.html", "package.json", "package-lock.json", "tsconfig.json"))
     if ROOT / "student-web/dist/index.html" not in paths:
         raise SystemExit("Build the student assets first.")
     return sorted(paths)
