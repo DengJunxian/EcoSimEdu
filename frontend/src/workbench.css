@@ -103,6 +103,24 @@
   padding: var(--edu-s4);
 }
 .studio .trace-details li, .studio .bank-readout dd { overflow-wrap: anywhere; }
+.microscope-wrap { margin-top: var(--edu-s4); }
+.microscope-wrap > summary, .trace-microscope summary { cursor: pointer; font-weight: 700; }
+.microscope-wrap > summary { padding-block: var(--edu-s2); }
+.trace-microscope > :not(:first-child) { margin-top: var(--edu-s3); }
+.trace-perspective { display: flex; flex-wrap: wrap; gap: 0 var(--edu-s4); }
+.trace-perspective label { display: inline-flex; align-items: center; gap: var(--edu-s1); min-height: var(--edu-target); }
+.trace-perspective input { accent-color: var(--edu-green); }
+.microscope-lenses {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: var(--work-gap);
+  align-items: start;
+}
+.microscope-lenses dd { margin-bottom: var(--edu-s2); }
+.microscope-lenses dt { font-weight: 700; }
+.microscope-lenses li { border-top: 1px solid var(--edu-line); padding-block: var(--edu-s2); }
+.microscope-lenses :is(li, dd) { overflow-wrap: anywhere; }
+.trace-pages { align-items: center; margin-block: var(--edu-s2); }
 
 @media (min-width: 1160px) {
   .workbench-panes[data-system="true"] {
@@ -119,6 +137,7 @@
 @media (max-width: 767px) {
   .studio { --work-gap: var(--edu-s3); }
   .studio-opening { grid-template-columns: minmax(0, 1fr); }
+  .microscope-lenses { grid-template-columns: minmax(0, 1fr); }
   .workbench-panes { display: block; }
   .studio-runbar { padding: var(--edu-s2); }
   .studio-runbar p { flex-basis: 100%; }

@@ -40,6 +40,7 @@ export default function MetricChart({ metric, frames, cursor, maximum, financial
 }) {
   const container = useRef<HTMLDivElement>(null);
   const chart = useRef<EChartsType | null>(null);
+  const highlighted = useRef<number>(-1);
   useEffect(() => {
     const element = container.current;
     if (!element) return;
@@ -62,13 +63,21 @@ export default function MetricChart({ metric, frames, cursor, maximum, financial
       xAxis: { type: "category", boundaryGap: false, data: frames.map(frame => frame.tick) },
       yAxis: { type: "value", minInterval: financial ? 0.01 : undefined, scale: financial, max: maximum, splitLine: { lineStyle: { color: "#d9e2d9" } } },
       series: [{ type: "line", showSymbol: true, lineStyle: { color: metric.color, width: 2 },
-        data: frames.map(frame => ({
-          value: frame.metrics[metric.id] ?? null,
-          symbolSize: frame.tick === cursor || frame.turningPoint ? 11 : 6,
-          itemStyle: { color: frame.turningPoint ? "#ae5b23" : metric.color },
-        })),
+        data: frames.map(frame => {
+          const color = frame.turningPoint ? "#ae5b23" : metric.color;
+          return { value: frame.metrics[metric.id] ?? null, symbolSize: frame.turningPoint ? 11 : 6,
+            itemStyle: { color }, emphasis: { itemStyle: { color } } };
+        }),
       }, ...(financial ? financialSegments(frames, metric.id) : [])],
     }, { replaceMerge: ["series"] });
+  }, [metric, frames, maximum, financial]);
+  useEffect(() => {
+    const plot = chart.current;
+    if (!plot) return;
+    if (highlighted.current >= 0) plot.dispatchAction({ type: "downplay", seriesIndex: 0, dataIndex: highlighted.current });
+    highlighted.current = cursor === undefined ? -1 :
+      frames[cursor]?.tick === cursor ? cursor : frames.findIndex(frame => frame.tick === cursor);
+    if (highlighted.current >= 0) plot.dispatchAction({ type: "highlight", seriesIndex: 0, dataIndex: highlighted.current });
   }, [metric, frames, cursor, maximum, financial]);
   function locate(event: MouseEvent<HTMLDivElement>) {
     const plot = chart.current;

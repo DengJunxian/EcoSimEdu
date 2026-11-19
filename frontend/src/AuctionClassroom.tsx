@@ -78,11 +78,6 @@ function AuctionEvidence({ session, send, nextAction }: {
           </li>;
         })}
       </ul>
-      <details className="trace-details">
-        <summary>核对成交剩余</summary>
-        <p>买方剩余 {trace.buyer_surplus} + 卖方剩余 {trace.seller_surplus} +
-          平台收入 {trace.platform_fee} = 总剩余 {frame.events[0].deltas.surplus}。</p>
-      </details>
     </>}
     {canLocate && !trade && latestShownTrade && <button className="text-button"
       onClick={() => send({ type: "locate", tick: latestShownTrade.tick, metricId: "price" })}>回到已观察到的成交</button>}

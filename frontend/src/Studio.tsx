@@ -1,4 +1,4 @@
-import { lazy, Suspense, useEffect, useLayoutEffect, useReducer, useRef, useState, type ReactNode } from "react";
+import { lazy, Suspense, useEffect, useLayoutEffect, useMemo, useReducer, useRef, useState, type ReactNode } from "react";
 import { ComparisonView, PredictionCard } from "./Counterfactual";
 import { chartMetric, displayNumber, displayObservation, frameLabel, matchesMetric, nextStageReady, relatedActors, startLesson, transition, type Command, type Lesson, type Session } from "./lesson.ts";
 import { courseRef, courseLink, hasSavedProgress, resumeProgress, saveProgress, stageNames, type CourseRef } from "./learning-store.ts";
@@ -8,6 +8,8 @@ import { StudentHeader } from "./StudentHeader.tsx";
 import { Inspector, MicroBoard, RoleView, Timeline } from "./visuals";
 import { ActionPanel, Breadcrumb, EvidenceCard, MetricCard, PageTitle, ProgressStepper, StatusNotice } from "../../content/student-ui.tsx";
 import { Workbench, workbenchMedia, type WorkbenchView } from "./Workbench.tsx";
+import { microscopeRole } from "./microscope.ts";
+import { TraceMicroscope } from "./TraceMicroscope.tsx";
 import "./workbench.css";
 
 const MetricChart = lazy(() => import("./MetricChart"));
@@ -59,14 +61,44 @@ function RoleDecisions({ lesson, session, send }: { lesson: Lesson; session: Ses
   </>;
 }
 
-function BridgeEvidence({ lesson, session, send, selectActor }: {
-  lesson: Lesson; session: Session; send: (value: Command) => void; selectActor: (id: string) => void;
+function MetricEvidenceTable({ lesson, metric, data, locate }: {
+  lesson: Lesson; metric: Lesson["metrics"][number]; data: NonNullable<Session["run"]>["frames"]; locate: (tick: number, id: string) => void;
+}) {
+  const [open, setOpen] = useState(false);
+  const [page, setPage] = useState(0);
+  const size = 24;
+  const last = Math.max(0, Math.ceil(data.length / size) - 1);
+  const active = Math.min(last, page);
+  return <details className="trace-details" id="metric-evidence" onToggle={event => setOpen(event.currentTarget.open)}>
+    <summary>从指标数值反查事件</summary>
+    {open && <>
+      {last > 0 && <div className="decision-actions trace-pages" role="group" aria-label="事件表分页">
+        <button type="button" disabled={!active} onClick={() => setPage(active - 1)}>上一页事件</button>
+        <span>第 {active + 1} / {last + 1} 页</span>
+        <button type="button" disabled={active === last} onClick={() => setPage(active + 1)}>下一页事件</button>
+      </div>}
+      <table>
+        <caption>{metric.label}（{metric.unit}）</caption>
+        <thead><tr><th scope="col">{lesson.tickUnit === "event" ? "事件序号" : "轮次"}</th><th scope="col">数值</th><th scope="col">定位原事件</th></tr></thead>
+        <tbody>{data.slice(active * size, (active + 1) * size).map(item => <tr key={item.tick}>
+          <th scope="row">{item.tick}</th><td>{displayObservation(item.metrics[metric.id])}</td>
+          <td><button className="text-button" onClick={() => locate(item.tick, metric.id)}>
+            定位{frameLabel(lesson.tickUnit, item.tick)}
+          </button></td>
+        </tr>)}</tbody>
+      </table>
+    </>}
+  </details>;
+}
+
+function BridgeEvidence({ lesson, session, data, locate, selectActor }: {
+  lesson: Lesson; session: Session; data: NonNullable<Session["run"]>["frames"];
+  locate: (tick: number, metric: string) => void; selectActor: (id: string) => void;
 }) {
   const run = session.run!;
   const frame = run.frames[session.cursor];
   const metric = lesson.metrics.find(item => item.id === session.focusedMetric) ?? chartMetric(lesson);
   const prior = run.frames[frame.tick - 1];
-  const data = run.frames.slice(0, session.revealed + 1);
   const deltas = relatedActors(frame, metric.id);
   const observedSignals = frame.events.filter(event => event.priorSignal);
   const evaluatedSignals = frame.actors.filter(actor => actor.priorSignal);
@@ -84,8 +116,8 @@ function BridgeEvidence({ lesson, session, send, selectActor }: {
   }
   return <EvidenceCard className="bridge-evidence" label="宏微观证据">
     <h2>从结果回查事件</h2>
-    {lesson.originalId && <label className="metric-lookup">追踪指标
-      <select value={metric.id} onChange={event => send({ type: "locate", tick: frame.tick, metricId: event.target.value })}>{lesson.metrics.map(item => <option key={item.id} value={item.id}>{item.label}</option>)}</select>
+    {(lesson.originalId || microscopeRole(lesson)) && <label className="metric-lookup">追踪指标
+      <select aria-label="追踪指标" value={metric.id} onChange={event => locate(frame.tick, event.target.value)}>{lesson.metrics.map(item => <option key={item.id} value={item.id}>{item.label}</option>)}</select>
     </label>}
     <p>{changeText}</p>
     {!lesson.originalId && evaluatedSignals.length > 0 ? <p>本轮 {evaluatedSignals.length} 位储户的评分计入了上轮待付，
@@ -116,45 +148,42 @@ function BridgeEvidence({ lesson, session, send, selectActor }: {
     {lesson.originalId && <details className="trace-details">
       <summary>核对模型规则</summary><p>{lesson.bridge?.rule}</p>
     </details>}
-    {lesson.rangeLookup && <IntervalLookup data={data} locate={tick => send({ type: "locate", tick, metricId: "moves" })}/>}
-    <details className="trace-details" id="metric-evidence">
-      <summary>从指标数值反查事件</summary>
-      <table>
-        <caption>{metric.label}（{metric.unit}）</caption>
-        <thead><tr><th scope="col">{lesson.tickUnit === "event" ? "事件序号" : "轮次"}</th><th scope="col">数值</th><th scope="col">定位原事件</th></tr></thead>
-        <tbody>{data.map(item => <tr key={item.tick}>
-          <th scope="row">{item.tick}</th><td>{displayObservation(item.metrics[metric.id])}</td>
-          <td><button className="text-button" onClick={() => send({ type: "locate", tick: item.tick, metricId: metric.id })}>
-            定位{frameLabel(lesson.tickUnit, item.tick)}
-          </button></td>
-        </tr>)}</tbody>
-      </table>
-    </details>
+    {lesson.rangeLookup && <IntervalLookup data={data} locate={tick => locate(tick, "moves")}/>}
+    <MetricEvidenceTable lesson={lesson} data={data} metric={metric} locate={locate}/>
   </EvidenceCard>;
 }
 
 function IntervalLookup({ data, locate }: { data: NonNullable<Session["run"]>["frames"]; locate: (tick: number) => void }) {
   const [start, setStart] = useState(0);
   const [end, setEnd] = useState<number>();
+  const [page, setPage] = useState(0);
   const last = data.length - 1;
   const stop = end ?? last;
-  const events = data.slice(start + 1, stop + 1).filter(frame => (frame.events[0]?.deltas.moves ?? 0) > 0);
+  const events = useMemo(() => data.slice(start + 1, stop + 1).filter(frame => (frame.events[0]?.deltas.moves ?? 0) > 0),
+    [data, start, stop]);
+  const lastPage = Math.max(0, Math.ceil(events.length / 12) - 1);
+  const activePage = Math.min(page, lastPage);
   return <details className="trace-details">
     <summary>从区间反查搬迁</summary>
     <p>已揭示事件 0 至 {last}。查询包含终点，起点之后才计入。</p>
     <div className="range-fields">
       <label>起点事件<input type="number" min={0} max={stop} value={start}
-        onChange={event => setStart(Math.max(0, Math.min(stop, Math.trunc(event.target.valueAsNumber || 0))))} /></label>
+        onChange={event => { setPage(0); setStart(Math.max(0, Math.min(stop, Math.trunc(event.target.valueAsNumber || 0)))); }} /></label>
       <label>终点事件<input type="number" min={start} max={last} value={stop}
-        onChange={event => setEnd(Math.max(start, Math.min(last, Math.trunc(event.target.valueAsNumber || 0))))} /></label>
+        onChange={event => { setPage(0); setEnd(Math.max(start, Math.min(last, Math.trunc(event.target.valueAsNumber || 0)))); }} /></label>
     </div>
     <p role="status" aria-atomic="true" tabIndex={0}>
       {events.length ? `区间 (${start}, ${stop}] 共有 ${events.length} 次搬迁。` : "这个区间没有搬迁记录。"}
     </p>
-    {!!events.length && <ol className="range-entries">{events.map(frame => <li key={frame.tick}>
+    {!!events.length && <ol className="range-entries">{events.slice(activePage * 12, (activePage + 1) * 12).map(frame => <li key={frame.tick}>
       <button type="button" className="text-button" onClick={() => locate(frame.tick)}>定位搬迁 {frame.tick}</button>
       <span>{frame.events[0].text}</span>
     </li>)}</ol>}
+    {lastPage > 0 && <div className="decision-actions trace-pages" role="group" aria-label="搬迁结果分页">
+      <button type="button" onClick={() => setPage(activePage - 1)} disabled={!activePage}>上一页搬迁</button>
+      <span>第 {activePage + 1} / {lastPage + 1} 页</span>
+      <button type="button" onClick={() => setPage(activePage + 1)} disabled={activePage === lastPage}>下一页搬迁</button>
+    </div>}
   </details>;
 }
 
@@ -203,29 +232,43 @@ function LessonStudio({ lesson, review, reviewByTimeline, course, fresh }: Studi
   const actorPicker = useRef<HTMLSelectElement>(null);
   const focusActor = useRef(false);
   const [panel, setPanel] = useState<WorkbenchView>("world");
+  const [traceOpen, setTraceOpen] = useState(!!session.traceFocus || session.perspective === "role");
+  const traceHeading = useRef<HTMLHeadingElement>(null);
+  const focusTrace = useRef(false);
   const previousStage = useRef(session.stage);
   const { stage, run } = session;
+  const asOf = session.revealed;
+  const visibleFrames = useMemo(() => run?.frames.slice(0, asOf + 1) ?? [], [run, asOf]);
+  const roleView = stage === 3 && session.perspective === "role";
+  const canTrace = !!course && !!microscopeRole(lesson) && stage === 3;
   const frame = run?.frames[session.cursor];
   const actor = frame?.actors.find(entry => entry.id === session.selected);
   const event = frame?.events[0];
   const actorsInEvent = frame?.actors.filter(item => event?.participants?.includes(item.id) ||
     item.id === event?.actorId || item.id === event?.counterpartyId) ?? [];
   const metric = chartMetric(lesson);
-  const activeMetric = lesson.originalId && session.focusedMetric
+  const activeMetric = session.focusedMetric
     ? lesson.metrics.find(item => item.id === session.focusedMetric) ?? metric : metric;
   const nextTurning = run?.frames.some(item => item.tick > session.cursor && item.turningPoint);
-  const pauseTick = reviewByTimeline && stage === 3 && frame?.turningPoint && !session.playing ? frame.tick : undefined;
+  const pauseTick = !roleView && reviewByTimeline && stage === 3 && frame?.turningPoint && !session.playing ? frame.tick : undefined;
   useEffect(() => {
-    if (pauseTick === undefined || !window.matchMedia(workbenchMedia).matches) return;
+    if (pauseTick === undefined || traceOpen || !window.matchMedia(workbenchMedia).matches) return;
     pauseReview.current?.focus({ preventScroll: true });
     pauseReview.current?.scrollIntoView({ block: "start", behavior: "instant" });
-  }, [pauseTick]);
+  }, [pauseTick, traceOpen]);
   useLayoutEffect(() => {
     if (!focusActor.current) return;
     focusActor.current = false;
     actorPicker.current?.focus({ preventScroll: true });
     actorPicker.current?.scrollIntoView({ block: "nearest" });
   }, [panel, actor?.id]);
+  useLayoutEffect(() => {
+    if (traceOpen && focusTrace.current && traceHeading.current) {
+      focusTrace.current = false;
+      traceHeading.current.focus({ preventScroll: true });
+      traceHeading.current.scrollIntoView({ block: "nearest" });
+    }
+  }, [traceOpen, session.cursor, session.traceFocus, activeMetric.id]);
 
   useEffect(() => {
     if (previousStage.current === stage) return;
@@ -243,11 +286,19 @@ function LessonStudio({ lesson, review, reviewByTimeline, course, fresh }: Studi
     return () => window.clearInterval(timer);
   }, [session.playing]);
 
-  const turnNotice = stage === 3 && frame?.turningPoint && <p className="turning-point" role="status">
+  const turnNotice = !roleView && stage === 3 && frame?.turningPoint && <p className="turning-point" role="status">
     {frame.turningPoint}。{relatedActors(frame, metric.id).length > 0 && "画布高亮相关个体。"}
   </p>;
   const locate = (tick: number, metricId = metric.id, actorId?: string) =>
     send({ type: "locate", tick, metricId, actorId });
+  function locateMetric(tick: number, metricId: string, actorId?: string, eventId?: string) {
+    locate(tick, metricId, actorId);
+    if (canTrace) {
+      if (!traceOpen || tick !== session.cursor || activeMetric.id !== metricId || eventId) focusTrace.current = true;
+      setTraceOpen(true);
+      if (eventId) send({ type: "trace", focus: { tick, eventId }, actorId });
+    }
+  }
   function selectActor(actorId: string) {
     send({ type: "select", actorId });
     if (window.matchMedia(workbenchMedia).matches) {
@@ -262,7 +313,7 @@ function LessonStudio({ lesson, review, reviewByTimeline, course, fresh }: Studi
   const replaying = !!run && !!frame && (stage === 2 || stage === 3);
   const title = stage === 1 ? lesson.title : stageNames[stage - 1];
   const nextStage = () => send({ type: "next-stage" });
-  const ordinaryAdvance = stage < 4 && !(reviewByTimeline && stage === 3);
+  const ordinaryAdvance = stage < 4 && !(reviewByTimeline && stage === 3 && !roleView);
   const nextButton = ordinaryAdvance && <button className="primary stage-action" ref={stageAction}
     disabled={!ready} onClick={nextStage}>{nextLabels[stage - 1]}</button>;
 
@@ -305,13 +356,13 @@ function LessonStudio({ lesson, review, reviewByTimeline, course, fresh }: Studi
           <Timeline session={session} send={send}/>
           <div className="studio-jumps">
             <button className="text-button" disabled={session.cursor === 0} onClick={() => send({ type: "back" })}>后退一步</button>
-            {stage === 3 && lesson.originalId && nextTurning && <button className="text-button" onClick={() => send({ type: "go-to-turn" })}>前往下一关键事件</button>}
-            {stage === 3 && lesson.bridge?.closeLabel && <button className="text-button" disabled={session.cursor === run.frames.length - 1}
+            {stage === 3 && !roleView && lesson.originalId && nextTurning && <button className="text-button" onClick={() => send({ type: "go-to-turn" })}>前往下一关键事件</button>}
+            {stage === 3 && !roleView && lesson.bridge?.closeLabel && <button className="text-button" disabled={session.cursor === run.frames.length - 1}
               onClick={() => send({ type: "go-to-close" })}>{lesson.bridge.closeLabel}</button>}
           </div>
           {nextButton}
         </div>
-        <Workbench active={panel} change={setPanel}
+        {!roleView && <Workbench active={panel} change={setPanel}
           world={<div className="canvas-panel">
             <MicroBoard lesson={lesson} frame={frame} selected={actor?.id} metricId={session.focusedMetric}
               select={selectActor}/>
@@ -328,7 +379,7 @@ function LessonStudio({ lesson, review, reviewByTimeline, course, fresh }: Studi
                 aria-pressed={item.id === actor?.id}>{item.name}</button>)}
             </div>}
             {actor ? <Inspector actor={actor} stateName={lesson.states[actor.state].label}
-              frame={frame} tickUnit={lesson.tickUnit} metricId={activeMetric.id} locate={stage === 3 ? locate : undefined}/> :
+              frame={frame} tickUnit={lesson.tickUnit} metricId={activeMetric.id} locate={stage === 3 ? locateMetric : undefined}/> :
               <p>从画布或名单选一位个体，查看这一时点的状态、约束和关联事件。</p>}
           </EvidenceCard>}
           system={stage === 3 ? <EvidenceCard label="宏观指标曲线" className="macro-view">
@@ -348,17 +399,23 @@ function LessonStudio({ lesson, review, reviewByTimeline, course, fresh }: Studi
               })}</dl>}
               <Suspense fallback={<StatusNotice>正在绘制曲线…</StatusNotice>}>
                 <MetricChart metric={activeMetric} financial={activeMetric.id === lesson.priceMetric}
-                  frames={run.frames.slice(0, session.revealed + 1)} cursor={session.cursor}
-                  onSelect={tick => locate(tick, activeMetric.id)}/>
+                  frames={visibleFrames} cursor={session.cursor}
+                  onSelect={tick => locateMetric(tick, activeMetric.id)}/>
               </Suspense>
-              {!run.frames.slice(0, session.revealed + 1).some(item => typeof item.metrics[activeMetric.id] === "number") &&
+              {!visibleFrames.some(item => typeof item.metrics[activeMetric.id] === "number") &&
                 <p className="small">已揭示的记录里还没有这项指标的数值。</p>}
               <a className="chart-evidence-link" href="#metric-evidence" onClick={() => {
                 const table = document.querySelector<HTMLDetailsElement>("#metric-evidence");
                 if (table) { table.open = true; table.querySelector("summary")?.focus({ preventScroll: true }); }
               }}>按表格查原事件</a>
-            </EvidenceCard> : undefined}/>
-        <div className="studio-evidence" id="run-evidence" tabIndex={-1}>
+            </EvidenceCard> : undefined}/>}
+        {canTrace && <details className="edu-panel microscope-wrap" id="microscope" open={traceOpen}
+          onToggle={event => setTraceOpen(event.currentTarget.open)}>
+          <summary>涌现显微镜</summary>
+          {traceOpen && <TraceMicroscope lesson={lesson} session={session} metricId={activeMetric.id}
+            course={course} send={send} headingRef={traceHeading} announceFollow={() => { focusTrace.current = true; }}/>}
+        </details>}
+        {!roleView && <div className="studio-evidence" id="run-evidence" tabIndex={-1}>
           {!reviewByTimeline && turnNotice}
           {reviewByTimeline && stage === 3 ? <section ref={pauseReview} tabIndex={-1}
             className="replay-review edu-panel" aria-label="当前成交证据与下一步">
@@ -368,8 +425,8 @@ function LessonStudio({ lesson, review, reviewByTimeline, course, fresh }: Studi
               {!ready && pauseTick !== undefined ? "下一步 · 查看后续报价" : "试一项政策"}
             </button>)}
           </section> : review?.(session, send)}
-          {stage === 3 && <BridgeEvidence lesson={lesson} session={session} send={send} selectActor={selectActor}/>}
-        </div>
+          {stage === 3 && <BridgeEvidence lesson={lesson} session={session} data={visibleFrames} locate={locateMetric} selectActor={selectActor}/>}
+        </div>}
       </div>}
       {stage === 4 && session.comparison && <div className="studio-results">
         {review?.(session, send)}

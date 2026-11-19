@@ -1,4 +1,6 @@
 import type { ActorId, CasePackage, EventId, MetricRoles, RunId } from "./domain-contracts.ts";
+import type { ObservationPerspective } from "../../content/microscope.ts";
+import { microscopeRole, type TraceFocus } from "./microscope.ts";
 
 export type Stage = 1 | 2 | 3 | 4;
 export type Trend = "down" | "same" | "up";
@@ -98,6 +100,8 @@ export type Session = {
   run?: Run;
   selected?: string;
   focusedMetric?: string;
+  traceFocus?: TraceFocus;
+  perspective?: ObservationPerspective;
   cursor: number;
   revealed: number;
   playing: boolean;
@@ -112,6 +116,8 @@ export type Command =
   | { type: "select"; actorId: string }
   | { type: "play" | "pause" | "step" | "back" | "reset" | "go-to-close" | "go-to-turn" }
   | { type: "locate"; tick: number; metricId: string; actorId?: string }
+  | { type: "trace"; focus: TraceFocus; actorId?: string }
+  | { type: "perspective"; perspective: ObservationPerspective }
   | { type: "policy"; value: number }
   | { type: "predict"; value: Trend }
   | { type: "compare" | "new-comparison" };
@@ -174,8 +180,8 @@ export function transition(lesson: Lesson, session: Session, command: Command): 
       if (stage === 2) return { ...session, stage: 3, cursor: 0, revealed: 0, playing: false };
       return { ...session, stage: 4, playing: false };
     case "select":
-      if (!replay || !run.frames[cursor].actors.some(actor => actor.id === command.actorId)) return session;
-      return { ...session, selected: command.actorId };
+      if (!replay || session.perspective === "role" || !run.frames[cursor].actors.some(actor => actor.id === command.actorId)) return session;
+      return { ...session, selected: command.actorId, traceFocus: undefined };
     case "play":
       return replay && cursor < run.frames.length - 1 ? { ...session, playing: true } : session;
     case "pause":
@@ -183,35 +189,54 @@ export function transition(lesson: Lesson, session: Session, command: Command): 
     case "step": {
       if (!replay || cursor >= run.frames.length - 1) return session;
       const next = run.frames[cursor + 1];
-      const metric = stage === 3 && next.turningPoint ? chartMetric(lesson).id : undefined;
-      return { ...session, cursor: next.tick, revealed: Math.max(next.tick, session.revealed),
+      const metric = stage === 3 && session.perspective !== "role" && next.turningPoint ? chartMetric(lesson).id : undefined;
+      return { ...session, cursor: next.tick, revealed: Math.max(next.tick, session.revealed), traceFocus: undefined,
         focusedMetric: metric ?? (lesson.originalId ? session.focusedMetric : undefined),
-        selected: metric ? relatedActors(next, metric)[0] ?? session.selected : session.selected,
+        selected: session.perspective === "role" ? microscopeRole(lesson) :
+          metric ? relatedActors(next, metric)[0] ?? session.selected : session.selected,
         playing: session.playing && next.tick < run.frames.length - 1 && !metric };
     }
     case "back":
-      return replay ? { ...session, cursor: Math.max(0, cursor - 1), playing: false, focusedMetric: lesson.originalId ? session.focusedMetric : undefined } : session;
+      return replay ? { ...session, cursor: Math.max(0, cursor - 1), playing: false, traceFocus: undefined, focusedMetric: lesson.originalId ? session.focusedMetric : undefined } : session;
     case "reset":
-      return replay ? { ...session, cursor: 0, playing: false, focusedMetric: lesson.originalId ? session.focusedMetric : undefined } : session;
+      return replay ? { ...session, cursor: 0, playing: false, traceFocus: undefined, focusedMetric: lesson.originalId ? session.focusedMetric : undefined } : session;
     case "go-to-turn": {
       const next = run?.frames.find(frame => frame.tick > cursor && frame.turningPoint);
-      if (stage !== 3 || !next) return session;
+      if (stage !== 3 || session.perspective === "role" || !next) return session;
       const metric = chartMetric(lesson).id;
       return { ...session, cursor: next.tick, revealed: Math.max(next.tick, session.revealed),
-        playing: false, focusedMetric: metric, selected: relatedActors(next, metric)[0] ?? session.selected };
+        playing: false, traceFocus: undefined, focusedMetric: metric, selected: relatedActors(next, metric)[0] ?? session.selected };
     }
     case "go-to-close":
       return stage === 3 && run && lesson.bridge?.closeLabel ?
         { ...session, cursor: run.frames.length - 1, revealed: run.frames.length - 1,
-          playing: false, focusedMetric: lesson.originalId ? session.focusedMetric : undefined } : session;
+          playing: false, traceFocus: undefined, focusedMetric: lesson.originalId ? session.focusedMetric : undefined } : session;
     case "locate": {
-      if (stage !== 3 || !run || !Number.isInteger(command.tick) || command.tick > session.revealed ||
+      if (stage !== 3 || session.perspective === "role" || !run || !Number.isInteger(command.tick) || command.tick > session.revealed ||
           !run.frames[command.tick] || !lesson.metrics.some(metric => metric.id === command.metricId)) return session;
       const frame = run.frames[command.tick];
       const contributors = relatedActors(frame, command.metricId);
       const selected = command.actorId && relatedActors(frame).includes(command.actorId)
         ? command.actorId : contributors[0];
-      return { ...session, cursor: command.tick, playing: false, selected, focusedMetric: command.metricId };
+      return { ...session, cursor: command.tick, playing: false, selected, focusedMetric: command.metricId, traceFocus: undefined };
+    }
+    case "perspective": {
+      const role = microscopeRole(lesson);
+      if (stage !== 3 || !role || session.perspective === command.perspective) return session;
+      return { ...session, perspective: command.perspective, playing: false, traceFocus: undefined,
+        selected: command.perspective === "role" ? role : session.selected };
+    }
+    case "trace": {
+      if (stage !== 3 || !run || !microscopeRole(lesson)) return session;
+      const { tick, eventId } = command.focus;
+      const current = Number.isSafeInteger(tick) && tick <= session.revealed ? run.frames[tick] : undefined;
+      const event = current?.events.find(item => item.id === eventId);
+      const role = microscopeRole(lesson);
+      if (!current || (eventId !== undefined && (!event || session.perspective === "role" &&
+          event.actorId !== role && event.counterpartyId !== role))) return session;
+      const actorId = session.perspective === "role" ? role : command.actorId ?? session.selected;
+      return { ...session, cursor: tick, selected: current.actors.find(actor => actor.id === actorId)?.id,
+        traceFocus: command.focus, playing: false };
     }
     case "policy": {
       if (stage !== 4 || session.comparison || !Number.isInteger(command.value) ||

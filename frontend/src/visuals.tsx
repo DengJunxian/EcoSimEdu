@@ -101,7 +101,8 @@ function NeighborhoodMap({ board, lesson, selected, focused, select }: {
 }
 
 export function Inspector({ actor, stateName, frame, tickUnit, metricId, locate }: {
-  actor: Actor; stateName: string; frame: Frame; tickUnit?: Lesson["tickUnit"]; metricId?: string; locate?: (tick: number, metricId: string, actorId?: string) => void;
+  actor: Actor; stateName: string; frame: Frame; tickUnit?: Lesson["tickUnit"]; metricId?: string;
+  locate?: (tick: number, metricId: string, actorId?: string, eventId?: string) => void;
 }) {
   const actorEvents = frame.events.filter(event => event.actorId === actor.id || event.counterpartyId === actor.id ||
     event.participants?.includes(actor.id));
@@ -132,7 +133,7 @@ export function Inspector({ actor, stateName, frame, tickUnit, metricId, locate 
     </ul>}
     {locate && origins.length > 0 && <ul className="signal-links" aria-label="邻居信号的来源">
       {origins.map(origin => <li key={origin.eventId}><button className="text-button"
-        onClick={() => locate(origin.tick, "queued", origin.actorId)}>
+        onClick={() => locate(origin.tick, "queued", origin.actorId, origin.eventId)}>
         查看 {origin.actorId} 的第 {origin.tick} 轮申请
       </button></li>)}
     </ul>}

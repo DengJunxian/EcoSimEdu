@@ -42,14 +42,23 @@ def trace(run, seq, as_of_seq, metric_id, perspective, actor=None):
         edges.append(TraceEdge(source=node.id, target="event", kind="observed_transition",
                                label="消息指向真实的源申请事件", source_refs=[source, ref]))
 
+    application_by_id = {
+        row["request_id"]: (record, row["person"])
+        for record in events[:seq] for row in record.get("requests", [])
+    } if kind == "payments" else {}
     for field, verb, amount_key in (("requests", "申请", "requested"), ("payments", "到账", "amount"),
                                     ("pending", "待付", "remaining")):
         for row in event.get(field, []):
             if actor and actor != row["person"]:
                 continue
+            origin = application_by_id.get(row["request_id"]) if field == "payments" else None
+            refs = [source_ref(run, origin[0], row["person"]), ref] if origin and origin[1] == row["person"] else [ref]
             nodes.append(TraceNode(id=row["request_id"], kind="relation", actor_id=row["person"],
                                    label=f'{row["request_id"]} · {verb} {row[amount_key]}',
-                                   source_refs=[ref]))
+                                   source_refs=refs))
+            if len(refs) == 2:
+                edges.append(TraceEdge(source="event", target=row["request_id"], kind="observed_transition",
+                                       label="实付与原入队申请使用同一个申请编号。", source_refs=refs))
 
     if actor_state and "风险评分" in actor_state and kind in {"messages", "requests", "sale", "support", "payments", "queue"}:
         rules = load_case(run["case_id"])["rules"]

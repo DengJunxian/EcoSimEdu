@@ -3,6 +3,7 @@ import { browserEvents } from "./run-evidence.ts";
 import { browserEngineVersion, type EvidencePointer } from "./domain-contracts.ts";
 import { courseById } from "./curriculum.ts";
 import { legalChoice, nextStageReady, startLesson, type Lesson, type Session, type Trend } from "./lesson.ts";
+import { microscopeRole } from "./microscope.ts";
 
 const progressPrefix = "ecosimedu:progressive:progress:v1:";
 const explanationPrefix = "ecosimedu:progressive:explanation:v1:";
@@ -90,7 +91,16 @@ export function resumeProgress(storage: Storage, course: CourseRef, lesson: Less
     if (run.id !== record.runId || !frame || !run.frames[record.revealed]) return undefined;
     const selected = frame.actors.find(actor => actor.id === record.selected)?.id;
     const focusedMetric = lesson.metrics.find(metric => metric.id === record.focusedMetric)?.id;
-    const replay: Session = { ...initial, stage: record.stage, run, choices: record.choices, selected, focusedMetric,
+    const focus = record.stage === 3 && record.traceFocus?.tick === frame.tick ? record.traceFocus : undefined;
+    const traceFocus = focus && (focus.eventId === undefined || frame.events.some(event => event.id === focus.eventId))
+      ? { tick: frame.tick, eventId: focus.eventId, relation: typeof focus.relation === "string" ? focus.relation.slice(0, 128) : undefined,
+        anchor: focus.anchor && index(focus.anchor.tick) && focus.anchor.tick <= record.revealed &&
+          (focus.anchor.eventId === undefined || run.frames[focus.anchor.tick].events.some(event => event.id === focus.anchor!.eventId))
+          ? { tick: focus.anchor.tick, eventId: focus.anchor.eventId } : undefined }
+      : undefined;
+    const perspective = record.stage === 3 && (record.perspective === "role" || record.perspective === "system") &&
+      microscopeRole(lesson) ? { perspective: record.perspective } : {};
+    const replay: Session = { ...initial, stage: record.stage, run, choices: record.choices, selected, focusedMetric, traceFocus, ...perspective,
       cursor: record.cursor, revealed: record.revealed };
     if (record.stage !== 4) return replay;
     if (!nextStageReady(lesson, { ...replay, stage: 3 }) || !validPolicy(lesson, record.policy)) return undefined;

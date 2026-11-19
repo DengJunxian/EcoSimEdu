@@ -107,6 +107,11 @@ def walk(page, case_id, width):
     page.get_by_text("从指标数值反查事件", exact=True).press("Enter")
     lookup = page.locator(".bridge-evidence")
     expect(lookup.get_by_role("table")).to_be_visible()
+    if case_id == "flash_crash":
+        expect(lookup.locator("#metric-evidence tbody tr")).to_have_count(24)
+        key_button(lookup, "下一页事件")
+        expect(lookup.get_by_role("button", name="定位事件 24", exact=True)).to_be_visible()
+        key_button(lookup, "上一页事件")
     key_button(lookup, "定位事件 1")
     expect(run_bar(page)).to_contain_text("事件 1")
     expect(page.get_by_role("button", name="试一项政策")).to_be_enabled()
