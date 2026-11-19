@@ -19,6 +19,7 @@ for expected in opening["rounds"]:
 
 cases = [(False, bid, fee) for bid in (1, 96, 108) for fee in (0, 6)]
 cases += [(True, 35, fee) for fee in (0, 6)]
+cases += [(False, bid, -1) for bid in (1, 96, 108)]
 script = """
 import { simulateAuction } from './frontend/src/auction.ts';
 const inputs = JSON.parse(process.argv[1]);
@@ -32,8 +33,10 @@ process.stdout.write(JSON.stringify(data));
 browser = json.loads(subprocess.check_output(
     ["node", "--input-type=module", "-e", script, json.dumps(cases)], cwd=ROOT))
 frames_checked = 0
-for (boundary, bid, fee), result in zip(cases, browser, strict=True):
-    shift = BOUNDARIES["double_auction"]["parameters"]["demand_shift"] if boundary else 0
+for (boundary, bid, policy), result in zip(cases, browser, strict=True):
+    demand = next(scenario for scenario in CASE["scenarios"] if scenario["id"] == "demand")
+    shift = BOUNDARIES["double_auction"]["parameters"]["demand_shift"] if boundary else demand["demand_shift"] if policy == -1 else 0
+    fee = 0 if policy == -1 else policy
     legacy = run_auction("baseline", seed, bid, parameters={"demand_shift": shift, "fee": fee})
     assert result["ceiling"] == legacy["metrics"]["ceiling"]
     last_price = None

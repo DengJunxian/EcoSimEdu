@@ -1,10 +1,11 @@
 import definition from "../../../cases/schelling_segregation/case.json" with { type: "json" };
+import boundaries from "../../../cases/boundaries.json" with { type: "json" };
 import { coordinates, openingChoice, openingNeighbors, openingTarget, schelling } from "./schelling.ts";
 import { defineCourse, metric, windowOf } from "./course-lesson.ts";
 
-export const schellingLesson = defineCourse("schelling_segregation", definition, {
+const standard = defineCourse("schelling_segregation", definition, {
   title: "邻居变了，你会搬家吗？", role: "社区居民 A001",
-  story: "参照 Schelling 对居住选择的模型。你可先决定是否搬到一处预留空位。之后每户按照自己看到的相邻八格行动。",
+  story: "参照 Schelling 用局部迁居规则研究空间分化的理论模型。这里的 340 名居民是合成角色。你可先决定是否搬到预留空位，随后每户依据相邻八格行动。",
   facts: [{ label: "原址同组 / 已占邻格", value: openingNeighbors.join(" / ") },
     { label: `预留空位 · ${coordinates(openingChoice)}`, value: `${openingTarget.join(" / ")}（按你搬离原址后计算）` }],
   steps: ["看两处邻居", "决定搬迁", "追踪邻里"],
@@ -18,3 +19,24 @@ export const schellingLesson = defineCourse("schelling_segregation", definition,
   baseline: 30, alternative: 50, periodLabel: "各轮收尾", periods: windowOf(0, 8),
   map: true,
 }, (seed, action, scenario, params) => schelling(seed, action, scenario, params.threshold));
+
+const edge = boundaries.schelling_segregation;
+const zero = definition.scenarios.find(scenario => scenario.id === "zero")!;
+
+export const schellingLesson: typeof standard = {
+  ...standard,
+  policy: { ...standard.policy, unit: "%", rangeLabel: "30% 与 50%",
+    alternates: [
+      { value: zero.parameters.threshold, label: zero.label, description: zero.description },
+      { value: edge.parameters.threshold, label: `最低比例 ${edge.parameters.threshold}%`,
+        description: "用相同开局和学生决定试验严格阈值。查明停下时是全部达标、无合格空格，还是轮数到了上限。" },
+    ] },
+  run(input) {
+    if (input.seed !== definition.seed || !definition.action.options.some(option => option.id === input.choices[0]))
+      throw new Error("未知社区开局或动作");
+    const edgeCase = input.policy === zero.parameters.threshold ? zero : input.policy === edge.parameters.threshold ?
+      { id: "boundary", parameters: edge.parameters } : undefined;
+    return edgeCase ? { ...schelling(input.seed, input.choices[0], edgeCase.id, input.policy), intervention: edgeCase.parameters } :
+      standard.run(input);
+  },
+};

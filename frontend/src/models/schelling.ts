@@ -74,11 +74,24 @@ function counts(grid: readonly (string | null)[], cell: number, resident: string
 export const openingNeighbors = counts(opening.grid, opening.grid.indexOf("A001"), "A001");
 export const openingTarget = counts(opening.grid, openingChoice, "A001", opening.grid.indexOf("A001"));
 
+const meetsThreshold = ([same, total]: readonly [number, number], threshold: number) => 100 * same >= threshold * total;
+
+export function residentOptions(grid: readonly (string | null)[], resident: string, threshold: number) {
+  const origin = grid.indexOf(resident);
+  const home = counts(grid, origin, resident);
+  const legal = grid.flatMap((occupant, cell) => {
+    if (occupant !== null) return [];
+    const local = counts(grid, cell, resident, origin);
+    return meetsThreshold(local, threshold) ? [{ cell, local }] : [];
+  });
+  return { origin, home, satisfied: meetsThreshold(home, threshold), legal };
+}
+
 export function schelling(seed: number, action: string, scenario: string, threshold: number) {
   const grid = [...opening.grid];
   const cells = new Map(grid.flatMap((actor, i) => actor ? [[actor, i] as const] : []));
   const vacancies = new Set(grid.flatMap((actor, i) => actor ? [] : [i]));
-  const eligible = ([same, total]: readonly [number, number]) => 100 * same >= threshold * total;
+  const eligible = (local: readonly [number, number]) => meetsThreshold(local, threshold);
   const people = profiles(residents, `阈值 ${threshold}%，候选位置只能是空格`, "达到阈值时不按阈值规则迁移");
   for (const actor of residents) people[actor].state = actor[0];
   const log = new Recorder(residents, people);

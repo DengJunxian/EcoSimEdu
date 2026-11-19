@@ -11,21 +11,22 @@ export function PredictionCard({ lesson, session, send }: {
   const { policy } = lesson;
   const locked = !!session.comparison;
   const changed = session.policy !== policy.baseline;
-  const alternate = policy.alternate;
-  const alternateActive = session.policy === alternate?.value;
+  const alternate = policy.alternates?.find(choice => session.policy === choice.value);
   return <section className="decision-card" aria-label="预测后运行">
-    {alternate && <fieldset disabled={locked}>
+    {policy.alternates && <fieldset disabled={locked}>
       <legend>这次改变哪一项？</legend>
-      <label className="choice"><input type="radio" name="intervention" checked={!alternateActive}
-        onChange={() => send({ type: "policy", value: policy.baseline })}/> 现金组合</label>
-      <label className="choice"><input type="radio" name="intervention" checked={alternateActive}
-        onChange={() => send({ type: "policy", value: alternate.value })}/> {alternate.label}</label>
+      <label className="choice"><input type="radio" name="intervention" checked={!alternate}
+        onChange={() => send({ type: "policy", value: policy.baseline })}/> {policy.rangeLabel ?? policy.label}</label>
+      {policy.alternates.map(choice => <label key={choice.value} className="choice">
+        <input type="radio" name="intervention" checked={choice === alternate}
+          onChange={() => send({ type: "policy", value: choice.value })}/> {choice.label}
+      </label>)}
     </fieldset>}
-    {alternateActive ? <p>{alternate?.description}</p> : <>
-      <label htmlFor="policy" className="policy-label">{policy.label}<strong>{alternate
+    {alternate ? <p>{alternate.description}</p> : <>
+      <label htmlFor="policy" className="policy-label">{policy.label}<strong>{policy.rangeLabel
         ? `${session.policy} ${policy.unit}` : policy.labels?.[session.policy] ?? `${session.policy} ${policy.unit}`}</strong></label>
       <input id="policy" type="range" min={policy.min} max={policy.max} step={policy.step ?? 1} value={session.policy}
-        aria-valuetext={alternate ? undefined : policy.labels?.[session.policy]} disabled={locked}
+        aria-valuetext={policy.rangeLabel ? undefined : policy.labels?.[session.policy]} disabled={locked}
         onChange={event => send({ type: "policy", value: Number(event.target.value) })}/>
       <p>{policy.describe ?? `基线每轮 ${policy.baseline} ${policy.unit}，保留原有个体和你的入场决策。`}</p>
     </>}
@@ -72,7 +73,8 @@ export function ComparisonView({ lesson, session }: { lesson: Lesson; session: S
         { name: "引入政策", amount: policy.policy, value: policyValue, run: policy.run, frames: right },
       ].map(item => <section key={item.name}>
         <h3>{item.name}</h3>
-        <p>{lesson.policy.label} · {lesson.policy.labels?.[item.amount] ?? `${item.amount} ${lesson.policy.unit}`}</p>
+        <p>{lesson.policy.alternates?.find(choice => choice.value === item.amount)?.label ??
+          `${lesson.policy.label} · ${lesson.policy.labels?.[item.amount] ?? `${item.amount} ${lesson.policy.unit}`}`}</p>
         <p>{outcomeLabel(lesson)} <strong>{item.value === null ? "未定义" : `${displayNumber(item.value)} ${metric.unit}`}</strong></p>
         {lesson.metricRoles.statistic === "final" && lesson.bridge?.metrics.includes("equity") &&
           <p>期末银行权益 <strong>{item.run.frames.at(-1)!.metrics.equity} {metric.unit}</strong></p>}

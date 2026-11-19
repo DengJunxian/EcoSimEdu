@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useId, useState } from "react";
 import { InspectorPanel } from "../../content/student-ui.tsx";
 import type { Actor, Command, Frame, Lesson, Session } from "./lesson.ts";
 import { frameLabel, relatedActors } from "./lesson.ts";
@@ -17,10 +17,14 @@ export function RoleView({ role }: Pick<Lesson, "role">) {
   </section>;
 }
 
-export function MicroBoard({ lesson, frame, selected, metricId, select }: {
-  lesson: Lesson; frame: Frame; selected?: string; metricId?: string; select: (id: string) => void;
+export function MicroBoard({ lesson, frame, prior, selected, metricId, select }: {
+  lesson: Lesson; frame: Frame; prior?: Frame; selected?: string; metricId?: string; select: (id: string) => void;
 }) {
-  const focused = metricId ? relatedActors(frame, metricId) : lesson.originalId && frame.tick ? relatedActors(frame) : [];
+  const relocation = !!frame.board && !!prior?.board && (frame.events[0]?.deltas.moves ?? 0) > 0;
+  const focused = relocation ? relatedActors(frame) :
+    metricId ? relatedActors(frame, metricId) : lesson.originalId && frame.tick ? relatedActors(frame) : [];
+  const [beforeAt, setBeforeAt] = useState<number>();
+  const before = relocation && beforeAt === frame.tick;
   const [view, setView] = useState<{ page: number; selected?: string }>({ page: 0 });
   const pageSize = 30;
   const pages = Math.ceil(frame.actors.length / pageSize);
@@ -32,7 +36,14 @@ export function MicroBoard({ lesson, frame, selected, metricId, select }: {
   const states = Object.entries(lesson.states);
   return <section className="micro-view" aria-label="微观个体画布">
     <div className="canvas-heading"><h2>{lesson.populationTitle}</h2><span>{frameLabel(lesson.tickUnit, frame.tick)}</span></div>
-    {frame.board && <NeighborhoodMap board={frame.board} lesson={lesson} selected={selected} focused={focused} select={select}/>}
+    {relocation && <div className="neighborhood-views" role="group" aria-label="搬迁网格对比">
+      <button type="button" aria-pressed={before} onClick={() => setBeforeAt(frame.tick)}>搬迁前的网格</button>
+      <button type="button" aria-pressed={!before} onClick={() => setBeforeAt(undefined)}>搬迁后的网格</button>
+    </div>}
+    {frame.board && <NeighborhoodMap board={before ? prior!.board! : frame.board} marks={frame.board.marked}
+      movement={relocation ? frame.events[0].actorId : undefined}
+      lesson={lesson} selected={selected} focused={focused} select={select}/>}
+    {relocation && <p className="map-move-key">虚线标出原址，实线标出新址，描边显示相关住户。</p>}
     {!frame.board && pages > 1 && <div className="population-pages" role="group" aria-label="个体画布分组">
       {Array.from({ length: pages }, (_, index) => <button key={index} aria-pressed={index === page}
         onClick={() => setView({ page: index, selected })}>
@@ -81,22 +92,28 @@ export function MicroBoard({ lesson, frame, selected, metricId, select }: {
   </section>;
 }
 
-function NeighborhoodMap({ board, lesson, selected, focused, select }: {
-  board: NonNullable<Frame["board"]>; lesson: Lesson; selected?: string; focused: string[]; select: (id: string) => void;
+function NeighborhoodMap({ board, marks, movement, lesson, selected, focused, select }: {
+  board: NonNullable<Frame["board"]>; marks: readonly number[]; movement?: string;
+  lesson: Lesson; selected?: string; focused: string[]; select: (id: string) => void;
 }) {
-  const { size, cells, marked } = board;
+  const { size, cells } = board;
+  const pattern = useId();
   const people = cells.flatMap((id, cell) => id ? [{ id, cell }] : []).sort((a, b) => a.id.localeCompare(b.id));
   return <svg className="neighborhood-map" aria-hidden="true" viewBox={`0 0 ${size * 20} ${size * 20}`}>
-    <defs><pattern id="house-plot" width="20" height="20" patternUnits="userSpaceOnUse">
+    <defs><pattern id={pattern} width="20" height="20" patternUnits="userSpaceOnUse">
       <path d="M0 20V0H20" fill="none" stroke="#6a9083" strokeWidth="1"/>
     </pattern></defs>
-    <rect width="100%" height="100%" fill="url(#house-plot)"/>
+    <rect width="100%" height="100%" fill={`url(#${pattern})`}/>
     {people.map(({ id, cell }) => <rect key={id} className="resident-tile" width="14" height="14" x="3" y="3" rx={id.startsWith("A") ? 7 : 2}
       style={{ transform: `translate(${cell % size * 20}px, ${Math.floor(cell / size) * 20}px)` }}
+      data-affected={movement && id !== movement && focused.includes(id) || undefined}
+      data-mover={id === movement || undefined}
       stroke={id === selected ? "#fffef2" : focused.includes(id) ? "#ffaf37" : "none"} strokeWidth="2"
       fill={lesson.states[id[0]].color} onClick={() => select(id)}><title>{id}</title></rect>)}
-    {marked.map(cell => <rect key={cell} x={cell % size * 20 + 1} y={Math.floor(cell / size) * 20 + 1}
-      width="18" height="18" rx="3" fill="none" stroke="#fffef2" strokeDasharray="3 2" pointerEvents="none"/>)}
+    {marks.map((cell, index) => <rect key={cell} x={cell % size * 20 + 1} y={Math.floor(cell / size) * 20 + 1}
+      width="18" height="18" rx="3" fill="none" stroke="#fffef2"
+      data-site={movement ? index === 0 ? "origin" : "destination" : undefined}
+      strokeDasharray={!movement || index === 0 ? "3 2" : undefined} pointerEvents="none"/>)}
   </svg>;
 }
 

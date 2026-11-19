@@ -63,9 +63,14 @@ def main():
         assert json.loads((ROOT / "frontend/src/data" / f"{name}-inputs.json").read_text()) == data
 
     definitions = {key: json.loads((ROOT / "cases" / key / "case.json").read_text()) for key in CASES}
+    boundaries = json.loads((ROOT / "cases" / "boundaries.json").read_text())
+    spatial = definitions["schelling_segregation"]
+    spatial["scenarios"].append({"id": "boundary", "parameters": boundaries["schelling_segregation"]["parameters"]})
     requests = [{"id": key, "choices": [item["id"], "prediction-0"], "policy": policy}
                 for key, (_, baseline, comparison) in CASES.items()
                 for item in definitions[key]["action"]["options"] for policy in (baseline, comparison)]
+    requests += [{"id": "schelling_segregation", "choices": [item["id"], "prediction-0"], "policy": policy}
+                 for item in spatial["action"]["options"] for policy in (0, boundaries["schelling_segregation"]["parameters"]["threshold"])]
     report = subprocess.run(["node", "frontend/tests/remaining_parity.mjs", "--pipe"], cwd=ROOT,
                             input=json.dumps(requests), text=True, capture_output=True, check=True)
     counts = Counter()
@@ -84,6 +89,8 @@ def main():
             assert event["seq"] == expected["seq"], (label, event, expected)
             assert metrics.keys() == snapshot["metrics"].keys(), (label, event, metrics, snapshot["metrics"])
             assert_matches(metrics, snapshot["metrics"], f"{label}.{event['seq']}.metrics")
+            if key == "schelling_segregation":
+                assert browser["grids"][event["seq"]] == snapshot["grid"], (label, event["seq"], "board")
             data = event.get("data", {})
             for field in EVIDENCE[key]:
                 if field in expected:

@@ -8,7 +8,8 @@ import { studentRoutes } from "../../content/student-navigation.ts";
 import { StudentHeader } from "./StudentHeader.tsx";
 import { EvidenceCard, PageTitle, StatusNotice } from "../../content/student-ui.tsx";
 
-const SvbTransferRecord = lazy(() => import("./SvbTransfer.tsx").then(module => ({ default: module.SvbTransfer })));
+const TransferRecord = lazy(() => import("./FlagshipTransfer.tsx").then(module => ({ default: module.FlagshipTransfer })));
+const otherFlagships = ["schelling_segregation", "double_auction"] as const;
 
 function listNotes() {
   try { return allNotes(localStorage).filter(note => Object.hasOwn(courseById, note.course.caseId)); }
@@ -26,10 +27,16 @@ function ProgressBackup({ onRestore }: { onRestore: () => void }) {
     setMessage("");
     try {
       const archive = exportProgressArchive(localStorage);
-      const svbTransfer = await import("./svb-study.ts").then(module => module.readSvbTransfer())
-        .then(({ attempts }) => attempts.length ? attempts : undefined)
-        .catch(() => { setError("本次备份不含青湾银行作答，浏览器的作答存储无法读取。"); return undefined; });
-      const url = URL.createObjectURL(new Blob([JSON.stringify({ ...archive, svbTransfer })], { type: "application/json" }));
+      const { readFlagshipTransfer } = await import("./flagship-study.ts");
+      const results = await Promise.allSettled((["svb_run", ...otherFlagships] as const).map(readFlagshipTransfer));
+      if (results.some(entry => entry.status === "rejected"))
+        setError("部分迁移作答无法读取。续学位置和解释仍会导出。");
+      const attempts = results.map(entry => entry.status === "fulfilled" ? entry.value.attempts : []);
+      const svbTransfer = attempts[0].length ? attempts[0] : undefined;
+      const flagshipTransfers = attempts.slice(1).flat();
+      const url = URL.createObjectURL(new Blob([JSON.stringify({
+        ...archive, svbTransfer, ...(flagshipTransfers.length ? { flagshipTransfers } : {}),
+      })], { type: "application/json" }));
       const link = document.createElement("a");
       link.href = url;
       link.download = "ecosimedu-四阶学习备份.json";
@@ -59,14 +66,19 @@ function ProgressBackup({ onRestore }: { onRestore: () => void }) {
       const result = restoreProgressArchive(localStorage, data);
       onRestore();
       const svbTransfer = data && typeof data === "object" && "svbTransfer" in data ? data.svbTransfer : undefined;
+      const flagshipTransfers = data && typeof data === "object" && "flagshipTransfers" in data ? data.flagshipTransfers : undefined;
       let transferMessage = "";
-      if (svbTransfer !== undefined) {
+      if (svbTransfer !== undefined || flagshipTransfers !== undefined) {
+        const { restoreFlagshipTransfers } = await import("./flagship-study.ts");
         try {
-          const restored = await import("./svb-study.ts").then(module => module.restoreSvbTransfer(svbTransfer));
-          if (restored) transferMessage = ` 青湾银行新增 ${restored} 次作答。`;
-          onRestore();
+          const bank = svbTransfer === undefined ? 0 : await restoreFlagshipTransfers(svbTransfer, ["svb_run"]);
+          if (bank) transferMessage = ` 青湾银行新增 ${bank} 次作答。`;
+          const other = flagshipTransfers === undefined ? 0 : await restoreFlagshipTransfers(flagshipTransfers, otherFlagships);
+          if (other) transferMessage += ` 拍卖与居住隔离新增 ${other} 次作答。`;
         } catch (problem) {
-          setError(problem instanceof Error ? problem.message : "青湾银行作答无法恢复。");
+          setError(problem instanceof Error ? problem.message : "迁移作答无法恢复。");
+        } finally {
+          onRestore();
         }
       }
       setMessage(`已导入 ${result.restored} 条，已有 ${result.existing} 条。` +
@@ -83,7 +95,7 @@ function ProgressBackup({ onRestore }: { onRestore: () => void }) {
 
   return <details className="trace-details progress-backup">
     <summary>备份与导入四阶学习</summary>
-    <p>备份包含四阶续学位置、解释和青湾银行的迁移作答。其余原实验室记录可由原版入口备份。</p>
+    <p>备份包含四阶续学位置、解释和旗舰课的迁移作答。其余原实验室记录可由原版入口备份。</p>
     <button type="button" onClick={() => void download()} disabled={busy}>导出四阶学习备份</button>
     <form onSubmit={restore}>
       <label>四阶学习备份 <input type="file" name="archive" accept=".json,application/json" required disabled={busy}/></label>
@@ -126,7 +138,10 @@ export function StudentNotes({ id }: { id: string | null }) {
           </div>
         </li>
       ))}</ol>
-      {!id && <Suspense fallback={null}><SvbTransferRecord key={revision} recordOnly/></Suspense>}
+      {!id && <Suspense fallback={null}><div key={revision} className="flagship-records">
+        <TransferRecord caseId="svb_run" recordOnly/>
+        {otherFlagships.map(caseId => <TransferRecord caseId={caseId} key={caseId} recordOnly/>)}
+      </div></Suspense>}
     </main>
   </>;
 }

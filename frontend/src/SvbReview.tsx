@@ -2,7 +2,7 @@ import definition from "../../cases/svb_run/case.json" with { type: "json" };
 import { allNotes, notesLink } from "./learning-store.ts";
 import { displayObservation, type Frame, type Session } from "./lesson.ts";
 import { distributedPolicy, svbLesson, type SvbRun } from "./svb.ts";
-import { SvbTransfer } from "./SvbTransfer.tsx";
+import { FlagshipTransfer } from "./FlagshipTransfer.tsx";
 
 export function SvbRelationships({ session, select, locate }: {
   session: Session;
@@ -91,7 +91,7 @@ export function SvbLab({ session }: { session: Session }) {
       </li>)}</ul>
       {!saved.every(Boolean) && <p>分别完成两项干预，各保存一次带原事件的解释，即可做迁移题。</p>}
     </section>
-    {saved.every(Boolean) && <SvbTransfer/>}
+    {saved.every(Boolean) && <FlagshipTransfer caseId="svb_run"/>}
   </>;
 }
 

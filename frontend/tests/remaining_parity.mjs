@@ -14,6 +14,7 @@ if (process.argv[2] === "--pipe") {
     const lesson = lessons.find(candidate => candidate.id === id);
     const run = lesson.run({ seed: lesson.seed, choices, policy });
     console.log(JSON.stringify({ id, choices, policy, seed: run.seed, scenario: run.scenario, records: run.records,
-      metrics: run.frames.map(frame => frame.metrics) }));
+      metrics: run.frames.map(frame => frame.metrics),
+      ...(id === "schelling_segregation" ? { grids: run.frames.map(frame => frame.board) } : {}) }));
   }
 }

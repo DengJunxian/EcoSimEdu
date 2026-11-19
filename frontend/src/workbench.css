@@ -68,6 +68,14 @@
 .workbench .canvas-heading { margin-bottom: var(--edu-s2); }
 .workbench .micro-view > svg { max-height: none; }
 .workbench .neighborhood-map { max-width: min(100%, 355px); }
+.neighborhood-views { display: flex; flex-wrap: wrap; gap: var(--edu-s2); margin-block: var(--edu-s2); }
+.neighborhood-views button[aria-pressed="true"] { outline: 2px solid #ffca77; outline-offset: 2px; }
+.map-move-key { margin-block: var(--edu-s2); }
+.flagship-evidence > :not(:first-child), .flagship-records > section { margin-block-start: var(--edu-s3); }
+.flagship-table :is(td, th:not(:first-child)) { text-align: end; white-space: nowrap; font-variant-numeric: tabular-nums; }
+.order-book { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 220px), 1fr)); gap: var(--edu-s3); }
+.order-book table { width: 100%; }
+.settlement-row { border-top: 1px solid var(--edu-line); margin-block-start: var(--edu-s3); padding-block-start: var(--edu-s2); }
 .actor-picker { display: grid; gap: var(--edu-s1); color: var(--edu-muted); font-weight: 650; margin-bottom: var(--edu-s2); }
 .event-parties { display: flex; flex-wrap: wrap; gap: 0 var(--edu-s2); }
 .event-parties button[aria-pressed="true"] { font-weight: 760; }

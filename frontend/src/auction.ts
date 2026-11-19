@@ -23,18 +23,24 @@ export type AuctionRun = Omit<Run, "frames"> & {
   market: "base" | "boundary";
   bid: number;
   fee: number;
+  demandShift: number;
   ceiling: number;
   quotes: Readonly<Record<string, Order>>;
 };
 
 export const boundarySpec = boundaries.double_auction;
 const paidFee = course.scenarios.find(row => row.id === "fee")!.fee;
+const demandScenario = course.scenarios.find(row => row.id === "demand")!;
+export const demandPolicy = -1;
 
 export function simulateAuction({ seed, choices, policy }: Parameters<Lesson["run"]>[0], boundary = false): AuctionRun {
   const bid = Number(choices[0]);
-  const shift = boundary ? boundarySpec.parameters.demand_shift : 0;
-  if (seed !== opening.seed || !Number.isInteger(bid) || bid < 1 || bid > course.player_value + shift ||
-      (policy !== 0 && policy !== paidFee)) throw new Error("未知开局、限价或费用");
+  const baseShift = boundary ? boundarySpec.parameters.demand_shift : 0;
+  const higherDemand = !boundary && policy === demandPolicy;
+  if (seed !== opening.seed || !Number.isInteger(bid) || bid < 1 || bid > course.player_value + baseShift ||
+      (policy !== 0 && policy !== paidFee && !higherDemand)) throw new Error("未知开局、限价或费用");
+  const shift = higherDemand ? demandScenario.demand_shift : baseShift;
+  const fee = higherDemand ? 0 : policy;
 
   const agents: Record<string, Account> = Object.fromEntries(Object.entries(opening.accounts).map(([id, data]) => {
     const side = data.side as Side;
@@ -107,8 +113,8 @@ export function simulateAuction({ seed, choices, policy }: Parameters<Lesson["ru
     const reference = source === "rule" ? last : undefined;
     const marginal = actor.marginals[actor.filled];
     const orderId = `O${String(frames.length).padStart(3, "0")}`;
-    const legal = actor.side === "buy" ? price > 0 && price + policy <= Math.min(marginal, actor.cash) :
-      price - policy >= marginal && actor.goods > 0;
+    const legal = actor.side === "buy" ? price > 0 && price + fee <= Math.min(marginal, actor.cash) :
+      price - fee >= marginal && actor.goods > 0;
     const record: RecordEvent = { seq: 0, tick: 0, event_type: legal ? "order_submitted" : "order_rejected",
       actor_id: actorId, order_id: orderId, side: actor.side, price, quantity: 1, source, round,
       reference_price: reference?.price ?? null };
@@ -139,11 +145,11 @@ export function simulateAuction({ seed, choices, policy }: Parameters<Lesson["ru
     const [buy, sell] = order.side === "buy" ? [order, maker] : [maker, order];
     const paid = maker.price;
     const buyer = agents[buy.actor_id], seller = agents[sell.actor_id];
-    const buyerSurplus = buyer.marginals[buyer.filled] - paid - policy;
-    const sellerSurplus = paid - policy - seller.marginals[seller.filled];
-    const delta = buyerSurplus + sellerSurplus + 2 * policy;
-    buyer.cash -= paid + policy;
-    seller.cash += paid - policy;
+    const buyerSurplus = buyer.marginals[buyer.filled] - paid - fee;
+    const sellerSurplus = paid - fee - seller.marginals[seller.filled];
+    const delta = buyerSurplus + sellerSurplus + 2 * fee;
+    buyer.cash -= paid + fee;
+    seller.cash += paid - fee;
     buyer.goods++;
     seller.goods--;
     buyer.filled++;
@@ -156,11 +162,11 @@ export function simulateAuction({ seed, choices, policy }: Parameters<Lesson["ru
     }
     volume++;
     surplus += delta;
-    platform += 2 * policy;
+    platform += 2 * fee;
     last = { price: paid, tick: frames.length };
     emit({ event_type: "trade", round, buyer_id: buy.actor_id, seller_id: sell.actor_id,
       buy_order_id: buy.order_id, sell_order_id: sell.order_id, maker_order_id: maker.order_id, price: paid, quantity: 1,
-      buyer_surplus: buyerSurplus, seller_surplus: sellerSurplus, platform_fee: 2 * policy },
+      buyer_surplus: buyerSurplus, seller_surplus: sellerSurplus, platform_fee: 2 * fee },
     { actorId: buy.actor_id, counterpartyId: sell.actor_id, focusMetrics: ["price"], kind: "trade",
       text: `${buy.order_id} 与 ${sell.order_id} 按在簿单 ${maker.order_id} 的 ${paid} 代币成交。`,
       deltas: { volume: 1, surplus: delta, platform_cash: 2 * policy, participant_surplus: delta - 2 * policy } }, paid);
@@ -176,7 +182,7 @@ export function simulateAuction({ seed, choices, policy }: Parameters<Lesson["ru
       if (previous) cancel(previous, round);
       const marginal = actor.marginals[actor.filled];
       const shade = Math.floor(noise / (round + 1));
-      const boundary = actor.side === "buy" ? Math.min(marginal, actor.cash) - policy : marginal + policy;
+      const boundary = actor.side === "buy" ? Math.min(marginal, actor.cash) - fee : marginal + fee;
       const refPrice = last?.price ?? boundary;
       const price = actor.side === "buy" ? Math.min(boundary, refPrice + 2) - shade : Math.max(boundary, refPrice - 2) + shade;
       quote(id, price, "rule", round);
@@ -189,8 +195,8 @@ export function simulateAuction({ seed, choices, policy }: Parameters<Lesson["ru
   emit({ event_type: "market_close" }, { text: "市场收盘，尚未成交的订单全部撤回。", deltas: {} });
 
   const market = boundary ? "boundary" : "base";
-  return { id: `double-auction/browser-v1/${seed}/${market}/${bid}/${policy}`,
-    seed, frames, market, bid, fee: policy, ceiling, quotes };
+  return { id: `double-auction/browser-v1/${seed}/${market}/${bid}/${higherDemand ? "demand" : policy}`,
+    seed, frames, market, bid, fee, demandShift: shift, ceiling, quotes };
 }
 
 export function roundEnds(run: Run): readonly Frame[] {
@@ -218,7 +224,7 @@ export function auctionLesson(boundary: boolean): Lesson {
       timeline: [{ label: "提交限价" }, { label: "等待或成交", highlighted: true }, { label: "收盘撤单" }],
     },
     casePackage: published, metricRoles: published.browserMetricRoles,
-    source: { kind: published.identity, note: "参考 Vernon L. Smith 的双向拍卖实验。人物、数值和订单均由本课模型生成。",
+    source: { kind: published.identity, note: "Vernon L. Smith 的原实验让参与者依据私人价值或成本反复公开竞价。这里使用教学买家 B01、规则报价和浏览器生成的撮合记录。",
       references: course.sources },
     decisions: [
       { prompt: "你愿意报出多少？", amount: { label: "开局限价", min: 1, max: value,
@@ -246,6 +252,9 @@ export function auctionLesson(boundary: boolean): Lesson {
       closeLabel: "快进到收盘" },
     tickUnit: "event",
     policy: { label: "每件成交时每方缴费", min: 0, max: paidFee, step: paidFee, baseline: 0, unit: "代币",
+      rangeLabel: "成交收费",
+      alternates: boundary ? undefined : [{ value: demandPolicy, label: demandScenario.label,
+        description: `买方各单位估值增加 ${demandScenario.demand_shift} 代币。卖方成本、种子和你的原始限价保持相同，交易费为 0。` }],
       project: roundEnds, describe: "保留同一种子和你的原始限价。收费改变买家的总支出和卖家的净收入，费用转入平台。" },
     seed: opening.seed,
     run: input => simulateAuction(input, boundary),

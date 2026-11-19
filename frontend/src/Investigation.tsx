@@ -5,6 +5,7 @@ import { browserEnvelope, browserEvents, browserEvidence, evidencePointer, runRe
 import type { EventEnvelope } from "./domain-contracts.ts";
 import type { ModelRun } from "./models/record.ts";
 import type { SvbRun } from "./svb.ts";
+import type { AuctionRun } from "./auction.ts";
 
 function EvidencePicker({ events, name, label, selection, tickUnit }: {
   events: readonly EventEnvelope[]; name: string; label: string; selection?: string; tickUnit?: Lesson["tickUnit"];
@@ -48,6 +49,8 @@ export function Investigation({ course, lesson, session, onSaved }: {
       choices: session.choices, policy: index === 0 ? lesson.policy.baseline : session.comparison!.policy,
       ...("records" in run ? { scenario: (run as ModelRun).scenario, intervention: (run as ModelRun).intervention } : {}),
       ...(published.caseId === "svb_run" ? { scenario: (run as SvbRun).scenario, network: (run as SvbRun).network } : {}),
+      ...(published.caseId === "double_auction" ? { demand_shift: (run as AuctionRun).demandShift,
+        fee: (run as AuctionRun).fee, market: (run as AuctionRun).market } : {}),
     })));
   }
 

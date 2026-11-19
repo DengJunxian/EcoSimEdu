@@ -15,7 +15,7 @@ export const classrooms = {
   school_matching: loadCourse(() => import("./models/information-lessons.ts").then(module => module.schoolLesson)),
   lemons_market: loadCourse(() => import("./models/information-lessons.ts").then(module => module.lemonsLesson)),
   information_cascade: loadCourse(() => import("./models/information-lessons.ts").then(module => module.cascadeLesson)),
-  schelling_segregation: loadCourse(() => import("./models/schelling-lesson.ts").then(module => module.schellingLesson)),
+  schelling_segregation: () => import("./SchellingClassroom.tsx"),
   public_goods: loadCourse(() => import("./models/cooperation-lessons.ts").then(module => module.publicGoodsLesson)),
   commons_governance: loadCourse(() => import("./models/cooperation-lessons.ts").then(module => module.commonsLesson)),
   carbon_market: loadCourse(() => import("./models/allocation-lessons.ts").then(module => module.carbonLesson)),

@@ -89,14 +89,14 @@ export type Lesson = {
   explanationPrompt?: string;
   policy: { label: string; min: number; max: number; baseline: number; unit: string;
     step?: number; describe?: string; labels?: Readonly<Record<number, string>>; project?: (run: Run) => readonly Frame[];
-    alternate?: { value: number; label: string; description: string }; };
+    rangeLabel?: string; alternates?: readonly { value: number; label: string; description: string }[]; };
   seed: number;
   run: (input: { seed: number; choices: readonly string[]; policy: number }) => Run;
 };
 
 export function legalPolicy(lesson: Lesson, value: unknown): value is number {
   const { policy } = lesson;
-  return typeof value === "number" && Number.isInteger(value) && (policy.alternate?.value === value ||
+  return typeof value === "number" && Number.isInteger(value) && (policy.alternates?.some(choice => choice.value === value) ||
     value >= policy.min && value <= policy.max && (value - policy.min) % (policy.step ?? 1) === 0);
 }
 
@@ -224,8 +224,9 @@ export function transition(lesson: Lesson, session: Session, command: Command): 
           !run.frames[command.tick] || !lesson.metrics.some(metric => metric.id === command.metricId)) return session;
       const frame = run.frames[command.tick];
       const contributors = relatedActors(frame, command.metricId);
+      const mover = frame.board && (frame.events[0]?.deltas.moves ?? 0) > 0 ? frame.events[0].actorId : undefined;
       const selected = command.actorId && relatedActors(frame).includes(command.actorId)
-        ? command.actorId : contributors[0];
+        ? command.actorId : contributors[0] ?? mover;
       return { ...session, cursor: command.tick, playing: false, selected, focusedMetric: command.metricId, traceFocus: undefined };
     }
     case "perspective": {

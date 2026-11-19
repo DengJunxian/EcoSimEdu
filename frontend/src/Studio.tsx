@@ -108,11 +108,11 @@ function BridgeEvidence({ lesson, session, data, locate, selectActor }: {
   const evaluatedSignals = frame.actors.filter(actor => actor.priorSignal);
   let changeText = "运行开始后，可逐步追踪指标变化。";
   const current = frame.metrics[metric.id], previous = prior?.metrics[metric.id];
-  if (lesson.tickUnit === "event" && !lesson.originalId) {
+  if (lesson.casePackage?.caseId === "double_auction" && metric.id === "price") {
     changeText = typeof current === "number" ? `此事件的成交价是 ${current} ${metric.unit}。` : "此事件没有成交，价格曲线只标记实际成交。";
   } else if (typeof current === "number" && typeof previous === "number") {
     const difference = current - previous;
-    changeText = `${metric.label}从 ${displayNumber(previous)} 变为 ${displayNumber(current)} ${metric.unit}，本步净变化 ${displayNumber(difference)} ${metric.unit}。`;
+    changeText = `${metric.label}从 ${displayNumber(previous)} 变为 ${displayNumber(current)} ${metric.unit}，本步净变化 ${displayNumber(difference)} ${metric.unit === "%" ? "个百分点" : metric.unit}。`;
   } else if (typeof current === "number" && prior) {
     changeText = `${metric.label}在本步首次可比较，观察值为 ${displayNumber(current)} ${metric.unit}。`;
   } else if (prior) {
@@ -382,7 +382,7 @@ function LessonStudio({ lesson, review, reviewByTimeline, actorDetail, afterInve
         </div>
         {!roleView && <Workbench active={panel} change={setPanel}
           world={<div className="canvas-panel">
-            <MicroBoard lesson={lesson} frame={frame} selected={actor?.id} metricId={session.focusedMetric}
+            <MicroBoard lesson={lesson} frame={frame} prior={run.frames[session.cursor - 1]} selected={actor?.id} metricId={session.focusedMetric}
               select={selectActor}/>
           </div>}
           actors={<EvidenceCard label="主体与关系">
@@ -412,7 +412,7 @@ function LessonStudio({ lesson, review, reviewByTimeline, actorDetail, afterInve
                 const baseline = run.frames[0].metrics[id];
                 const difference = typeof value === "number" && typeof baseline === "number" ? value - baseline : null;
                 const banking = lesson.casePackage?.caseId === "svb_run";
-                return <div key={id}><dt>{banking ? <button className="text-button" type="button"
+                return <div key={id}><dt>{canTrace ? <button className="text-button" type="button"
                   onClick={() => locate(frame.tick, id)} aria-label={`追踪${context.label}`}>{context.label}</button> : context.label}</dt>
                   <dd>{displayNumber(value)}{(banking || lesson.originalId) && value != null && context.unit ? ` ${context.unit}` : ""}
                   {id === lesson.priceMetric && difference !== null && difference !== 0 && <span data-financial-move={difference > 0 ? "up" : "down"}>
