@@ -22,6 +22,10 @@ export function courseLink(course: CourseRef, extra?: Record<string, string>): s
 }
 
 const courseKey = (course: CourseRef) => `${course.caseId}${course.market ? `|${course.market}` : ""}`;
+
+export function hasSavedProgress(storage: Storage, course: CourseRef) {
+  return storage.getItem(progressPrefix + courseKey(course)) !== null;
+}
 const trend = (value: unknown): value is Trend => value === "up" || value === "down" || value === "same";
 const index = (value: unknown): value is number => typeof value === "number" && Number.isSafeInteger(value) && value >= 0;
 

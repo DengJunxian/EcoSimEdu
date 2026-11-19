@@ -6,6 +6,7 @@ import type { AuctionRun } from "./auction.ts";
 import { seedEvidence } from "./run-evidence.ts";
 import { studentRoutes } from "../../content/student-navigation.ts";
 import { StudentHeader } from "./StudentHeader.tsx";
+import { EvidenceCard, PageTitle, StatusNotice } from "../../content/student-ui.tsx";
 
 function listNotes() {
   try { return allNotes(localStorage).filter(note => Object.hasOwn(courseById, note.course.caseId)); }
@@ -81,14 +82,14 @@ export function StudentNotes({ id }: { id: string | null }) {
   return <>
     <StudentHeader/>
     <main className="shell lesson-shell student-notes" id="main" tabIndex={-1}>
-      <h1>实验笔记</h1>
+      <PageTitle>实验笔记</PageTitle>
       <nav className="note-links" aria-label="笔记入口">
         {id && <a href={notesLink()}>全部解释</a>}
         <a href={studentRoutes.notes}>原版实验笔记与学习记录</a>
       </nav>
       {!id && <ProgressBackup onRestore={() => setNotes(listNotes())}/>}
-      {id && !opened && <p role="status">这份解释在当前浏览器中不可用。可回到全部解释查找。</p>}
-      {!id && !notes.length && <p>在课堂完成政策对照并保存解释后，可在这里回查。<a href="./#paths">去选一门课</a></p>}
+      {id && !opened && <StatusNotice tone="warning">这份解释在当前浏览器中不可用。可回到全部解释查找。</StatusNotice>}
+      {!id && !notes.length && <p className="edu-status">在课堂完成政策对照并保存解释后，可在这里回查。<a href="./#paths">去选一门课</a></p>}
       <ol className="note-list">{(opened ? [opened] : notes).map(note => (
         <li key={note.id}>
           <h2>{courseById[note.course.caseId].title}</h2>
@@ -129,14 +130,15 @@ export function SavedSource({ lesson, id, side, caseId, market }: {
     return () => { current = false; };
   }, [lesson, id, side, caseId, market]);
 
-  if (source === null) return <main className="shell lesson-shell student-notes" id="main" tabIndex={-1}>
-    <p role="status">正在核对原运行与事件…</p>
-  </main>;
-  if (!source) return <main className="shell lesson-shell student-notes" id="main" tabIndex={-1}>
-    <h1>原证据不可验证</h1>
-    <p>此浏览器缺少对应解释，或当前运行的版本、事件或结果摘要与原记录不匹配。</p>
-    <a href={notesLink(id)}>返回已保存的解释</a>
-  </main>;
+  if (!source) return <><StudentHeader caseId={caseId}/>
+    <main className="shell lesson-shell student-notes" id="main" tabIndex={-1}>
+      {source === null ? <StatusNotice>正在核对原运行与事件…</StatusNotice> : <>
+        <PageTitle>原证据不可验证</PageTitle>
+        <StatusNotice tone="warning">此浏览器缺少对应解释，或当前运行的版本、事件或结果摘要与原记录不匹配。</StatusNotice>
+        <a href={notesLink(id)}>返回已保存的解释</a>
+      </>}
+    </main>
+  </>;
   const { run, tick, event } = source;
   const frame = run.frames[tick];
   const evidence = seedEvidence(run, tick);
@@ -148,11 +150,12 @@ export function SavedSource({ lesson, id, side, caseId, market }: {
     <StudentHeader caseId={caseId}/>
     <main className="shell lesson-shell student-notes" id="main" tabIndex={-1}>
       <a href={notesLink(id)}>返回已保存的解释</a>
-      <h1>{side === "baseline" ? "基线" : "政策组"}{event ? "原事件" : "原轮次"} · {
-        selected ? `${frameLabel(lesson.tickUnit, tick)} · ${selected.id}` : frameLabel(lesson.tickUnit, tick)}</h1>
+      <PageTitle>{side === "baseline" ? "基线" : "政策组"}{event ? "原事件" : "原轮次"} · {
+        selected ? `${frameLabel(lesson.tickUnit, tick)} · ${selected.id}` : frameLabel(lesson.tickUnit, tick)}</PageTitle>
       <p>{courseById[caseId]?.title} · 种子 {run.seed}</p>
       <p className="run-identity">运行编号 <code>{evidence.runId}</code></p>
       <p>{source.verification === "legacy" ? "与基线版本的运行摘要一致" : "已核对保存的版本与运行摘要"}</p>
+      <EvidenceCard label="原始记录">
       <h2>原始记录</h2>
       <p>{selected?.text ?? frame.events[0]?.text ?? evidence.event.summary}</p>
       {!!event?.actorIds.length && <p>涉及主体 {event.actorIds.join("、")}</p>}
@@ -169,6 +172,7 @@ export function SavedSource({ lesson, id, side, caseId, market }: {
         <ul>{frame.events.slice(1).map(event => <li key={event.id}>{event.text}</li>)}</ul>
       </details>}
       {frame.equations && <ul>{frame.equations.map(equation => <li key={equation}>{equation}</li>)}</ul>}
+      </EvidenceCard>
       <table className="source-metrics">
         <caption>{caseId === "svb_run" ? "该轮开始与结束的数值" : "原事件前后数值"}</caption>
         <thead><tr><th scope="col">指标</th><th scope="col">之前</th><th scope="col">之后</th></tr></thead>

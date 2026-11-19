@@ -15,6 +15,8 @@ const [catalog, scenes] = await Promise.all([
 const main = "src/main.tsx";
 const result = await build({
   absWorkingDir: root,
+  nodePaths: [join(root, "node_modules")],
+  jsx: "automatic",
   entryPoints: [main],
   outdir: "dist/assets",
   entryNames: "[name]-[hash]",

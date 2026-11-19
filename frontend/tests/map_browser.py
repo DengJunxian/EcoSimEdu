@@ -40,7 +40,7 @@ with sync_playwright() as playwright:
 
         page.route("**/*", rules)
         page.goto(base + "/")
-        expect(page.get_by_role("heading", level=1)).to_have_text("从一笔交易，看见经济系统")
+        expect(page.get_by_role("heading", level=1)).to_have_text("个人选择，怎样改变市场？")
         expect(page.get_by_role("link", name="从双向拍卖开始")).to_be_in_viewport()
         expect(page.locator(".map-path")).to_have_count(4)
         expect(page.get_by_role("article")).to_have_count(12)

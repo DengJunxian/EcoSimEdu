@@ -1,9 +1,10 @@
 import { useEffect, useState } from "react";
 import { courseLink, latestProgress, stageNames } from "./learning-store.ts";
-import { classroomHref, hasClassroom } from "./classroom-routes.ts";
+import { classroomHref } from "./classroom-routes.ts";
 import { concepts, courseById, pathways, type Course } from "./curriculum.ts";
 import { StudentHeader } from "./StudentHeader.tsx";
 import { originalLessonHref } from "../../content/student-navigation.ts";
+import { CaseCard, PageTitle } from "../../content/student-ui.tsx";
 import "./course-map.css";
 
 function StartingPoint() {
@@ -24,18 +25,15 @@ function StartingPoint() {
   }, []);
   const course = progress ? courseById[progress.course.caseId] : undefined;
   return <section className="map-intro">
-    <div>
-      <h1>从一笔交易，<br/>看见经济系统</h1>
-      <p>先做一个角色的决定，再沿着真实运行的事件，追到价格、资源与群体结果怎样变化。</p>
-    </div>
+    <PageTitle description="用一笔报价、一份提款申请或一次搬家，追查个人选择怎样改变集体结果。">个人选择，<br/>怎样改变市场？</PageTitle>
     <div className="map-start">
       {progress && course ? <div>
         <h2>继续上次学习</h2>
         <p>{course.title}{progress.course.market && " · 供需无交叠"} · {stageNames[progress.stage - 1]}</p>
         <a className="map-action primary" href={courseLink(progress.course)}>继续上次学习</a>
       </div> : <div>
-        <h2>报出你的第一个价格</h2>
-        <p>你想买一本二手教材。报出限价，看看哪两张订单成交，哪张订单决定了价格。</p>
+        <h2>{opening.question}</h2>
+        <p>给二手教材报一个限价，然后用买单和卖单核对成交。</p>
         <a className="map-action primary" href={classroomHref(opening.id)}>从双向拍卖开始</a>
       </div>}
       <svg className="trade-diagram" viewBox="0 0 170 124" aria-hidden="true">
@@ -53,12 +51,10 @@ function StartingPoint() {
 }
 
 function CourseRow({ course }: { course: Course }) {
-  const native = hasClassroom(course.id);
   return <li>
-    <article className="map-course" id={`lesson-${course.id}`} aria-labelledby={`title-${course.id}`}>
+    <CaseCard className="map-course" level="h4" title={course.question} label={course.title} id={`lesson-${course.id}`}>
       <div className="course-main">
-        <h4 id={`title-${course.id}`}>{course.title}</h4>
-        <p>{course.question}</p>
+        <p className="course-name">{course.title}</p>
         {course.after && <p className="course-before">
           <span>{course.after.length > 1 ? "建议先任选其一" : "建议先学"}</span>
           {course.after.map(id => <a key={id} href={`#lesson-${id}`}>{courseById[id].title}</a>)}
@@ -72,13 +68,12 @@ function CourseRow({ course }: { course: Course }) {
         </details>
       </div>
       <div className="course-entry">
-        <a className="map-action" href={classroomHref(course.id)}
-          aria-label={`${native ? "打开四阶课堂" : "打开现有课堂"} · ${course.title}`}>
-          {native ? "打开四阶课堂" : "打开现有课堂"}
+        <a className="map-action" href={classroomHref(course.id)} aria-label={`打开四阶课堂 · ${course.title}`}>
+          打开四阶课堂
         </a>
-        {native && <a href={originalLessonHref(course.id)} className="original-course">原课堂与进度</a>}
+        <a href={originalLessonHref(course.id)} className="original-course">原课堂与进度</a>
       </div>
-    </article>
+    </CaseCard>
   </li>;
 }
 
@@ -90,15 +85,14 @@ export function CourseMap() {
       <section className="map-paths" aria-labelledby="paths">
         <div className="paths-heading">
           <h2 id="paths" tabIndex={-1}>学习路径</h2>
-          <p>四条路径覆盖十二课。先看课前概念，再按建议顺序选择下一课。</p>
+          <a href="/cases">查看全部案例</a>
         </div>
         <nav className="path-jumps" aria-label="跳到一条学习路径">
           {pathways.map(path => <a key={path.id} href={`#${path.id}`}>{path.title}</a>)}
         </nav>
-        {pathways.map((path, index) => <section key={path.id} id={path.id} className="map-path"
+        {pathways.map(path => <section key={path.id} id={path.id} className="map-path"
           aria-labelledby={`title-${path.id}`}>
           <div className="path-intro">
-            <span className="path-number">模块 {index + 1}</span>
             <h3 id={`title-${path.id}`}>{path.title}</h3>
             <p>{path.summary}</p>
           </div>

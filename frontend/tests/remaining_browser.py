@@ -4,6 +4,7 @@ import sys
 from pathlib import Path
 
 from playwright.sync_api import expect, sync_playwright
+from workbench_probe import run_bar, show_pane
 
 BASE = (sys.argv[1] if len(sys.argv) > 1 else "http://127.0.0.1:8776/explore").rstrip("/")
 ENGINE = sys.argv[2] if len(sys.argv) > 2 else "chromium"
@@ -55,9 +56,8 @@ def walk(page, case_id, width):
     expect(page.locator("h1")).to_have_text("微观机制透视")
     board = page.get_by_role("region", name="微观个体画布")
     if case_id == "schelling_segregation":
-        selector = board.get_by_role("combobox", name="按编号选择居民")
         key_button(board, "查看 A001")
-        expect(selector).to_have_value("A001")
+        expect(page.get_by_role("combobox", name="选择个体")).to_have_value("A001")
     else:
         nodes = board.get_by_role("group", name="选择任一位个体查看决策")
         nodes.get_by_role("button").first.press("Enter")
@@ -66,12 +66,13 @@ def walk(page, case_id, width):
     clock = page.get_by_role("group", name="时间轴")
     expect(clock.get_by_role("button")).to_have_count(4)
     key_button(clock, "单步前进")
-    expect(board.get_by_text("事件 1", exact=True)).to_be_visible()
+    expect(run_bar(page)).to_contain_text("事件 1")
     key_button(page, "后退一步")
-    expect(board.get_by_text("事件 0", exact=True)).to_be_visible()
+    expect(run_bar(page)).to_contain_text("事件 0")
 
     key_button(page, "观察群体变化")
     expect(page.locator("h1")).to_have_text("宏微观双屏联动")
+    show_pane(page, "系统结果")
     chart = page.get_by_role("region", name="宏观指标曲线")
     expect(chart.locator("canvas")).to_be_visible()
     expect(page.get_by_role("button", name="试一项政策")).to_be_disabled()
@@ -79,6 +80,7 @@ def walk(page, case_id, width):
         key_button(clock, "播放")
         expect(page.locator(".turning-point")).to_have_text("首次发生真实搬迁。画布高亮相关个体。")
         expect(clock.get_by_role("button", name="暂停")).to_be_disabled()
+        show_pane(page, "经济世界")
         expect(board.locator("svg.resident-tile, svg .resident-tile")).to_have_count(340)
         page.get_by_text("从区间反查搬迁", exact=True).press("Enter")
         expect(page.get_by_text("区间 (0, 1] 共有 1 次搬迁。")).to_be_visible()
@@ -86,6 +88,7 @@ def walk(page, case_id, width):
         group = page.locator(".range-fields")
         group.get_by_role("spinbutton", name="终点事件").press("ArrowDown")
         expect(page.get_by_role("status").filter(has_text="这个区间没有搬迁记录。")).to_be_visible()
+        show_pane(page, "主体")
         expect(inspector).to_contain_text("A001 从")
         if ENGINE == "chromium":
             page.screenshot(path=str(OUTPUT / f"schelling-bridge-{width}.png"), full_page=True)
@@ -94,8 +97,10 @@ def walk(page, case_id, width):
         expect(page.locator(".turning-point")).to_be_visible()
         if case_id == "flash_crash":
             key_button(page, "前往下一关键事件")
+            show_pane(page, "主体")
             expect(inspector).to_contain_text("撤回剩余买量")
         if case_id == "gamestop":
+            show_pane(page, "主体")
             expect(inspector.get_by_role("button", name="回查源事件", exact=False)).to_be_visible()
 
     key_button(page, "查看运行收尾")
@@ -103,7 +108,7 @@ def walk(page, case_id, width):
     lookup = page.locator(".bridge-evidence")
     expect(lookup.get_by_role("table")).to_be_visible()
     key_button(lookup, "定位事件 1")
-    expect(board.get_by_text("事件 1", exact=True)).to_be_visible()
+    expect(run_bar(page)).to_contain_text("事件 1")
     expect(page.get_by_role("button", name="试一项政策")).to_be_enabled()
     key_button(page, "试一项政策")
     expect(page.locator("h1")).to_have_text("反事实与制度实验")

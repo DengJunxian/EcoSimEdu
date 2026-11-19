@@ -2,6 +2,7 @@
 import sys
 
 from chart_probe import click_turning_point
+from workbench_probe import run_bar, show_pane
 from playwright.sync_api import expect, sync_playwright
 
 
@@ -46,6 +47,7 @@ def walk(page):
     expect(inspector).to_contain_text("存款 45")
     expect(prediction).to_have_count(0)
     clock.get_by_role("button", name="单步前进").press("Enter")
+    show_pane(page, "经济世界")
     board.get_by_role("button", name="第 31–60 位", exact=True).press("Enter")
     expect(nodes).to_have_count(30)
     board.get_by_role("button", name="储户 D60", exact=False).press("Enter")
@@ -53,6 +55,7 @@ def walk(page):
     page.get_by_role("button", name="观察群体变化").press("Enter")
 
     expect(heading).to_have_text("宏微观双屏联动")
+    show_pane(page, "系统结果")
     macro = page.get_by_role("region", name="宏观指标曲线")
     expect(macro.locator("canvas")).to_be_visible()
     clock.get_by_role("button", name="播放").click()
@@ -61,6 +64,7 @@ def walk(page):
     expect(page.locator('[data-financial-move="down"]')).to_have_text("-1")
     expect(page.locator('[data-financial-move="down"]')).to_have_css("color", "rgb(20, 98, 71)")
     expect(macro.locator(".bank-readout div").filter(has_text="银行权益")).to_contain_text("155")
+    show_pane(page, "经济世界")
     expect(board.locator(".actor-contributor").first).to_be_visible()
     expect(page.get_by_role("slider")).to_have_count(0)
     page.get_by_text("核对本轮银行账表", exact=True).press("Enter")
@@ -69,13 +73,15 @@ def walk(page):
     board.get_by_role("button", name="储户 D02", exact=False).press("Enter")
     expect(inspector).to_contain_text("去掉已见邻居项便低于阈值")
     inspector.get_by_role("button", name="查看 D01 的第 1 轮申请").press("Enter")
-    expect(board.get_by_text("第 1 轮", exact=True)).to_be_visible()
+    expect(run_bar(page)).to_contain_text("第 1 轮")
     expect(inspector).to_contain_text("D01 到账 19")
+    show_pane(page, "系统结果")
     click_turning_point(macro.locator("canvas"))
-    expect(board.get_by_text("第 2 轮", exact=True)).to_be_visible()
+    expect(run_bar(page)).to_contain_text("第 2 轮")
 
     clock.get_by_role("button", name="单步前进").press("Enter")
-    expect(board.get_by_text("第 3 轮", exact=True)).to_be_visible()
+    expect(run_bar(page)).to_contain_text("第 3 轮")
+    show_pane(page, "经济世界")
     board.get_by_role("button", name="你 · D01 企业", exact=False).press("Enter")
     expect(inspector).to_contain_text("上轮待付 107")
     expect(inspector).to_contain_text("其他信号已足以达到阈值")

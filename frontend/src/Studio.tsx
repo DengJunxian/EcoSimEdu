@@ -1,11 +1,14 @@
 import { lazy, Suspense, useEffect, useLayoutEffect, useReducer, useRef, useState, type ReactNode } from "react";
 import { ComparisonView, PredictionCard } from "./Counterfactual";
-import { chartMetric, displayNumber, frameLabel, matchesMetric, nextStageReady, relatedActors, startLesson, transition, type Command, type Lesson, type Session } from "./lesson.ts";
-import { courseRef, courseLink, resumeProgress, saveProgress, stageNames, type CourseRef } from "./learning-store.ts";
+import { chartMetric, displayNumber, displayObservation, frameLabel, matchesMetric, nextStageReady, relatedActors, startLesson, transition, type Command, type Lesson, type Session } from "./lesson.ts";
+import { courseRef, courseLink, hasSavedProgress, resumeProgress, saveProgress, stageNames, type CourseRef } from "./learning-store.ts";
 import { SavedSource } from "./StudentNotes";
 import { Investigation } from "./Investigation";
 import { StudentHeader } from "./StudentHeader.tsx";
 import { Inspector, MicroBoard, RoleView, Timeline } from "./visuals";
+import { ActionPanel, Breadcrumb, EvidenceCard, MetricCard, PageTitle, ProgressStepper, StatusNotice } from "../../content/student-ui.tsx";
+import { Workbench, workbenchMedia, type WorkbenchView } from "./Workbench.tsx";
+import "./workbench.css";
 
 const MetricChart = lazy(() => import("./MetricChart"));
 
@@ -56,7 +59,9 @@ function RoleDecisions({ lesson, session, send }: { lesson: Lesson; session: Ses
   </>;
 }
 
-function BridgeEvidence({ lesson, session, send }: { lesson: Lesson; session: Session; send: (value: Command) => void }) {
+function BridgeEvidence({ lesson, session, send, selectActor }: {
+  lesson: Lesson; session: Session; send: (value: Command) => void; selectActor: (id: string) => void;
+}) {
   const run = session.run!;
   const frame = run.frames[session.cursor];
   const metric = lesson.metrics.find(item => item.id === session.focusedMetric) ?? chartMetric(lesson);
@@ -77,7 +82,8 @@ function BridgeEvidence({ lesson, session, send }: { lesson: Lesson; session: Se
   } else if (prior) {
     changeText = `${metric.label}在相邻轮次中有缺值，净变化未定义。`;
   }
-  return <section className="bridge-evidence" aria-label="宏微观证据">
+  return <EvidenceCard className="bridge-evidence" label="宏微观证据">
+    <h2>从结果回查事件</h2>
     {lesson.originalId && <label className="metric-lookup">追踪指标
       <select value={metric.id} onChange={event => send({ type: "locate", tick: frame.tick, metricId: event.target.value })}>{lesson.metrics.map(item => <option key={item.id} value={item.id}>{item.label}</option>)}</select>
     </label>}
@@ -95,7 +101,7 @@ function BridgeEvidence({ lesson, session, send }: { lesson: Lesson; session: Se
           const delta = event.deltas[metric.id];
           const text = typeof delta === "number" ? `${event.text}（${delta > 0 ? "+" : ""}${displayNumber(delta)}）` : event.text;
           return <li key={event.id}>{actorId ?
-            <button className="text-button" onClick={() => send({ type: "select", actorId })}>{text}</button> : text}</li>;
+            <button className="text-button" onClick={() => selectActor(actorId)}>{text}</button> : text}</li>;
         })}</ul> :
         <p>本步没有改变这项指标的个体事件。</p>}
       {lesson.originalId && frame.events[0] && <p>原事件 {frame.tick} · {frame.events[0].text}</p>}
@@ -111,20 +117,20 @@ function BridgeEvidence({ lesson, session, send }: { lesson: Lesson; session: Se
       <summary>核对模型规则</summary><p>{lesson.bridge?.rule}</p>
     </details>}
     {lesson.rangeLookup && <IntervalLookup data={data} locate={tick => send({ type: "locate", tick, metricId: "moves" })}/>}
-    <details className="trace-details">
+    <details className="trace-details" id="metric-evidence">
       <summary>从指标数值反查事件</summary>
       <table>
         <caption>{metric.label}（{metric.unit}）</caption>
         <thead><tr><th scope="col">{lesson.tickUnit === "event" ? "事件序号" : "轮次"}</th><th scope="col">数值</th><th scope="col">定位原事件</th></tr></thead>
         <tbody>{data.map(item => <tr key={item.tick}>
-          <th scope="row">{item.tick}</th><td>{displayNumber(item.metrics[metric.id])}</td>
+          <th scope="row">{item.tick}</th><td>{displayObservation(item.metrics[metric.id])}</td>
           <td><button className="text-button" onClick={() => send({ type: "locate", tick: item.tick, metricId: metric.id })}>
             定位{frameLabel(lesson.tickUnit, item.tick)}
           </button></td>
         </tr>)}</tbody>
       </table>
     </details>
-  </section>;
+  </EvidenceCard>;
 }
 
 function IntervalLookup({ data, locate }: { data: NonNullable<Session["run"]>["frames"]; locate: (tick: number) => void }) {
@@ -170,39 +176,56 @@ export function Studio(props: StudioProps) {
 }
 
 function LessonStudio({ lesson, review, reviewByTimeline, course, fresh }: StudioProps & { course?: CourseRef; fresh: boolean }) {
-  const [session, send] = useReducer((state: Session, command: Command) => transition(lesson, state, command), lesson, model => {
-    try { return !fresh && course ? resumeProgress(localStorage, course, model) ?? startLesson(model) : startLesson(model); }
-    catch { return startLesson(model); }
+  const [{ initial, restoreFailed }] = useState(() => {
+    const initial = startLesson(lesson);
+    if (!course || fresh) return { initial, restoreFailed: false };
+    try {
+      const saved = resumeProgress(localStorage, course, lesson);
+      return { initial: saved ?? initial, restoreFailed: !saved && hasSavedProgress(localStorage, course) };
+    } catch { return { initial, restoreFailed: true }; }
   });
+  const [session, send] = useReducer((state: Session, command: Command) => transition(lesson, state, command), initial);
   const lastSaved = useRef(session);
   const [saveFailed, setSaveFailed] = useState(false);
   useLayoutEffect(() => {
-    if (session === lastSaved.current || !course || !session.choices.length) return;
+    if (session === lastSaved.current || !course || !session.choices.length || restoreFailed) return;
     try {
       saveProgress(localStorage, course, session);
       if (fresh) history.replaceState(history.state, "", courseLink(course));
       lastSaved.current = session;
       setSaveFailed(false);
     } catch { setSaveFailed(true); }
-  }, [course?.caseId, course?.market, fresh, session]);
+  }, [course?.caseId, course?.market, fresh, restoreFailed, session]);
 
   const pauseReview = useRef<HTMLElement>(null);
   const heading = useRef<HTMLHeadingElement>(null);
   const stageAction = useRef<HTMLButtonElement>(null);
+  const actorPicker = useRef<HTMLSelectElement>(null);
+  const focusActor = useRef(false);
+  const [panel, setPanel] = useState<WorkbenchView>("world");
   const previousStage = useRef(session.stage);
   const { stage, run } = session;
   const frame = run?.frames[session.cursor];
   const actor = frame?.actors.find(entry => entry.id === session.selected);
+  const event = frame?.events[0];
+  const actorsInEvent = frame?.actors.filter(item => event?.participants?.includes(item.id) ||
+    item.id === event?.actorId || item.id === event?.counterpartyId) ?? [];
   const metric = chartMetric(lesson);
   const activeMetric = lesson.originalId && session.focusedMetric
     ? lesson.metrics.find(item => item.id === session.focusedMetric) ?? metric : metric;
   const nextTurning = run?.frames.some(item => item.tick > session.cursor && item.turningPoint);
   const pauseTick = reviewByTimeline && stage === 3 && frame?.turningPoint && !session.playing ? frame.tick : undefined;
   useEffect(() => {
-    if (pauseTick === undefined || !window.matchMedia("(max-width: 760px)").matches) return;
+    if (pauseTick === undefined || !window.matchMedia(workbenchMedia).matches) return;
     pauseReview.current?.focus({ preventScroll: true });
     pauseReview.current?.scrollIntoView({ block: "start", behavior: "instant" });
   }, [pauseTick]);
+  useLayoutEffect(() => {
+    if (!focusActor.current) return;
+    focusActor.current = false;
+    actorPicker.current?.focus({ preventScroll: true });
+    actorPicker.current?.scrollIntoView({ block: "nearest" });
+  }, [panel, actor?.id]);
 
   useEffect(() => {
     if (previousStage.current === stage) return;
@@ -225,19 +248,39 @@ function LessonStudio({ lesson, review, reviewByTimeline, course, fresh }: Studi
   </p>;
   const locate = (tick: number, metricId = metric.id, actorId?: string) =>
     send({ type: "locate", tick, metricId, actorId });
+  function selectActor(actorId: string) {
+    send({ type: "select", actorId });
+    if (window.matchMedia(workbenchMedia).matches) {
+      if (panel === "actors" && actorId === actor?.id) {
+        actorPicker.current?.focus();
+      } else {
+        focusActor.current = true;
+        setPanel("actors");
+      }
+    }
+  }
+  const replaying = !!run && !!frame && (stage === 2 || stage === 3);
+  const title = stage === 1 ? lesson.title : stageNames[stage - 1];
+  const nextStage = () => send({ type: "next-stage" });
+  const ordinaryAdvance = stage < 4 && !(reviewByTimeline && stage === 3);
+  const nextButton = ordinaryAdvance && <button className="primary stage-action" ref={stageAction}
+    disabled={!ready} onClick={nextStage}>{nextLabels[stage - 1]}</button>;
+
   return <>
     <StudentHeader caseId={course?.caseId}/>
-    <main className="shell lesson-shell" id="main" tabIndex={-1}>
-      <nav aria-label="课堂进度">
-        <ol className="stepper grid grid-cols-2 md:grid-cols-4">
-          {stageNames.map((label, index) => <li key={label} aria-current={stage === index + 1 ? "step" : undefined}
-            data-completed={stage > index + 1}><span className="step-number">{index + 1}</span>{label}</li>)}
-        </ol>
-      </nav>
-      <div className="lesson-layout">
-        <div className="narrative">
-          <h1 tabIndex={-1} ref={heading}>{stage === 1 ? lesson.title : stageNames[stage - 1]}</h1>
-          {stage === 1 ? <RoleDecisions lesson={lesson} session={session} send={send}/> : <p>{stage === 3 ? lesson.bridge?.prompt ?? prompts[2] : prompts[stage - 1]}</p>}
+    <main className="shell lesson-shell studio" id="main" tabIndex={-1}>
+      <Breadcrumb links={[{ href: "./#paths", label: "课程地图" }]} current={lesson.casePackage?.title ?? lesson.populationTitle}/>
+      <ProgressStepper steps={stageNames} current={stage}/>
+      {restoreFailed && <StatusNotice tone="error">这份进度无法恢复。本页的操作会保留原记录。
+        {course && <a href={courseLink(course, { fresh: "1" })}>开始并保存新练习</a>}
+      </StatusNotice>}
+      {saveFailed && <StatusNotice tone="warning">当前浏览器无法保存进度。可以继续学习，完成后导出结果。</StatusNotice>}
+      <div className="studio-opening" data-replay={replaying}>
+        <ActionPanel label="当前学习任务">
+          <PageTitle headingRef={heading} description={stage === 1 ? undefined :
+            stage === 3 ? lesson.bridge?.prompt ?? prompts[2] : prompts[stage - 1]}>{title}</PageTitle>
+          {stage === 1 && <RoleDecisions lesson={lesson} session={session} send={send}/>}
+          {stage === 1 && nextButton}
           {stage === 1 && <p className="source-note">{lesson.casePackage && <strong>{lesson.casePackage.identityLabel} · </strong>}
             {lesson.source.note}</p>}
           {stage === 1 && lesson.source.references && <details className="trace-details">
@@ -250,27 +293,48 @@ function LessonStudio({ lesson, review, reviewByTimeline, course, fresh }: Studi
               <a href={source.url} target="_blank" rel="noreferrer">{source.title}</a>
             </li>)}</ul>
           </details>}
-          {frame && (stage === 2 || stage === 3) && <>
-            <button className="text-button back-button" disabled={session.cursor === 0} onClick={() => send({ type: "back" })}>后退一步</button>
-            {stage === 3 && lesson.originalId && nextTurning && <button className="text-button" onClick={() => send({ type: "go-to-turn" })}>前往下一关键事件</button>}
-            {stage === 3 && lesson.bridge?.closeLabel && <button className="text-button" disabled={session.cursor === run!.frames.length - 1}
-              onClick={() => send({ type: "go-to-close" })}>{lesson.bridge.closeLabel}</button>}
-          </>}
           {stage === 4 && <PredictionCard lesson={lesson} session={session} send={send}/>}
-          {saveFailed && <p role="status">当前浏览器无法保存进度。可以继续学习，完成后导出结果。</p>}
-          {course && session.choices.length > 0 && <a className="restart-link" href={courseLink(course, { fresh: "1" })}>从头再练</a>}
-          {!(reviewByTimeline && stage === 3) && review?.(session, send)}
-          {course && stage === 4 && session.comparison && <Investigation key={session.comparison.run.id}
-            course={course} lesson={lesson} session={session}/>}
+        </ActionPanel>
+        {stage === 1 && <RoleView role={lesson.role}/>}
+        {stage === 4 && <ComparisonView lesson={lesson} session={session}/>}
+      </div>
+
+      {replaying && <div className="studio-replay">
+        <div className="studio-runbar" aria-label="共用回放控制" role="region">
+          <p><strong>{frameLabel(lesson.tickUnit, frame.tick)}</strong> · {session.playing ? "播放中" : "已暂停"}</p>
+          <Timeline session={session} send={send}/>
+          <div className="studio-jumps">
+            <button className="text-button" disabled={session.cursor === 0} onClick={() => send({ type: "back" })}>后退一步</button>
+            {stage === 3 && lesson.originalId && nextTurning && <button className="text-button" onClick={() => send({ type: "go-to-turn" })}>前往下一关键事件</button>}
+            {stage === 3 && lesson.bridge?.closeLabel && <button className="text-button" disabled={session.cursor === run.frames.length - 1}
+              onClick={() => send({ type: "go-to-close" })}>{lesson.bridge.closeLabel}</button>}
+          </div>
+          {nextButton}
         </div>
-        <div className="visual-column">
-          {stage === 1 && <RoleView role={lesson.role}/>}
-          {run && frame && (stage === 2 || stage === 3) && <div className="canvas-panel">
+        <Workbench active={panel} change={setPanel}
+          world={<div className="canvas-panel">
             <MicroBoard lesson={lesson} frame={frame} selected={actor?.id} metricId={session.focusedMetric}
-              select={actorId => send({ type: "select", actorId })}/>
-            {stage === 3 && <section className="macro-view" aria-label="宏观指标曲线">
-              <div className="canvas-heading"><h2>{activeMetric.label}</h2><span>{typeof frame.metrics[activeMetric.id] === "number" ?
-                `${displayNumber(frame.metrics[activeMetric.id])} ${activeMetric.unit}` : "未定义"}</span></div>
+              select={selectActor}/>
+          </div>}
+          actors={<EvidenceCard label="主体与关系">
+            <h2>主体与关系</h2>
+            <label className="actor-picker">选择个体<select ref={actorPicker} value={actor?.id ?? ""}
+              onChange={event => send({ type: "select", actorId: event.target.value })}>
+              <option value="" disabled>选择一位个体</option>
+              {frame.actors.map(item => <option key={item.id} value={item.id}>{item.name} · {lesson.states[item.state].label}</option>)}
+            </select></label>
+            {actorsInEvent.length > 1 && <div className="event-parties" role="group" aria-label="当前事件涉及的主体">
+              {actorsInEvent.map(item => <button key={item.id} className="text-button" onClick={() => selectActor(item.id)}
+                aria-pressed={item.id === actor?.id}>{item.name}</button>)}
+            </div>}
+            {actor ? <Inspector actor={actor} stateName={lesson.states[actor.state].label}
+              frame={frame} tickUnit={lesson.tickUnit} metricId={activeMetric.id} locate={stage === 3 ? locate : undefined}/> :
+              <p>从画布或名单选一位个体，查看这一时点的状态、约束和关联事件。</p>}
+          </EvidenceCard>}
+          system={stage === 3 ? <EvidenceCard label="宏观指标曲线" className="macro-view">
+              <MetricCard label={activeMetric.label} value={typeof frame.metrics[activeMetric.id] === "number"
+                ? `${displayNumber(frame.metrics[activeMetric.id])} ${activeMetric.unit}`
+                : displayObservation(frame.metrics[activeMetric.id])}/>
               {lesson.bridge && <dl className="bank-readout">{lesson.bridge.metrics.filter(id => id !== activeMetric.id).map(id => {
                 const context = lesson.metrics.find(item => item.id === id);
                 if (!context) return null;
@@ -282,33 +346,36 @@ function LessonStudio({ lesson, review, reviewByTimeline, course, fresh }: Studi
                     {difference > 0 ? "+" : ""}{displayNumber(difference)}
                   </span>}</dd></div>;
               })}</dl>}
-              <Suspense fallback={<p>正在绘制曲线…</p>}>
+              <Suspense fallback={<StatusNotice>正在绘制曲线…</StatusNotice>}>
                 <MetricChart metric={activeMetric} financial={activeMetric.id === lesson.priceMetric}
                   frames={run.frames.slice(0, session.revealed + 1)} cursor={session.cursor}
                   onSelect={tick => locate(tick, activeMetric.id)}/>
               </Suspense>
-            </section>}
-            <Timeline session={session} send={send}/>
-            {!reviewByTimeline && turnNotice}
-            {reviewByTimeline && stage === 3 && <section ref={pauseReview} tabIndex={-1}
-              className="replay-review" aria-label="当前成交证据与下一步">
-              {turnNotice}
-              {review?.(session, send, <button className="primary stage-action" ref={stageAction} disabled={!ready && pauseTick === undefined}
-                onClick={() => send({ type: ready ? "next-stage" : "step" })}>
-                {!ready && pauseTick !== undefined ? "下一步 · 查看后续报价" : "试一项政策"}
-              </button>)}
-            </section>}
-            {actor && <Inspector actor={actor} stateName={lesson.states[actor.state].label}
-              frame={frame} tickUnit={lesson.tickUnit} metricId={activeMetric.id} locate={stage === 3 ? locate : undefined}/>}
-          </div>}
-          {stage === 4 && <ComparisonView lesson={lesson} session={session}/>}
+              {!run.frames.slice(0, session.revealed + 1).some(item => typeof item.metrics[activeMetric.id] === "number") &&
+                <p className="small">已揭示的记录里还没有这项指标的数值。</p>}
+              <a className="chart-evidence-link" href="#metric-evidence" onClick={() => {
+                const table = document.querySelector<HTMLDetailsElement>("#metric-evidence");
+                if (table) { table.open = true; table.querySelector("summary")?.focus({ preventScroll: true }); }
+              }}>按表格查原事件</a>
+            </EvidenceCard> : undefined}/>
+        <div className="studio-evidence" id="run-evidence" tabIndex={-1}>
+          {!reviewByTimeline && turnNotice}
+          {reviewByTimeline && stage === 3 ? <section ref={pauseReview} tabIndex={-1}
+            className="replay-review edu-panel" aria-label="当前成交证据与下一步">
+            {turnNotice}
+            {review?.(session, send, <button className="primary stage-action" ref={stageAction} disabled={!ready && pauseTick === undefined}
+              onClick={() => send({ type: ready ? "next-stage" : "step" })}>
+              {!ready && pauseTick !== undefined ? "下一步 · 查看后续报价" : "试一项政策"}
+            </button>)}
+          </section> : review?.(session, send)}
+          {stage === 3 && <BridgeEvidence lesson={lesson} session={session} send={send} selectActor={selectActor}/>}
         </div>
-        {stage === 3 && <BridgeEvidence lesson={lesson} session={session} send={send}/>}
-        {stage < 4 && !(reviewByTimeline && stage === 3) && <div className="lesson-next">
-          <button className="primary stage-action" ref={stageAction} disabled={!ready}
-            onClick={() => send({ type: "next-stage" })}>{nextLabels[stage - 1]}</button>
-        </div>}
-      </div>
+      </div>}
+      {stage === 4 && session.comparison && <div className="studio-results">
+        {review?.(session, send)}
+        {course && <Investigation key={session.comparison.run.id} course={course} lesson={lesson} session={session}/>}
+      </div>}
+      {course && session.choices.length > 0 && <a className="restart-link" href={courseLink(course, { fresh: "1" })}>从头再练</a>}
     </main>
   </>;
 }

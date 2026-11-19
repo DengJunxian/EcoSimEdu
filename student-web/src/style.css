@@ -1,16 +1,18 @@
+@import "../../content/student-theme.css";
+
 :root {
-  font-family: "Source Sans 3", "PingFang SC", "Microsoft YaHei", system-ui, sans-serif;
-  color: #182b27;
-  background: #f8f6ee;
+  font-family: var(--edu-body);
+  color: var(--edu-ink);
+  background: var(--edu-bg);
   font-synthesis: none;
   font-variant-numeric: tabular-nums;
-  --ink: #182b27;
-  --muted: #4b5d53;
-  --green: #123a34;
-  --primary: #1a5948;
-  --paper: #fffdf6;
-  --line: #d6d9cb;
-  --focus: #9e4b12;
+  --ink: var(--edu-ink);
+  --muted: var(--edu-muted);
+  --green: var(--edu-deep);
+  --primary: var(--edu-green);
+  --paper: var(--edu-surface);
+  --line: var(--edu-line);
+  --focus: var(--edu-focus);
 }
 * { box-sizing: border-box; }
 body { margin: 0; font-size: 16px; line-height: 1.65; }

@@ -1,5 +1,6 @@
 import { useEffect, useState, type FormEvent } from "react";
 import { api } from "../contracts";
+import { StatusNotice } from "../../../content/student-ui";
 
 type LocalModel = { provider: string; model: string; currency: string };
 type Options = {
@@ -13,20 +14,25 @@ export function LocalModelSettings() {
   const [pending, setPending] = useState(false);
   const [error, setError] = useState("");
   const [notice, setNotice] = useState("");
+  const [unavailable, setUnavailable] = useState(false);
   useEffect(() => {
     const controller = new AbortController();
     api<Options>("/local-model", undefined, controller.signal).then(result => {
       setConfig(result);
       if (result.active) setProvider(result.active.provider);
-    }).catch(() => { /* Static and older offline servers can still show the home page. */ });
+    }).catch(() => { if (!controller.signal.aborted) setUnavailable(true); });
     return () => controller.abort();
   }, []);
-  const ready = config !== undefined;
+  const ready = config !== undefined || unavailable;
   useEffect(() => {
     if (ready && location.hash === "#model-api") document.getElementById("model-api")?.scrollIntoView();
   }, [ready]);
   const option = config?.options.find(item => item.provider === provider);
-  if (!config || !option) return null;
+  if (!config || !option) return <details className="app-local-model" id="model-api" open={location.hash === "#model-api" || undefined}>
+    <summary>配置模型 API</summary>
+    <StatusNotice tone={unavailable ? "warning" : "info"}>{unavailable
+      ? "无法读取本机模型服务。规则实验可继续使用。" : "正在读取模型设置…"}</StatusNotice>
+  </details>;
 
   async function update(payload: object) {
     setPending(true);
@@ -91,7 +97,8 @@ export function LocalModelSettings() {
         {config.active && <button type="button" disabled={pending} onClick={event => { event.currentTarget.form?.reset(); void update({}); }}>清除密钥</button>}
       </div>
     </form>
-    <p role="status">{config.active ? `已配置 ${config.active.model}。首次实验时验证密钥。` : notice}</p>
+    <p role="status">{config.active ? `已配置 ${config.active.model}。首次实验时验证密钥。` :
+      notice || "尚未配置模型 API。规则实验可以直接开始。"}</p>
     {error && <p role="alert" className="error">{error}</p>}
     {config.active && <div className="app-actions">
       <a href="/experiments">打开单角色实验</a>

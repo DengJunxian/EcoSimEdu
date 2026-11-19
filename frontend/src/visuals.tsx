@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { InspectorPanel } from "../../content/student-ui.tsx";
 import type { Actor, Command, Frame, Lesson, Session } from "./lesson.ts";
 import { frameLabel, relatedActors } from "./lesson.ts";
 
@@ -28,6 +29,7 @@ export function MicroBoard({ lesson, frame, selected, metricId, select }: {
   const actors = frame.actors.slice(page * pageSize, (page + 1) * pageSize);
   const columns = Math.min(8, Math.ceil(Math.sqrt(actors.length * 1.5)));
   const rows = Math.ceil(actors.length / columns);
+  const states = Object.entries(lesson.states);
   return <section className="micro-view" aria-label="微观个体画布">
     <div className="canvas-heading"><h2>{lesson.populationTitle}</h2><span>{frameLabel(lesson.tickUnit, frame.tick)}</span></div>
     {frame.board && <NeighborhoodMap board={frame.board} lesson={lesson} selected={selected} focused={focused} select={select}/>}
@@ -43,7 +45,7 @@ export function MicroBoard({ lesson, frame, selected, metricId, select }: {
       <button type="button" onClick={() => select(frame.actors[0].id)}>查看 {frame.actors[0].id}</button>
       <label>按编号选择居民 <select value={selected ?? ""} onChange={event => select(event.target.value)}>
         <option value="" disabled>选择住户</option>
-        {frame.actors.map(actor => <option key={actor.id} value={actor.id}>{actor.name}
+        {frame.actors.map(actor => <option key={actor.id} value={actor.id}>{actor.name} · {lesson.states[actor.state].label}
           {focused.includes(actor.id) ? " · 当前事件相关" : ""}</option>)}
       </select></label>
     </div> : <svg viewBox={`0 0 600 ${rows * 68 + 16}`} role="group" aria-label="选择任一位个体查看决策">
@@ -62,15 +64,17 @@ export function MicroBoard({ lesson, frame, selected, metricId, select }: {
               select(actor.id);
             }
           }}>
+          <title>{actor.name} · {state.label}</title>
           <circle className="actor-ring" r="27" fill="none" strokeWidth="2"/>
-          <circle className="actor-fill" r="21" fill={state.color}/>
+          <rect className="actor-fill" data-symbol={states.findIndex(([id]) => id === actor.state)}
+            x="-21" y="-21" width="42" height="42" fill={state.color}/>
           <text y="5" textAnchor="middle" fill="#18302c" fontSize="13">{actor.marker}</text>
         </g>;
       })}
     </svg>}
     <ul className="canvas-legend" aria-label="个体状态图例">
-      {Object.values(lesson.states).map(state => <li key={state.label}>
-        <span style={{ backgroundColor: state.color }} aria-hidden="true"/>{state.label}
+      {states.map(([id, state], index) => <li key={id}>
+        <span data-symbol={index} style={{ backgroundColor: state.color }} aria-hidden="true"/>{state.label}
       </li>)}
       {!!focused.length && <li><span className="highlight-key" aria-hidden="true"/>{metricId ? "指标变化相关个体" : "当前事件相关个体"}</li>}
     </ul>
@@ -87,7 +91,7 @@ function NeighborhoodMap({ board, lesson, selected, focused, select }: {
       <path d="M0 20V0H20" fill="none" stroke="#6a9083" strokeWidth="1"/>
     </pattern></defs>
     <rect width="100%" height="100%" fill="url(#house-plot)"/>
-    {people.map(({ id, cell }) => <rect key={id} className="resident-tile" width="14" height="14" x="3" y="3" rx="3"
+    {people.map(({ id, cell }) => <rect key={id} className="resident-tile" width="14" height="14" x="3" y="3" rx={id.startsWith("A") ? 7 : 2}
       style={{ transform: `translate(${cell % size * 20}px, ${Math.floor(cell / size) * 20}px)` }}
       stroke={id === selected ? "#fffef2" : focused.includes(id) ? "#ffaf37" : "none"} strokeWidth="2"
       fill={lesson.states[id[0]].color} onClick={() => select(id)}><title>{id}</title></rect>)}
@@ -106,7 +110,7 @@ export function Inspector({ actor, stateName, frame, tickUnit, metricId, locate 
   const generic = !!frame.events[0]?.participants;
   const sources = [...new Map(actorEvents.flatMap(event => event.sourceEvents ?? [])
     .map(source => [source.tick, source])).values()];
-  return <aside className="inspector" aria-label="个体决策透视">
+  return <InspectorPanel>
     <h2>{actor.name}</h2>
     <dl className="fact-list">
       <div><dt>当前状态</dt><dd>{stateName}</dd></div>
@@ -132,7 +136,7 @@ export function Inspector({ actor, stateName, frame, tickUnit, metricId, locate 
         查看 {origin.actorId} 的第 {origin.tick} 轮申请
       </button></li>)}
     </ul>}
-  </aside>;
+  </InspectorPanel>;
 }
 
 export function Timeline({ session, send }: { session: Session; send: (command: Command) => void }) {

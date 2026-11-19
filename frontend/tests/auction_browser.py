@@ -4,6 +4,7 @@ from pathlib import Path
 import sys
 
 from chart_probe import click_turning_point
+from workbench_probe import run_bar, show_pane
 from playwright.sync_api import expect, sync_playwright
 
 base = (sys.argv[1] if len(sys.argv) > 1 else "http://127.0.0.1:8776/explore").rstrip("/")
@@ -24,10 +25,10 @@ def begin(page, bid, prediction):
     clock = page.get_by_role("group", name="时间轴")
     expect(clock.get_by_role("button")).to_have_count(4)
     clock.get_by_role("button", name="单步前进").press("Enter")
-    expect(board.get_by_text("事件 1", exact=True)).to_be_visible()
+    expect(run_bar(page)).to_contain_text("事件 1")
     expect(page.get_by_role("complementary", name="个体决策透视")).to_contain_text(f"限价 {bid} 代币")
     page.get_by_role("button", name="后退一步").press("Enter")
-    expect(board.get_by_text("事件 0", exact=True)).to_be_visible()
+    expect(run_bar(page)).to_contain_text("事件 0")
     page.get_by_role("button", name="观察群体变化").press("Enter")
     expect(page.get_by_role("heading", level=1)).to_have_text("宏微观双屏联动")
     return board, clock
@@ -53,25 +54,29 @@ def walk(page):
     expect(page.get_by_role("slider")).to_have_count(0)
     expect(page.get_by_role("region", name="微观个体画布")).to_have_count(0)
     board, clock = begin(page, 96, "会成交")
+    show_pane(page, "系统结果")
     macro = page.get_by_role("region", name="宏观指标曲线")
     expect(macro.locator("canvas")).to_be_visible()
     clock.get_by_role("button", name="播放", exact=True).click()
     expect(page.locator(".turning-point")).to_contain_text("首次成交 96")
     expect(clock.get_by_role("button", name="暂停")).to_be_disabled()
+    show_pane(page, "经济世界")
     expect(board.locator(".actor-contributor")).to_have_count(2)
     evidence = page.get_by_role("region", name="订单与成交证据")
     expect(evidence).to_contain_text("O003 S02 报 78")
     expect(evidence).to_contain_text("结算价 96 代币来自在簿订单 O001")
     evidence.get_by_role("button", name="查看 O003 原报价").press("Enter")
     expect(board.get_by_text("事件 3", exact=True)).to_be_visible()
+    show_pane(page, "系统结果")
     click_turning_point(macro.locator("canvas"))
-    expect(board.get_by_text("事件 4", exact=True)).to_be_visible()
+    expect(run_bar(page)).to_contain_text("事件 4")
     clock.get_by_role("button", name="单步前进").press("Enter")
+    show_pane(page, "经济世界")
     board.get_by_role("button", name="买家 B03", exact=False).press("Enter")
     inspector = page.get_by_role("complementary", name="个体决策透视")
     expect(inspector).to_contain_text("最近成交价 96 代币，来自事件 4")
     inspector.get_by_role("button", name="查看作为参考的成交事件 4").press("Enter")
-    expect(board.get_by_text("事件 4", exact=True)).to_be_visible()
+    expect(run_bar(page)).to_contain_text("事件 4")
 
     record = compare(page, "减少")
     expect(page.get_by_text("期末成交量 6 件")).to_be_visible()

@@ -15,6 +15,7 @@ import { AuctionNotes } from "../cases/auction/auction-notes";
 import { Mechanism, QuoteDiagram } from "./mechanisms";
 import { LocalModelSettings } from "./local-model";
 import { exploreLessonHref, studentRoutes } from "../../../content/student-navigation";
+import { ActionPanel, Breadcrumb, CaseCard, EvidenceCard, PageTitle } from "../../../content/student-ui";
 import type { Outcome } from "../learning/education-types";
 
 const HomeLearningActions = lazy(() => import("../learning/review-page").then(module => ({ default: module.HomeLearningActions })));
@@ -62,14 +63,13 @@ function useLocalProgress(onChange?: number) {
 function Cards({ courses, Heading = "h3" }: { courses: CatalogCourse[]; Heading?: "h2" | "h3" }) {
   return <ul className="app-card-grid">
     {courses.map(course => <li key={course.case_id}>
-      <a className="app-case-card" href={caseHref(course.case_id)}>
-        <Mechanism caseId={course.case_id}/>
-        <div>
+      <a className="app-case-card" href={caseHref(course.case_id)} aria-label={`${course.title} ${course.subtitle}`}>
+        <CaseCard title={course.subtitle} label={course.title} level={Heading}>
+          <Mechanism caseId={course.case_id}/>
           <p className="app-case-name">{course.title}</p>
-          <Heading>{course.subtitle}</Heading>
           <p className="app-case-action">{action(course)}</p>
-        </div>
-        <p className="app-meta">{metadata(course)}</p>
+          <p className="app-meta">{metadata(course)}</p>
+        </CaseCard>
       </a>
     </li>)}
   </ul>;
@@ -95,8 +95,9 @@ export function HomePage() {
   return <main id="main" tabIndex={-1} className="container app-page">
     <section className="app-home-hero">
       <div>
-        <h1>从一次选择，<br/>看见经济系统</h1>
-        <p>报出一个价格，决定何时提款，或在地图上搬一次家。先做预测，再从仿真记录里追查你的选择如何进入群体结果。</p>
+        <PageTitle description="报出一个价格，决定何时提款，或在地图上搬一次家。先做预测，再从仿真记录里追查你的选择如何进入群体结果。">
+          从一次选择，<br/>看见经济系统
+        </PageTitle>
         <div className="app-actions">
           <a className="app-button" href={studentRoutes.explore}>打开渐进课堂</a>
           <a href={auctionHref}>进入双向拍卖</a>
@@ -106,7 +107,6 @@ export function HomePage() {
       </div>
       <QuoteDiagram/>
     </section>
-    <LocalModelSettings/>
     {resume && <section className="app-resume">
       <div><h2>继续学习</h2><p>{resume.title} · {resume.scene}</p></div>
       <a className="app-button" href={resume.href}>回到课堂</a>
@@ -116,6 +116,7 @@ export function HomePage() {
       <div className="app-section-line"><h2>选一个你想弄懂的问题</h2><a href="/cases">全部 {catalog.length} 门案例</a></div>
       <Cards courses={featured.map(id => catalog.find(course => course.case_id === id)!)}/>
     </section>
+    <LocalModelSettings/>
     <footer><span>Civitas Economica</span><span>互动经济学 · 本地离线学习</span></footer>
   </main>;
 }
@@ -137,7 +138,8 @@ export function CasesPage() {
     [course.title, course.subtitle, action(course), ...course.glossary.map(item => item.term)]
       .some(part => part.toLocaleLowerCase().includes(search)));
   return <main id="main" tabIndex={-1} className="container app-page app-inner">
-    <h1>案例库</h1>
+    <Breadcrumb links={[{ href: "/", label: "首页" }]} current="案例库"/>
+    <PageTitle>案例库</PageTitle>
     <div className="app-filters">
       <label>搜索课程<input type="search" value={query} onChange={event => setQuery(event.target.value)}/></label>
       <div className="app-filter"><label htmlFor="case-path">学习路径</label><select id="case-path" value={path} onChange={event => setPath(event.target.value)}>
@@ -152,7 +154,12 @@ export function CasesPage() {
         {[...new Set(catalog.map(course => course.identity_label))].map(label => <option key={label}>{label}</option>)}
       </select></div>
     </div>
-    <p className="app-meta" role="status">{visible.length ? `${visible.length} 门案例` : "没有符合条件的案例。"}</p>
+    <p className={visible.length ? "app-meta" : "edu-status app-filter-empty"} role="status">
+      {visible.length ? `${visible.length} 门案例` : "没有符合条件的案例。"}
+    </p>
+    {!visible.length && <button type="button" onClick={() => {
+      setQuery(""); setPath(""); setDifficulty(""); setIdentity("");
+    }}>清除筛选</button>}
     <Cards courses={visible} Heading="h2"/>
   </main>;
 }
@@ -175,18 +182,22 @@ export function CasePage({ course }: { course: CatalogCourse }) {
   const [favoriteError, setFavoriteError] = useState("");
   const favorite = favorites.includes(course.case_id);
   return <main id="main" tabIndex={-1} className="container app-page app-inner">
-    <a href="/cases">返回案例库</a>
+    <Breadcrumb links={[{ href: "/", label: "首页" }, { href: "/cases", label: "案例库" }]} current={course.title}/>
     <section className="app-case-brief">
       <div>
-        <h1>{course.subtitle}</h1>
-        <p className="app-case-name">{course.title} · {metadata(course)}</p>
-        <p>{course.intro}</p>
-        <p><strong>你的选择</strong><br/>{action(course)}</p>
-        <div className="app-actions">
-          <a className="app-button" href={hasNewClass ? `/learn/${course.case_id}` : legacyCourseHref(course.case_id)}>
-            {(hasNewClass ? newProgress : resume) ? "继续学习" : "进入课堂"}
-          </a>
-          <a href={exploreLessonHref(course.case_id)}>打开四阶课堂</a>
+        <PageTitle description={course.intro}>{course.subtitle}</PageTitle>
+        <p className="app-case-name">{metadata(course)}</p>
+        <ActionPanel label="你的选择" className="app-case-task">
+          <h2>你的选择</h2>
+          <p>{action(course)}</p>
+          <div className="app-actions">
+            <a className="app-button" href={exploreLessonHref(course.case_id)}>打开四阶课堂</a>
+            <a href={hasNewClass ? `/learn/${course.case_id}` : legacyCourseHref(course.case_id)}>
+              {(hasNewClass ? newProgress : resume) ? "继续学习" : "进入课堂"}
+            </a>
+          </div>
+        </ActionPanel>
+        <div className="app-actions app-case-tools">
           <button type="button" aria-pressed={favorite} onClick={() => {
             try { setFavorites(toggleCourseFavorite(course.case_id)); setFavoriteError(""); }
             catch { setFavoriteError("收藏暂时无法保存。"); }
@@ -198,7 +209,7 @@ export function CasePage({ course }: { course: CatalogCourse }) {
       </div>
       <Mechanism caseId={course.case_id}/>
     </section>
-    <section className="app-case-context">
+    <EvidenceCard className="app-case-context" label="学完能做什么">
       <h2>学完能做什么</h2>
       <ul>{(outcomes?.map(outcome => outcome.performance) ?? course.goals).map(goal => <li key={goal}>{goal}</li>)}</ul>
       <p>带走一份含预测、观察和运行引用的实验笔记。</p>
@@ -206,8 +217,8 @@ export function CasePage({ course }: { course: CatalogCourse }) {
         const details = document.querySelector<HTMLDetailsElement>("#course-concepts");
         if (details) details.open = true;
       }}>自查课前概念</a>
-    </section>
-    <section className="app-case-context">
+    </EvidenceCard>
+    <EvidenceCard className="app-case-context" label="实验背景">
       <h2>实验背景</h2><p>{course.background}</p>
       <details id="course-concepts"><summary>来源与概念</summary>
         <ul>{course.sources.map(source => <li key={source.id}><a href={source.url} target="_blank" rel="noreferrer">{source.title}</a> · {source.supports}</li>)}</ul>
@@ -215,7 +226,7 @@ export function CasePage({ course }: { course: CatalogCourse }) {
       </details>
       <div className="toolbar"><BoundaryLink caseId={course.case_id}/>
         <a href={`/compare?case=${encodeURIComponent(course.case_id)}`}>自定义参数对照</a></div>
-    </section>
+    </EvidenceCard>
   </main>;
 }
 

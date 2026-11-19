@@ -2,6 +2,7 @@
 import sys
 
 from chart_probe import click_turning_point
+from workbench_probe import run_bar, show_pane
 from playwright.sync_api import expect, sync_playwright
 
 
@@ -47,24 +48,27 @@ with sync_playwright() as playwright:
         clock = page.get_by_role("group", name="时间轴")
         expect(clock.get_by_role("button")).to_have_count(4)
         clock.get_by_role("button", name="单步前进").press("Enter")
-        expect(board.get_by_text("第 1 轮")).to_be_visible()
+        expect(run_bar(page)).to_contain_text("第 1 轮")
         page.get_by_role("button", name="后退一步").press("Enter")
-        expect(board.get_by_text("第 0 轮")).to_be_visible()
+        expect(run_bar(page)).to_contain_text("第 0 轮")
         clock.get_by_role("button", name="单步前进").press("Enter")
         page.get_by_role("button", name="观察群体变化").press("Enter")
         expect(heading).to_have_text("宏微观双屏联动")
 
+        show_pane(page, "系统结果")
         macro = page.get_by_role("region", name="宏观指标曲线")
         expect(macro.locator("canvas")).to_be_visible()
         clock.get_by_role("button", name="播放").click()
         expect(page.locator(".turning-point")).to_contain_text("拥挤阈值")
         expect(clock.get_by_role("button", name="暂停")).to_be_disabled()
+        show_pane(page, "经济世界")
         expect(board.locator(".actor-contributor").first).to_be_visible()
         clock.get_by_role("button", name="单步前进").click()
         expect(board.get_by_text("第 2 轮")).to_be_visible()
         board.get_by_role("button", name="邻居 N13", exact=False).press("Enter")
         expect(inspector).to_contain_text("上一轮结束时有 7 人等候")
         inspector.get_by_role("button", name="查看影响决策的第 1 轮指标").press("Enter")
+        show_pane(page, "经济世界")
         expect(board.get_by_text("第 1 轮")).to_be_visible()
         expect(board.locator(".actor-contributor").first).to_be_visible()
 
@@ -73,8 +77,9 @@ with sync_playwright() as playwright:
         expect(board.get_by_text("第 2 轮")).to_be_visible()
         expect(page.get_by_role("button", name="定位第 3 轮")).to_have_count(0)
 
+        show_pane(page, "系统结果")
         click_turning_point(macro.locator("canvas"))
-        expect(board.get_by_text("第 1 轮")).to_be_visible()
+        expect(run_bar(page)).to_contain_text("第 1 轮")
 
         page.get_by_role("button", name="试一项政策").press("Enter")
         expect(heading).to_have_text("反事实与制度实验")

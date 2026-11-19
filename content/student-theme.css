@@ -1,0 +1,51 @@
+:root {
+  --edu-bg: #f8f5ed;
+  --edu-surface: #fffcf5;
+  --edu-ink: #172e29;
+  --edu-muted: #455e55;
+  --edu-green: #18594b;
+  --edu-deep: #103b35;
+  --edu-on-deep: #eef5ed;
+  --edu-wash: #eaf0e5;
+  --edu-line: #cdd8cc;
+  --edu-control: #81978a;
+  --edu-focus: #99470e;
+  --edu-amber: #f4c16a;
+  --edu-warning: #f4e6cb;
+  --edu-warning-ink: #582e13;
+  --edu-error: #f5e5db;
+  --edu-error-ink: #762e26;
+  --edu-body: system-ui, "PingFang SC", "Noto Sans CJK SC", sans-serif;
+  --edu-serif: "Songti SC", "Noto Serif CJK SC", "SimSun", Georgia, serif;
+  --edu-s1: 4px;
+  --edu-s2: 8px;
+  --edu-s3: 12px;
+  --edu-s4: 16px;
+  --edu-s6: 24px;
+  --edu-s8: 32px;
+  --edu-radius: 14px;
+  --edu-control-radius: 8px;
+  --edu-target: 44px;
+  --edu-reading: 64ch;
+  --edu-wide: 1296px;
+}
+
+.edu-title h1 { margin-block: 0 var(--edu-s2); }
+.edu-title > p { max-width: var(--edu-reading); color: var(--edu-muted); }
+.edu-breadcrumb ol { display: flex; flex-wrap: wrap; gap: 0 var(--edu-s3); margin: 0; padding: 0; list-style: none; }
+.edu-breadcrumb li { display: flex; min-height: var(--edu-target); flex-wrap: wrap; align-items: center; gap: var(--edu-s3); }
+.edu-breadcrumb li + li::before { content: ""; inline-size: 5px; block-size: 5px; border: solid var(--edu-control); border-width: 1px 1px 0 0; transform: rotate(45deg); }
+.edu-breadcrumb { color: var(--edu-muted); font-size: .9rem; }
+.edu-breadcrumb a { color: var(--edu-green); text-decoration: underline; text-underline-offset: 3px; }
+.edu-status { padding: var(--edu-s3) var(--edu-s4); color: var(--edu-muted); background: var(--edu-wash); border-radius: var(--edu-control-radius); }
+.edu-status[data-tone="error"] { color: var(--edu-error-ink); background: var(--edu-error); }
+.edu-status[data-tone="warning"] { color: var(--edu-warning-ink); background: var(--edu-warning); }
+.edu-status a { color: inherit; text-decoration: underline; text-underline-offset: 3px; }
+.edu-case-card { min-inline-size: 0; overflow-wrap: anywhere; }
+.edu-case-title { font-size: 1.18rem; line-height: 1.35; font-weight: 720; margin-block: 0 var(--edu-s1); }
+.edu-panel { min-inline-size: 0; border: 1px solid var(--edu-line); border-radius: var(--edu-radius); background: var(--edu-surface); padding: var(--edu-s4); }
+.edu-panel :is(h2, h3) { margin-block: 0 var(--edu-s2); }
+:where(.edu-panel) a { color: var(--edu-green); text-underline-offset: 3px; }
+.edu-metric { display: flex; flex-wrap: wrap; gap: 4px 10px; align-items: baseline; justify-content: space-between; }
+.edu-metric h2 { margin: 0; }
+.edu-metric output { font-variant-numeric: tabular-nums; font-weight: 730; }

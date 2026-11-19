@@ -1,5 +1,5 @@
 .app-topbar {
-  --app-header-ink: #172e28;
+  --app-header-ink: var(--edu-ink);
   background: var(--paper);
 }
 .app-skip-link {
@@ -50,10 +50,10 @@
 .app-nav a:hover, .app-nav a[aria-current="page"] { text-decoration: underline; }
 
 .app-page {
-  --app-serifs: "Songti SC", "Noto Serif CJK SC", "SimSun", Georgia, serif;
-  --app-quiet: #e8ede1;
-  --app-accent: #e4bf7b;
-  --app-gap: 16px;
+  --app-serifs: var(--edu-serif);
+  --app-quiet: var(--edu-wash);
+  --app-accent: var(--edu-amber);
+  --app-gap: var(--edu-s4);
   max-width: 1192px;
 }
 .app-home-hero, .app-case-brief {
@@ -63,7 +63,7 @@
   gap: clamp(24px, 5vw, 64px);
   padding-block: clamp(32px, 5vw, 68px);
 }
-.app-home-hero h1, .app-case-brief h1, .app-inner > h1 {
+.app-home-hero h1, .app-case-brief h1, .app-inner > .edu-title h1, .app-inner > h1 {
   font: 700 clamp(2.35rem, 5vw, 4.35rem)/1.19 var(--app-serifs);
   letter-spacing: -.034em;
   margin-bottom: 16px;
@@ -143,25 +143,28 @@
   margin: 16px 0 0;
 }
 .app-case-card {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) clamp(48px, 7vw, 82px);
-  align-content: space-between;
-  grid-template-rows: 1fr auto;
-  column-gap: 10px;
-  padding: 16px;
-  min-height: 100%;
+  display: block;
+  height: 100%;
+  padding: var(--edu-s4);
   border: 1px solid var(--line);
-  border-radius: 12px;
+  border-radius: var(--edu-radius);
   color: var(--ink);
   background: var(--paper);
   text-decoration: none;
 }
+.app-case-card .edu-case-card {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) clamp(48px, 7vw, 72px);
+  grid-template-areas: "title art" "name art" "action art" "meta meta";
+  column-gap: var(--edu-s3);
+}
 .app-case-card:hover { border-color: var(--primary); }
 .app-case-card:hover :is(h2, h3) { text-decoration: underline; }
-.app-case-card :is(h2, h3) { font-size: 1.1rem; margin-bottom: 8px; text-wrap: pretty; }
-.app-case-card > div { grid-column: 1; grid-row: 1; }
-.app-case-card .app-mechanism { grid-column: 2; grid-row: 1; align-self: center; }
-.app-case-card .app-meta { grid-column: 1 / -1; padding-top: 9px; margin: 10px 0 0; border-top: 1px solid var(--line); }
+.app-case-card .edu-case-title { grid-area: title; text-wrap: pretty; }
+.app-case-card .app-case-name { grid-area: name; }
+.app-case-card .app-case-action { grid-area: action; }
+.app-case-card .app-mechanism { grid-area: art; align-self: center; }
+.app-case-card .app-meta { grid-area: meta; padding-top: var(--edu-s2); margin: var(--edu-s3) 0 0; border-top: 1px solid var(--line); }
 .app-case-name { margin: 0 0 8px; color: var(--muted); font-size: .89rem; font-weight: 650; }
 .app-case-action { margin: 0; color: var(--muted); font-size: .94rem; }
 .app-meta { font-size: .89rem; color: var(--muted); }
@@ -177,7 +180,7 @@
 .app-mechanism circle:nth-of-type(even) { fill: #f0dfb8; }
 
 .app-inner { padding-block: clamp(24px, 4.5vw, 60px); }
-.app-inner > h1 { font-size: clamp(2.15rem, 4.25vw, 3.6rem); }
+.app-inner > .edu-title h1, .app-inner > h1 { font-size: clamp(2.15rem, 4.25vw, 3.6rem); }
 .app-filters {
   display: grid;
   grid-template-columns: minmax(180px, 1.25fr) repeat(3, minmax(0, 1fr));
@@ -193,7 +196,12 @@
   background: var(--paper);
   padding: 7px 10px;
 }
-.app-case-brief { border-bottom: 1px solid var(--line); }
+.app-filter-empty { margin-block: var(--edu-s4) var(--edu-s2); }
+.app-case-brief { border-bottom: 1px solid var(--line); padding-top: var(--edu-s4); }
+.app-case-task { margin-top: var(--edu-s4); }
+.app-case-task p { margin-bottom: var(--edu-s3); max-width: var(--edu-reading); }
+.app-case-tools { margin-block-start: var(--edu-s3); }
+.app-case-tools :is(a, button) { min-height: var(--edu-target); display: inline-flex; align-items: center; }
 .app-case-brief .app-mechanism {
   width: min(100%, 340px);
   margin: 0 auto;
@@ -201,7 +209,7 @@
   border-radius: 14px;
   background: var(--app-quiet);
 }
-.app-case-context { padding-top: 24px; max-width: 68ch; }
+.app-case-context { margin-top: var(--edu-s4); max-width: var(--edu-reading); }
 .app-case-context :is(ul, dl) { overflow-wrap: anywhere; }
 .app-case-context dt { font-weight: 650; }
 .app-case-context dd { margin: 0 0 8px; }
@@ -232,7 +240,7 @@
 }
 @media (max-width: 480px) {
   .app-card-grid { grid-template-columns: minmax(0, 1fr); }
-  .app-case-card { grid-template-columns: minmax(0, 1fr) 64px; }
+  .app-case-card .edu-case-card { grid-template-columns: minmax(0, 1fr) 56px; }
   .app-case-brief .app-mechanism { width: min(70%, 220px); }
   .app-quote { padding: 8px 10px 10px; }
 }

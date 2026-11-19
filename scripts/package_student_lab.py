@@ -31,7 +31,7 @@ def payload():
     paths.update(ROOT / name for name in ("PRODUCT.md", "STUDENT_LAB.md", "requirements-edu.lock",
                                           "requirements-edu-dev.lock", "docs/release/check_feedback.py"))
     for prefix, extensions in {
-        "cases": {".json", ".md", ".gz"}, "content": {".json", ".ts"}, "docs": {".md", ".json", ".txt"},
+        "cases": {".json", ".md", ".gz"}, "content": {".json", ".ts", ".tsx", ".css"}, "docs": {".md", ".json", ".txt"},
         "schemas": {".json"}, "services/simulation": {".py"}, "tests": {".py", ".json"},
         "student-web/src": {".tsx", ".ts", ".css"}, "student-web/dist": {".html", ".js", ".css"},
         "frontend/src": {".tsx", ".ts", ".css", ".json"}, "frontend/dist": {".html", ".js", ".css"},

@@ -179,7 +179,8 @@ export function LivePanel({ caseId, seed, action, status, actionLabel }: {
         disabled={pending || inFlight || resetting || (!!modelSession && approvedSession !== modelSession)} onClick={run}>
         {pending || inFlight ? "等待高级实验…" : resumeCreated ? "继续已创建的实验" : "运行高级实验"}
       </button>
-    </> : connection && <p>本机尚未启用模型服务。<a href="/#model-api">在首页配置模型 API</a>，或继续使用基础实验和离线学习助手。</p>}
+    </> : connection && <p className="edu-status" data-tone="warning">本机尚未启用模型服务。
+      <a href="/#model-api">在首页配置模型 API</a>，或继续使用基础实验和离线学习助手。</p>}
     {canCancel && <button onClick={async () => {
       try { setReceipt(await api<Receipt>(`/runs/${runId}/cancel`, {})); }
       catch (problem) { setError(problem instanceof Error ? problem.message : "取消失败。"); }
