@@ -1,12 +1,12 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
 import { outcome, startLesson, transition } from "../src/lesson.ts";
-import { svbLesson, simulateSvb } from "../src/svb.ts";
+import { distributedPolicy, svbLesson, simulateSvb } from "../src/svb.ts";
 
 const input = { seed: svbLesson.seed, choices: ["withdraw_now", "at-request"], policy: 0 };
 
 test("SVB records are deterministic and reconcile amounts, securities, and cash", () => {
-  for (const action of ["withdraw_now", "withdraw_later"]) for (const policy of [0, 400]) {
+  for (const action of ["withdraw_now", "withdraw_later"]) for (const policy of [0, 400, distributedPolicy]) {
     const parameters = { ...input, choices: [action, "at-payment"], policy };
     const run = simulateSvb(parameters);
     assert.deepEqual(simulateSvb(parameters), run);

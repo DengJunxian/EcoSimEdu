@@ -62,5 +62,6 @@
     {"id": "D58", "group": "分散小额储户", "deposit": 7, "payroll": 1, "payrollRound": 7, "protected": 7, "threshold": 64, "neighbors": ["D01", "D02", "D03"]},
     {"id": "D59", "group": "分散小额储户", "deposit": 9, "payroll": 1, "payrollRound": 10, "protected": 9, "threshold": 53, "neighbors": ["D01", "D02", "D03"]},
     {"id": "D60", "group": "分散小额储户", "deposit": 8, "payroll": 3, "payrollRound": 13, "protected": 8, "threshold": 70, "neighbors": ["D01", "D02", "D03"]}
-  ]
+  ],
+  "distributedOrder": ["D46","D01","D16","D04","D48","D39","D02","D22","D32","D17","D37","D31","D41","D49","D51","D34","D25","D26","D58","D08","D06","D38","D55","D54","D23","D15","D59","D03","D29","D09","D18","D20","D28","D21","D12","D52","D57","D35","D40","D27","D53","D56","D45","D60","D33","D36","D19","D43","D50","D14","D11","D13","D07","D42","D24","D10","D30","D05","D47","D44"]
 }

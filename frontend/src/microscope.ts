@@ -2,7 +2,8 @@ import { visibleTick, type evidenceKinds, type ObservationPerspective } from "..
 import type { AuctionRun } from "./auction.ts";
 import type { CasePackage, EventEnvelope } from "./domain-contracts.ts";
 import type { Frame, Lesson, Run } from "./lesson.ts";
-import { browserEvents } from "./run-evidence.ts";
+import { bankEventValues, browserEvents } from "./run-evidence.ts";
+import type { SvbRun } from "./svb.ts";
 
 const roles = new Map([["double_auction", "B01"], ["svb_run", "D01"], ["schelling_segregation", "A001"]]);
 export const microscopeRole = (lesson: Lesson) => roles.get(lesson.casePackage?.caseId ?? "");
@@ -202,7 +203,12 @@ export function microscope(run: Run, lesson: Lesson, focus: TracePoint, asOf: nu
   const exposed = (link: TraceLink) => visibleTick(link.point.tick, asOf) &&
     (!role || link.actorId === own && link.point.eventId !== undefined && !!index.events.get(link.point.eventId) &&
       available(index.events.get(link.point.eventId)!));
-  const references = event ? (index.links.get(event.eventId) ?? []).filter(exposed) : [];
+  const receivedNow = index.bank && !role && !event && actorId
+    ? (run as SvbRun).observations?.[tick]?.[actorId] ?? [] : [];
+  const references = event ? (index.links.get(event.eventId) ?? []).filter(exposed) : receivedNow.map(item => ({
+    id: `message:${item.eventId}`, kind: "signal" as const, text: `${actorId} 看到 ${item.actorId} 的首次申请。`,
+    point: { tick: item.tick, eventId: item.eventId }, actorId: item.actorId,
+  })).filter(exposed);
   const upcoming = event ? index.feedback.get(event.eventId) :
     index.roundFeedback.get(`${tick}:${metricId}`);
   const feedback = role ? [] : (upcoming ?? []).filter(available).map(next => ({
@@ -214,18 +220,10 @@ export function microscope(run: Run, lesson: Lesson, focus: TracePoint, asOf: nu
   }));
 
   const known = (value: number | null | undefined) => typeof value === "number" ? value : null;
-  let before = known(prior?.metrics[metricId]), after = known(frame.metrics[metricId]);
-  let verified = !index.bank || !event;
-  if (index.bank && event && before !== null && after !== null) {
-    const valueAt = (item: EventEnvelope) => (item.record as { deltas: Record<string, number> }).deltas[metricId] ?? 0;
-    if (stable(before + local.reduce((sum, item) => sum + valueAt(item), 0)) === stable(after)) {
-      const offset = local.indexOf(event);
-      before = stable(before + local.slice(0, offset).reduce((sum, item) => sum + valueAt(item), 0));
-      after = stable(before + valueAt(event));
-      verified = true;
-    }
-  }
-  const difference = !role && verified && before !== null && after !== null ? stable(after - before) : null;
+  const values = index.bank && event ? bankEventValues(frame, prior, event.eventId, metricId) :
+    { before: known(prior?.metrics[metricId]), after: known(frame.metrics[metricId]) };
+  const before = values?.before ?? null, after = values?.after ?? null;
+  const difference = !role && before !== null && after !== null ? stable(after - before) : null;
   const deltaUnit = metric.unit === "%" ? "个百分点" : metric.unit;
   const equation = difference === null ? undefined : `${after} − ${before} = ${signed(difference)} ${deltaUnit}`;
   const move = event && moveRecord(event);
@@ -243,7 +241,6 @@ export function microscope(run: Run, lesson: Lesson, focus: TracePoint, asOf: nu
     economicTime: event ? event.economicTime?.value : index.bank ? tick : undefined,
     actor, actorBefore, actorEvents: actorEvents.map(visibleEvent), visibleRows: visibleRows.map(visibleEvent),
     links: [...references.filter(link => link.kind !== "relation"), ...feedback, ...references.filter(link => link.kind === "relation")],
-    metric: role ? undefined : { label: metric.label, unit: metric.unit, before: verified ? before : null,
-      after: verified ? after : null, difference, equation, identity },
+    metric: role ? undefined : { label: metric.label, unit: metric.unit, before, after, difference, equation, identity },
   };
 }

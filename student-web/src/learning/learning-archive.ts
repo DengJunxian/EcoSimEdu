@@ -225,14 +225,15 @@ async function mergeExposure(exposures: IDBObjectStore, entry: SavedExposure) {
   }));
 }
 
-export async function restoreLearning(profile: string, data: unknown) {
+export async function restoreLearning(profile: string, data: unknown,
+  loadPack = (caseId: string) => api<LearningPackage>(`/cases/${caseId}/lesson?schema_version=3`)) {
   if (!row(data) || data.kind !== archiveKind || data.schema_version !== 1 || !Array.isArray(data.attempts) ||
       data.attempts.length > 10000 || !data.attempts.every(attempt => row(attempt) &&
         typeof attempt.case_id === "string" && /^[a-z_]{1,48}$/.test(attempt.case_id))) {
     throw new Error("请选择从本平台导出的学习记录 JSON。");
   }
   const cases = [...new Set(data.attempts.map(attempt => attempt.case_id as string))];
-  const packs = await Promise.allSettled(cases.map(caseId => api<LearningPackage>(`/cases/${caseId}/lesson?schema_version=3`)));
+  const packs = await Promise.allSettled(cases.map(loadPack));
   const byCase = new Map(packs.flatMap(check => check.status === "fulfilled"
     ? [[check.value.case_id, check.value] as const] : []));
   const records = data.attempts.map(attempt => {

@@ -2,7 +2,7 @@ import { browserResultDigest } from "./browser-result.ts";
 import { browserEvents } from "./run-evidence.ts";
 import { browserEngineVersion, type EvidencePointer } from "./domain-contracts.ts";
 import { courseById } from "./curriculum.ts";
-import { legalChoice, nextStageReady, startLesson, type Lesson, type Session, type Trend } from "./lesson.ts";
+import { legalChoice, legalPolicy, nextStageReady, startLesson, type Lesson, type Session, type Trend } from "./lesson.ts";
 import { microscopeRole } from "./microscope.ts";
 
 const progressPrefix = "ecosimedu:progressive:progress:v1:";
@@ -41,11 +41,6 @@ function readItem<T>(storage: Storage, key: string): T | undefined {
 export function validChoices(lesson: Lesson, value: unknown, complete = true): value is string[] {
   return Array.isArray(value) && (complete ? value.length === lesson.decisions.length : value.length <= lesson.decisions.length) &&
     value.every((choice, i) => typeof choice === "string" && legalChoice(lesson.decisions[i], choice));
-}
-
-function validPolicy(lesson: Lesson, value: unknown): value is number {
-  return Number.isInteger(value) && typeof value === "number" && value >= lesson.policy.min && value <= lesson.policy.max &&
-    (value - lesson.policy.min) % (lesson.policy.step ?? 1) === 0;
 }
 
 type SavedProgress = Omit<Session, "run" | "comparison" | "playing"> & {
@@ -103,7 +98,7 @@ export function resumeProgress(storage: Storage, course: CourseRef, lesson: Less
     const replay: Session = { ...initial, stage: record.stage, run, choices: record.choices, selected, focusedMetric, traceFocus, ...perspective,
       cursor: record.cursor, revealed: record.revealed };
     if (record.stage !== 4) return replay;
-    if (!nextStageReady(lesson, { ...replay, stage: 3 }) || !validPolicy(lesson, record.policy)) return undefined;
+    if (!nextStageReady(lesson, { ...replay, stage: 3 }) || !legalPolicy(lesson, record.policy)) return undefined;
     const prediction = record.policy !== initial.policy && trend(record.prediction) ? record.prediction : undefined;
     if (!record.comparisonId) return { ...replay, policy: record.policy, prediction };
     if (!prediction) return undefined;
@@ -181,7 +176,7 @@ export function sourceLink(note: StudentNote, side: "baseline" | "comparison") {
 export async function sourceRun(lesson: Lesson, note: StudentNote, side: "baseline" | "comparison") {
   if (!validChoices(lesson, note.choices)) return undefined;
   const policy = side === "baseline" ? lesson.policy.baseline : note.policy ?? lesson.policy.max;
-  if (!validPolicy(lesson, policy) || side === "comparison" && policy === lesson.policy.baseline) return undefined;
+  if (!legalPolicy(lesson, policy) || side === "comparison" && policy === lesson.policy.baseline) return undefined;
   try {
     const course = lesson.casePackage;
     const run = lesson.run({ seed: lesson.seed, choices: note.choices, policy });

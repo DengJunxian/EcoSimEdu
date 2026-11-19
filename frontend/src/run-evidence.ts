@@ -1,7 +1,7 @@
 import { browserEngineVersion } from "./domain-contracts.ts";
 import { browserResultDigest } from "./browser-result.ts";
 import type { CasePackage, RunEnvelope, EventEnvelope, Evidence, EvidencePointer } from "./domain-contracts.ts";
-import type { Run } from "./lesson.ts";
+import type { Frame, LessonEvent, Run } from "./lesson.ts";
 import type { AuctionRun } from "./auction.ts";
 import type { ModelRun } from "./models/record.ts";
 
@@ -20,6 +20,25 @@ export function seedEvidence(run: Run, sequence: number) {
   const frame = run.frames[sequence];
   if (!event || !frame) throw new Error("Unavailable evidence");
   return { runId: run.id, event, before: run.frames[sequence - 1]?.metrics ?? null, after: frame.metrics };
+}
+
+export function bankEventDeltas(frame: Frame, prior: Frame | undefined, event: LessonEvent) {
+  const sold = frame.metrics.sold;
+  const before = prior?.metrics.sold;
+  if (event.kind !== "sale" || typeof sold !== "number" || typeof before !== "number" ||
+      frame.events.filter(entry => entry.kind === "sale").length !== 1) return event.deltas;
+  return { ...event.deltas, sold: sold - before };
+}
+
+export function bankEventValues(frame: Frame, prior: Frame | undefined, eventId: string, metricId: string) {
+  const start = prior?.metrics[metricId];
+  const end = frame.metrics[metricId];
+  const offset = frame.events.findIndex(event => event.id === eventId);
+  if (typeof start !== "number" || typeof end !== "number" || offset < 0) return;
+  const deltas = frame.events.map(event => bankEventDeltas(frame, prior, event)[metricId] ?? 0);
+  if (start + deltas.reduce((sum, delta) => sum + delta, 0) !== end) return;
+  const before = start + deltas.slice(0, offset).reduce((sum, delta) => sum + delta, 0);
+  return { before, after: before + deltas[offset] };
 }
 
 export function browserEvents(run: Run, course: CasePackage, asOf = run.frames.length - 1): EventEnvelope[] {

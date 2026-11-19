@@ -4,6 +4,7 @@ import { allNotes, notesLink, saveNote, trendLabel, type CourseRef, type Explana
 import { browserEnvelope, browserEvents, browserEvidence, evidencePointer, runRecords, seedEvidence } from "./run-evidence.ts";
 import type { EventEnvelope } from "./domain-contracts.ts";
 import type { ModelRun } from "./models/record.ts";
+import type { SvbRun } from "./svb.ts";
 
 function EvidencePicker({ events, name, label, selection, tickUnit }: {
   events: readonly EventEnvelope[]; name: string; label: string; selection?: string; tickUnit?: Lesson["tickUnit"];
@@ -21,7 +22,9 @@ function EvidencePicker({ events, name, label, selection, tickUnit }: {
   </label>;
 }
 
-export function Investigation({ course, lesson, session }: { course: CourseRef; lesson: Lesson; session: Session }) {
+export function Investigation({ course, lesson, session, onSaved }: {
+  course: CourseRef; lesson: Lesson; session: Session; onSaved?: () => void;
+}) {
   const baseline = session.run!;
   const comparison = session.comparison!.run;
   const published = lesson.casePackage!;
@@ -44,6 +47,7 @@ export function Investigation({ course, lesson, session }: { course: CourseRef; 
     return await Promise.all([baseline, comparison].map((run, index) => browserEnvelope(run, published, {
       choices: session.choices, policy: index === 0 ? lesson.policy.baseline : session.comparison!.policy,
       ...("records" in run ? { scenario: (run as ModelRun).scenario, intervention: (run as ModelRun).intervention } : {}),
+      ...(published.caseId === "svb_run" ? { scenario: (run as SvbRun).scenario, network: (run as SvbRun).network } : {}),
     })));
   }
 
@@ -118,6 +122,7 @@ export function Investigation({ course, lesson, session }: { course: CourseRef; 
         const id = saveNote(localStorage, saved);
         setSavedId(id);
         setNotes(allNotes(localStorage, baseline.id, comparison.id));
+        onSaved?.();
         setStatus(`解释已保存在本浏览器。已引用基线事件 ${selectedBaseline.eventId}、干预事件 ${selectedComparison.eventId}。`);
       } catch {
         setStatus(exportRequested ? "无法核对并导出本次运行。" : "本浏览器无法核对并保存解释。");

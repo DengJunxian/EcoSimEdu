@@ -1,5 +1,6 @@
 import assert from "node:assert/strict";
 import { legalChoice, outcome } from "../src/lesson.ts";
+import { bankEventDeltas } from "../src/run-evidence.ts";
 
 export function verifyLesson(lesson, choices, policy) {
   assert.ok(lesson.decisions.length >= 2 && lesson.decisions.length <= 3);
@@ -33,7 +34,7 @@ export function verifyLesson(lesson, choices, policy) {
         assert.ok(reading === null || Number.isFinite(reading), metric.id);
         const prior = run.frames[tick - 1]?.metrics[metric.id];
         if (typeof prior === "number" && typeof reading === "number") {
-          const net = frame.events.reduce((sum, event) => sum + (event.deltas[metric.id] ?? 0), 0);
+          const net = frame.events.reduce((sum, event) => sum + (bankEventDeltas(frame, run.frames[tick - 1], event)[metric.id] ?? 0), 0);
           assert.ok(Math.abs(reading - prior - net) < 1e-8, `${metric.id} in round ${tick}`);
         }
       }

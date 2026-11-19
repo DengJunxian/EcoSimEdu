@@ -5,20 +5,36 @@ import type { Actor, Frame, Lesson, LessonEvent, Run } from "./lesson.ts";
 
 const { rules, player_id: playerId } = course;
 const buffer = course.scenarios.find(scenario => scenario.id === "liquidity_buffer")!.parameters.cash_reallocation;
+const distributed = course.scenarios.find(scenario => scenario.id === "network")!;
+export const distributedPolicy = -1;
 const player = opening.people.find(person => person.id === playerId)!;
+const order = opening.distributedOrder;
+const distributedGraph = Object.fromEntries(order.map((id, i) =>
+  [id, [-1, -2, 1].map(offset => order[(i + offset + order.length) % order.length])]));
+const historyReview = "https://www.federalreserve.gov/publications/2023-April-SVB-Evolution-of-Silicon-Valley-Bank.htm";
 
-export function simulateSvb({ seed, choices, policy }: Parameters<Lesson["run"]>[0]): Run {
+type Received = NonNullable<LessonEvent["observed"]>;
+export type SvbRun = Run & {
+  scenario: "baseline" | "liquidity_buffer" | "network";
+  network: Readonly<Record<string, readonly string[]>>;
+  observations: readonly Readonly<Record<string, Received>>[];
+};
+
+export function simulateSvb({ seed, choices, policy }: Parameters<Lesson["run"]>[0]): SvbRun {
   if (seed !== opening.seed || !course.action.options.some(option => option.id === choices[0]) ||
-      (policy !== 0 && policy !== buffer)) throw new Error("未知开局、行动或政策");
+      (policy !== 0 && policy !== buffer && policy !== distributedPolicy)) throw new Error("未知开局、行动或政策");
 
+  const scenario = policy === distributedPolicy ? "network" : policy === buffer ? "liquidity_buffer" : "baseline";
+  const cashReallocation = scenario === "liquidity_buffer" ? buffer : 0;
   const people = opening.people.map(row => ({
-    ...row, pending: 0, payout: 0, protectiveRequested: false,
+    ...row, neighbors: scenario === "network" ? distributedGraph[row.id] : row.neighbors,
+    pending: 0, payout: 0, protectiveRequested: false,
     payrollRound: row.id === playerId ? (choices[0] === "withdraw_now" ? 1 : 2) : row.payrollRound,
   }));
   const initialDeposits = people.reduce((sum, person) => sum + person.deposit, 0);
   const loans = initialDeposits + rules.initial_equity - rules.initial_cash - rules.securities * rules.initial_price;
-  let cash = rules.initial_cash + policy;
-  let units = rules.securities - policy / rules.initial_price;
+  let cash = rules.initial_cash + cashReallocation;
+  let units = rules.securities - cashReallocation / rules.initial_price;
   let supportCash = rules.support_reserve;
   let marketCash = rules.securities * rules.sale_price;
   let price = rules.initial_price;
@@ -27,6 +43,7 @@ export function simulateSvb({ seed, choices, policy }: Parameters<Lesson["run"]>
   const queue: { person: typeof people[number]; remaining: number }[] = [];
   const origins = new Map<string, NonNullable<LessonEvent["observed"]>[number]>();
   const frames: Frame[] = [];
+  const receivedByRound: Record<string, Received>[] = [{}];
   const messages = new Map<string, Pick<Actor, "signal" | "reason" | "nextDecision" | "priorSignal">>();
 
   function snapshot(tick: number, events: readonly LessonEvent[], turningPoint?: string) {
@@ -78,6 +95,7 @@ export function simulateSvb({ seed, choices, policy }: Parameters<Lesson["run"]>
       const origin = origins.get(id);
       return origin ? [origin] : [];
     }));
+    receivedByRound.push(Object.fromEntries(people.map((person, i) => [person.id, observations[i]])));
     people.forEach((person, index) => {
       const observed = observations[index];
       const neighborTerm = observed.length * rules.neighbor_signal;
@@ -162,7 +180,8 @@ export function simulateSvb({ seed, choices, policy }: Parameters<Lesson["run"]>
     }
     frames.push(frame);
   }
-  return { id: `svb/browser-v1/${seed}/${choices[0]}/${policy}`, seed, frames };
+  return { id: `svb/browser-v1/${seed}/${choices[0]}/${scenario === "network" ? "network" : policy}`, seed, frames,
+    scenario, network: Object.fromEntries(people.map(person => [person.id, person.neighbors])), observations: receivedByRound };
 }
 
 const published = casePackage(course.case_id);
@@ -173,15 +192,23 @@ export const svbLesson: Lesson = {
   populationTitle: "教学银行的储户",
   source: {
     kind: published.identity,
-    note: "根据硅谷银行事件设计。储户、金额和轮次来自教学模型。",
-    references: course.sources.slice(0, 2),
+    note: "根据硅谷银行事件设计。储户、金额和轮次来自教学模型。课堂中的 20 轮、资金单位与真实的日期、美元金额分别记录。",
+    references: [...course.sources.slice(0, 2), { title: "事件经过 · 美联储 2023 年复盘", url: historyReview }],
+    timeline: [
+      { date: "2023-03-08", text: "银行集团宣布调整资产负债表，包括已售出部分证券及拟筹集股本。", url: historyReview },
+      { date: "2023-03-09", text: "美联储复盘记录，当日存款流出超过 400 亿美元。金额为历史美元。", url: historyReview },
+      { date: "2023-03-10", text: "加州监管机构关闭银行，指定 FDIC 为接管人。", url: course.sources[0].url },
+      { date: "2023-03-12", text: "美国财政部、美联储与 FDIC 宣布保障全部储户，储户可自 3 月 13 日动用全部存款。", url: course.sources[1].url },
+    ],
   },
   role: {
     title: "你 · 初创公司财务负责人 D01",
     perspective: "2023 年 3 月 10 日，加州监管机构关闭硅谷银行。美联储复盘将利率风险、存款集中和对未保险存款的依赖列为脆弱因素。现在回到关闭前的教学情境，你需要为下一次发薪准备资金。",
     timeline: [{ label: "第一轮申请" }, { label: "第二轮申请" }, { label: "等候到账", highlighted: true }],
     facts: [{ label: "本企业存款", value: `${player.deposit} 资金单位` },
-      { label: "本次工资款", value: `${player.payroll} 资金单位` }],
+      { label: "本次工资款", value: `${player.payroll} 资金单位` },
+      { label: "本模型保障额度", value: `${player.protected} 资金单位` },
+      { label: "你的局部信息", value: "你看得到自身余额、已收到的邻居申请消息和上轮公开状态。申请后等银行结算。" }],
   },
   decisions: [
     { prompt: "你会在哪一轮申请工资款？", options: course.action.options.map((option, index) => ({
@@ -196,11 +223,19 @@ export const svbLesson: Lesson = {
     { id: "queued", label: "待付金额", unit: "资金单位", color: "#26666b" },
     { id: "cash", label: "银行现金", unit: "资金单位", color: "#26666b" },
     { id: "equity", label: "银行权益", unit: "资金单位", color: "#46516a" },
-    { id: "price", label: "证券标价", unit: "每单位", color: "#46516a" },
+    { id: "requested", label: "累计申请", unit: "资金单位", color: "#26666b" },
+    { id: "paid", label: "累计实付", unit: "资金单位", color: "#26666b" },
+    { id: "sold", label: "累计出售证券", unit: "证券单位", color: "#46516a" },
+    { id: "price", label: "证券标价", unit: "资金单位/证券单位", color: "#46516a" },
+    { id: "borrowing", label: "支持借款", unit: "资金单位", color: "#46516a" },
+    { id: "sale_loss", label: "累计折价损失", unit: "资金单位", color: "#46516a" },
   ],
-  bridge: { minTick: 3, metrics: ["cash", "equity", "price"],
+  bridge: { minTick: 3, metrics: ["cash", "equity", "requested", "paid", "sold", "price", "borrowing"],
+    closeLabel: "查看运行收尾",
+    prompt: "对照累计申请、实付与轮末待付。点指标回查原事件，看看银行怎样筹集现金，以及上一轮的待付如何传回储户。",
     rule: "上一轮发生急售或存在待付时，下一轮风险分分别加 14 或 20。是否追加申请还取决于个人阈值和未保障余额。" },
   priceMetric: "price",
+  explanationPrompt: "现金组合实验可以引用重估、急售或实付。信息网络实验可以追踪收到消息后提出的申请。区分个体行动规则、待付的算式和两组运行的差异。",
   states: {
     held: { label: "持有存款", color: "#d7ded3" },
     queued: { label: "仍有待付", color: "#f4c16a" },
@@ -208,6 +243,8 @@ export const svbLesson: Lesson = {
   },
   policy: { label: "冲击前改持现金的证券价值", min: 0, max: buffer, step: buffer, baseline: 0,
     unit: "资金单位",
+    alternate: { value: distributedPolicy, label: distributed.label, description: distributed.description },
+    labels: { [0]: "维持原组合与网络", [buffer]: "提高现金缓冲", [distributedPolicy]: distributed.label },
     describe: `将价值 ${buffer} 的证券换成现金。两组初始资产总额和权益相同。政策组可立即动用的现金更多，承受重估的证券更少。比较第 ${rules.steps} 轮末的待付金额。` },
   seed: opening.seed,
   run: simulateSvb,

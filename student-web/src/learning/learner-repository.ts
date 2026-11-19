@@ -127,7 +127,7 @@ export async function expose(session: SessionState, item: Item, kind: "hint" | "
 
 export async function submitAttempt(
   base: SessionState, activity: Activity, item: Item, response: Response, presentedOrder: string[], reviewId?: string,
-  sourceRefs: SourceRef[] = [], unknown = false,
+  sourceRefs: SourceRef[] = [], unknown = false, keepCurrent = false,
 ) {
   const id = exposureKey(base, item);
   return transact(["attempts", "exposures", "sessions", "reviews"], "readwrite", async tx => {
@@ -148,7 +148,7 @@ export async function submitAttempt(
     const sessions = tx.objectStore("sessions");
     const current = await result(sessions.get(base.id)) as SessionState ?? base;
     const session: SessionState = { ...current,
-      ...(activity.kind === "review" || unknown ? {} : { current_activity_id: activity.id }),
+      ...(activity.kind === "review" || unknown || keepCurrent ? {} : { current_activity_id: activity.id }),
       accessible_activity_ids: Array.from(new Set([...current.accessible_activity_ids, activity.id])),
       activity_states: { ...current.activity_states, [activity.id]: "submitted" } };
     await result(tx.objectStore("attempts").add(attempt));

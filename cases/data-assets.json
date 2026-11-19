@@ -78,6 +78,7 @@
         "cases/learning-outcomes.json",
         "cases/case-packages-v1.json",
         "frontend/src/data/legacy-fingerprints.json",
+        "frontend/src/data/svb-opening.json",
         "content/concepts.json",
         "cases/svb_run/case.json",
         "cases/svb_run/lesson-v2.json",
@@ -448,8 +449,8 @@
       "grain": "每门发布课一份领域契约",
       "method": "从案例身份、来源登记、学习包和显式指标定义生成",
       "verify": "python -m scripts.generate_case_packages --check",
-      "bytes": 76419,
-      "sha256": "7e568a4d749cb5855cde85954015c52ad1ae17fcff14a17049ffaf1b8733ae79",
+      "bytes": 76723,
+      "sha256": "60cd34f8de75c6445fc1eecbe2d0223adf3e61519089e68e85e5bec12994a68b",
       "distribution": "included_in_local_teaching_package",
       "license_status": "project_public_license_unconfirmed"
     },
@@ -476,6 +477,21 @@
       "verify": "node frontend/tests/generate_legacy_fingerprints.mjs <8fc8971 checkout>",
       "bytes": 42185,
       "sha256": "c49db2024f61a40e9dedd6589674cd0399529fda264fe5dd4761e41ee05c07a9",
+      "distribution": "included_in_local_teaching_package",
+      "license_status": "project_public_license_unconfirmed"
+    },
+    {
+      "path": "frontend/src/data/svb-opening.json",
+      "kind": "teaching_input",
+      "version": "svb/1",
+      "cases": [
+        "svb_run"
+      ],
+      "grain": "固定种子的 60 名教学储户与集中、分散两种观察关系",
+      "method": "从原 Python 内核提取合成开局与同种子打乱顺序。浏览器按相同邻接规则生成分散图",
+      "verify": "python -m frontend.tests.svb_parity",
+      "bytes": 10961,
+      "sha256": "42bff146f71bccb81a8142ef94c682cb458f79ae27f79b44075ceb61b4e42e87",
       "distribution": "included_in_local_teaching_package",
       "license_status": "project_public_license_unconfirmed"
     },
@@ -635,8 +651,8 @@
       "grain": "每课一份可执行学习包",
       "method": "项目编写的练习、参考解、暴露作用域、复习与活动。真实运行由独立数据契约提供。",
       "verify": "python -m scripts.check_learning_packages",
-      "bytes": 21093,
-      "sha256": "17f4d6732ce3a4843a6412f5574571ede7ad5b89a12bc619051bf5791f9f9aff",
+      "bytes": 23354,
+      "sha256": "89f495b98bd51dde3c110c352c3421895240ba310aae05cc8e2ecf050ebed609",
       "distribution": "included_in_local_teaching_package",
       "license_status": "project_public_license_unconfirmed"
     },

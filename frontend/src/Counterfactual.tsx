@@ -11,11 +11,24 @@ export function PredictionCard({ lesson, session, send }: {
   const { policy } = lesson;
   const locked = !!session.comparison;
   const changed = session.policy !== policy.baseline;
+  const alternate = policy.alternate;
+  const alternateActive = session.policy === alternate?.value;
   return <section className="decision-card" aria-label="预测后运行">
-    <label htmlFor="policy" className="policy-label">{policy.label}<strong>{policy.labels?.[session.policy] ?? `${session.policy} ${policy.unit}`}</strong></label>
-    <input id="policy" type="range" min={policy.min} max={policy.max} step={policy.step ?? 1} value={session.policy}
-      aria-valuetext={policy.labels?.[session.policy]} disabled={locked} onChange={event => send({ type: "policy", value: Number(event.target.value) })}/>
-    <p>{policy.describe ?? `基线每轮 ${policy.baseline} ${policy.unit}，保留原有个体和你的入场决策。`}</p>
+    {alternate && <fieldset disabled={locked}>
+      <legend>这次改变哪一项？</legend>
+      <label className="choice"><input type="radio" name="intervention" checked={!alternateActive}
+        onChange={() => send({ type: "policy", value: policy.baseline })}/> 现金组合</label>
+      <label className="choice"><input type="radio" name="intervention" checked={alternateActive}
+        onChange={() => send({ type: "policy", value: alternate.value })}/> {alternate.label}</label>
+    </fieldset>}
+    {alternateActive ? <p>{alternate?.description}</p> : <>
+      <label htmlFor="policy" className="policy-label">{policy.label}<strong>{alternate
+        ? `${session.policy} ${policy.unit}` : policy.labels?.[session.policy] ?? `${session.policy} ${policy.unit}`}</strong></label>
+      <input id="policy" type="range" min={policy.min} max={policy.max} step={policy.step ?? 1} value={session.policy}
+        aria-valuetext={alternate ? undefined : policy.labels?.[session.policy]} disabled={locked}
+        onChange={event => send({ type: "policy", value: Number(event.target.value) })}/>
+      <p>{policy.describe ?? `基线每轮 ${policy.baseline} ${policy.unit}，保留原有个体和你的入场决策。`}</p>
+    </>}
     <fieldset disabled={!changed || locked}>
       <legend>你预计{outcomeLabel(lesson)}会怎样变？</legend>
       {(Object.keys(predictions) as Trend[]).map(value => <label className="choice" key={value}>

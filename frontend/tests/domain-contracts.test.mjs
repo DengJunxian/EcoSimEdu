@@ -9,7 +9,7 @@ import { browserResultDigest } from "../src/browser-result.ts";
 import { readNote, sourceRun } from "../src/learning-store.ts";
 import { chartMetric, comparisonMetric, outcome } from "../src/lesson.ts";
 import { browserEnvelope, browserEvents, browserEvidence, evidencePointer } from "../src/run-evidence.ts";
-import { svbLesson } from "../src/svb.ts";
+import { distributedPolicy, svbLesson } from "../src/svb.ts";
 import { lessons } from "./remaining_parity.mjs";
 
 const auction = auctionLesson(false);
@@ -93,4 +93,18 @@ test("SVB round time and actual application and payment IDs stay distinct", () =
   assert.equal(application.record.deltas.cash, undefined);
   assert.equal(payment.record.deltas.cash, -19);
   assert.deepEqual(payment.sourceEvents, []);
+});
+
+test("SVB keeps the old run digests and verifies the original event of a network comparison", async () => {
+  const choices = ["withdraw_now", "at-payment"];
+  const old = [0, svbLesson.policy.max].map(policy => svbLesson.run(input(svbLesson, choices, policy)));
+  for (const run of old) assert.equal((await browserResultDigest(run)).value, fingerprints.fingerprints[run.id]);
+  const branch = svbLesson.run(input(svbLesson, choices, distributedPolicy));
+  const course = svbLesson.casePackage;
+  const event = browserEvents(branch, course, 1).find(row => row.kind === "payment");
+  const envelope = await browserEnvelope(branch, course, { choices, policy: distributedPolicy });
+  const note = { choices, baselineId: old[0].id, comparisonId: branch.id, comparisonEvent: event.frameTick,
+    policy: distributedPolicy, evidence: { comparison: evidencePointer(browserEvidence(envelope, event, 1)) } };
+  assert.equal((await sourceRun(svbLesson, note, "comparison")).event.eventId, event.eventId);
+  assert.equal(await sourceRun(svbLesson, { ...note, policy: 1 }, "comparison"), undefined);
 });

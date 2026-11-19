@@ -1,7 +1,9 @@
 import { Studio } from "./Studio";
-import { SvbReview } from "./SvbReview";
+import { SvbLab, SvbRelationships, SvbReview } from "./SvbReview";
 import { svbLesson } from "./svb.ts";
 
 export default function SvbClassroom() {
-  return <Studio lesson={svbLesson} review={session => <SvbReview session={session}/>}/>;
+  return <Studio lesson={svbLesson} review={session => <SvbReview session={session}/>}
+    actorDetail={(session, select, locate) => <SvbRelationships session={session} select={select} locate={locate}/>}
+    afterInvestigation={session => <SvbLab session={session}/>}/>;
 }

@@ -130,7 +130,11 @@ def walk(page):
         expect(heading).to_have_text(f"{name}原事件 · 第 1 轮 · {value}")
         expect(page.get_by_text("涉及主体 D01", exact=True)).to_be_visible()
         expect(page.get_by_text("本事件变化 · 银行现金 -19", exact=True)).to_be_visible()
-        expect(page.get_by_role("table", name="该轮开始与结束的数值")).to_be_visible()
+        amounts = page.get_by_role("table", name="原事件前后数值")
+        cash = 100 if name == "基线" else 500
+        expect(amounts.get_by_role("row").filter(has_text="银行现金").get_by_role("cell")).to_have_text(
+            [str(cash), str(cash - 19)]
+        )
         page.get_by_role("link", name="返回已保存的解释").press("Enter")
 
 

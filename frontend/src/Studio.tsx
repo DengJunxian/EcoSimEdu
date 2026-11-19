@@ -6,6 +6,7 @@ import { SavedSource } from "./StudentNotes";
 import { Investigation } from "./Investigation";
 import { StudentHeader } from "./StudentHeader.tsx";
 import { Inspector, MicroBoard, RoleView, Timeline } from "./visuals";
+import { bankEventDeltas } from "./run-evidence.ts";
 import { ActionPanel, Breadcrumb, EvidenceCard, MetricCard, PageTitle, ProgressStepper, StatusNotice } from "../../content/student-ui.tsx";
 import { Workbench, workbenchMedia, type WorkbenchView } from "./Workbench.tsx";
 import { microscopeRole } from "./microscope.ts";
@@ -93,13 +94,16 @@ function MetricEvidenceTable({ lesson, metric, data, locate }: {
 
 function BridgeEvidence({ lesson, session, data, locate, selectActor }: {
   lesson: Lesson; session: Session; data: NonNullable<Session["run"]>["frames"];
-  locate: (tick: number, metric: string) => void; selectActor: (id: string) => void;
+  locate: (tick: number, metric: string, actorId?: string, eventId?: string) => void; selectActor: (id: string) => void;
 }) {
   const run = session.run!;
   const frame = run.frames[session.cursor];
   const metric = lesson.metrics.find(item => item.id === session.focusedMetric) ?? chartMetric(lesson);
   const prior = run.frames[frame.tick - 1];
   const deltas = relatedActors(frame, metric.id);
+  const bank = lesson.casePackage?.caseId === "svb_run";
+  const contributors = frame.events.filter(event => matchesMetric(event, metric.id) ||
+    (bank && (bankEventDeltas(frame, prior, event)[metric.id] ?? 0) !== 0));
   const observedSignals = frame.events.filter(event => event.priorSignal);
   const evaluatedSignals = frame.actors.filter(actor => actor.priorSignal);
   let changeText = "运行开始后，可逐步追踪指标变化。";
@@ -120,19 +124,22 @@ function BridgeEvidence({ lesson, session, data, locate, selectActor }: {
       <select aria-label="追踪指标" value={metric.id} onChange={event => locate(frame.tick, event.target.value)}>{lesson.metrics.map(item => <option key={item.id} value={item.id}>{item.label}</option>)}</select>
     </label>}
     <p>{changeText}</p>
-    {!lesson.originalId && evaluatedSignals.length > 0 ? <p>本轮 {evaluatedSignals.length} 位储户的评分计入了上轮待付，
+    {bank && evaluatedSignals.length > 0 ? <p>本轮 {evaluatedSignals.length} 位储户的评分计入了上轮待付，
       其中 {observedSignals.length} 位提交了防御性提款。查看个体的评分与阈值，判断这一项是否改变决定。</p> :
       (observedSignals.length > 0 || evaluatedSignals.length > 0) && <p>{lesson.originalId ?
         "本步有个体使用了已记录的信号。选择个体可回查该时点。" : lesson.tickUnit === "event" ? "当前报价引用了已成交的价格。" :
         `本轮 ${observedSignals.length} 次个体决策引用了上轮公示。`}选择个体可回查该时点。</p>}
     {frame.tick > 0 && <details className="trace-details">
       <summary>查看{lesson.tickUnit === "event" ? "当前事件的" : "本轮 "} {deltas.length} 位贡献个体及事件</summary>
-      {deltas.length ? <ul className="trace-list">{frame.events.filter(event => matchesMetric(event, metric.id))
+      {contributors.length ? <ul className="trace-list">{contributors
         .map(event => {
           const actorId = event.actorId;
-          const delta = event.deltas[metric.id];
+          const delta = (bank ? bankEventDeltas(frame, prior, event) : event.deltas)[metric.id];
           const text = typeof delta === "number" ? `${event.text}（${delta > 0 ? "+" : ""}${displayNumber(delta)}）` : event.text;
-          return <li key={event.id}>{actorId ?
+          return <li key={event.id}>{bank ?
+            <button className="text-button" onClick={() => locate(frame.tick, metric.id, actorId, event.id)}>
+              {event.id} · {text}
+            </button> : actorId ?
             <button className="text-button" onClick={() => selectActor(actorId)}>{text}</button> : text}</li>;
         })}</ul> :
         <p>本步没有改变这项指标的个体事件。</p>}
@@ -143,7 +150,10 @@ function BridgeEvidence({ lesson, session, data, locate, selectActor }: {
       <ul>{frame.equations.map(equation => <li key={equation}>{equation}</li>)}</ul>
       {lesson.bridge && <p>模型规则 · {lesson.bridge.rule}</p>}
       <ul>{frame.events.filter(event => event.kind === "sale" || event.kind === "support" || event.kind === "revaluation")
-        .map(event => <li key={event.id}>{event.text}</li>)}</ul>
+        .map(event => <li key={event.id}><button className="text-button" onClick={() =>
+          locate(frame.tick, event.kind === "support" ? "borrowing" : "equity", undefined, event.id)}>
+          {event.id} · {event.text}
+        </button></li>)}</ul>
     </details>}
     {lesson.originalId && <details className="trace-details">
       <summary>核对模型规则</summary><p>{lesson.bridge?.rule}</p>
@@ -191,6 +201,9 @@ type StudioProps = {
   lesson: Lesson;
   review?: (session: Session, send: (command: Command) => void, nextAction?: ReactNode) => ReactNode;
   reviewByTimeline?: boolean;
+  actorDetail?: (session: Session, select: (id: string) => void,
+    locate: (tick: number, metric: string, actorId?: string, eventId?: string) => void) => ReactNode;
+  afterInvestigation?: (session: Session) => ReactNode;
 };
 
 export function Studio(props: StudioProps) {
@@ -204,7 +217,7 @@ export function Studio(props: StudioProps) {
   return <LessonStudio {...props} course={course} fresh={query.get("fresh") === "1"}/>;
 }
 
-function LessonStudio({ lesson, review, reviewByTimeline, course, fresh }: StudioProps & { course?: CourseRef; fresh: boolean }) {
+function LessonStudio({ lesson, review, reviewByTimeline, actorDetail, afterInvestigation, course, fresh }: StudioProps & { course?: CourseRef; fresh: boolean }) {
   const [{ initial, restoreFailed }] = useState(() => {
     const initial = startLesson(lesson);
     if (!course || fresh) return { initial, restoreFailed: false };
@@ -216,6 +229,7 @@ function LessonStudio({ lesson, review, reviewByTimeline, course, fresh }: Studi
   const [session, send] = useReducer((state: Session, command: Command) => transition(lesson, state, command), initial);
   const lastSaved = useRef(session);
   const [saveFailed, setSaveFailed] = useState(false);
+  const [, noteSaved] = useReducer((revision: number) => revision + 1, 0);
   useLayoutEffect(() => {
     if (session === lastSaved.current || !course || !session.choices.length || restoreFailed) return;
     try {
@@ -340,6 +354,10 @@ function LessonStudio({ lesson, review, reviewByTimeline, course, fresh }: Studi
               <p>{lesson.casePackage.syntheticPopulation.description}</p>
               {lesson.casePackage.modelAssumptions.map(item => <p key={item}>{item}</p>)}
             </>}
+            {lesson.source.timeline && <ol className="history-timeline">{lesson.source.timeline.map(item => <li key={item.date}>
+              <strong><time dateTime={item.date}>{item.date}</time></strong> · {item.text}
+              <a href={item.url} target="_blank" rel="noreferrer" aria-label={`查阅 ${item.date} 史料`}>查阅史料</a>
+            </li>)}</ol>}
             <ul>{lesson.source.references.map(source => <li key={source.url}>
               <a href={source.url} target="_blank" rel="noreferrer">{source.title}</a>
             </li>)}</ul>
@@ -381,6 +399,7 @@ function LessonStudio({ lesson, review, reviewByTimeline, course, fresh }: Studi
             {actor ? <Inspector actor={actor} stateName={lesson.states[actor.state].label}
               frame={frame} tickUnit={lesson.tickUnit} metricId={activeMetric.id} locate={stage === 3 ? locateMetric : undefined}/> :
               <p>从画布或名单选一位个体，查看这一时点的状态、约束和关联事件。</p>}
+            {actor && actorDetail?.(session, selectActor, locateMetric)}
           </EvidenceCard>}
           system={stage === 3 ? <EvidenceCard label="宏观指标曲线" className="macro-view">
               <MetricCard label={activeMetric.label} value={typeof frame.metrics[activeMetric.id] === "number"
@@ -392,7 +411,10 @@ function LessonStudio({ lesson, review, reviewByTimeline, course, fresh }: Studi
                 const value = frame.metrics[id];
                 const baseline = run.frames[0].metrics[id];
                 const difference = typeof value === "number" && typeof baseline === "number" ? value - baseline : null;
-                return <div key={id}><dt>{context.label}</dt><dd>{displayNumber(value)}{lesson.originalId && value != null && context.unit ? ` ${context.unit}` : ""}
+                const banking = lesson.casePackage?.caseId === "svb_run";
+                return <div key={id}><dt>{banking ? <button className="text-button" type="button"
+                  onClick={() => locate(frame.tick, id)} aria-label={`追踪${context.label}`}>{context.label}</button> : context.label}</dt>
+                  <dd>{displayNumber(value)}{(banking || lesson.originalId) && value != null && context.unit ? ` ${context.unit}` : ""}
                   {id === lesson.priceMetric && difference !== null && difference !== 0 && <span data-financial-move={difference > 0 ? "up" : "down"}>
                     {difference > 0 ? "+" : ""}{displayNumber(difference)}
                   </span>}</dd></div>;
@@ -428,9 +450,13 @@ function LessonStudio({ lesson, review, reviewByTimeline, course, fresh }: Studi
           {stage === 3 && <BridgeEvidence lesson={lesson} session={session} data={visibleFrames} locate={locateMetric} selectActor={selectActor}/>}
         </div>}
       </div>}
-      {stage === 4 && session.comparison && <div className="studio-results">
-        {review?.(session, send)}
-        {course && <Investigation key={session.comparison.run.id} course={course} lesson={lesson} session={session}/>}
+      {stage === 4 && (session.comparison || afterInvestigation) && <div className="studio-results">
+        {session.comparison && <>
+          {review?.(session, send)}
+          {course && <Investigation key={session.comparison.run.id} course={course} lesson={lesson} session={session}
+            onSaved={afterInvestigation ? noteSaved : undefined}/>}
+        </>}
+        {afterInvestigation?.(session)}
       </div>}
       {course && session.choices.length > 0 && <a className="restart-link" href={courseLink(course, { fresh: "1" })}>从头再练</a>}
     </main>

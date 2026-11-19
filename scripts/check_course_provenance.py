@@ -78,6 +78,10 @@ def inventory():
              "每个原浏览器运行 ID 一个证据摘要",
              "在固定提交的原浏览器内核中运行支持的开局动作及处理，只保存摘要",
              "node frontend/tests/generate_legacy_fingerprints.mjs <8fc8971 checkout>")
+    register("frontend/src/data/svb-opening.json", "teaching_input", "svb/1", ["svb_run"],
+             "固定种子的 60 名教学储户与集中、分散两种观察关系",
+             "从原 Python 内核提取合成开局与同种子打乱顺序。浏览器按相同邻接规则生成分散图",
+             "python -m frontend.tests.svb_parity")
     register("content/concepts.json", "authored_learning_design", "1", CATALOG, "每项独立概念及其先修",
              "课内概念、误解定义与跨课连接", "python -m scripts.check_learning_packages")
     for case_id in CATALOG:

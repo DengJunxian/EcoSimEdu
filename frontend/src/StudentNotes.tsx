@@ -1,12 +1,14 @@
-import { useEffect, useState, type FormEvent } from "react";
+import { lazy, Suspense, useEffect, useState, type FormEvent } from "react";
 import { courseById } from "./curriculum.ts";
 import { displayObservation, frameLabel, type Lesson } from "./lesson.ts";
 import { allNotes, exportProgressArchive, notesLink, readNote, restoreProgressArchive, sourceLink, sourceRun, trendLabel } from "./learning-store.ts";
 import type { AuctionRun } from "./auction.ts";
-import { seedEvidence } from "./run-evidence.ts";
+import { bankEventValues, seedEvidence } from "./run-evidence.ts";
 import { studentRoutes } from "../../content/student-navigation.ts";
 import { StudentHeader } from "./StudentHeader.tsx";
 import { EvidenceCard, PageTitle, StatusNotice } from "../../content/student-ui.tsx";
+
+const SvbTransferRecord = lazy(() => import("./SvbTransfer.tsx").then(module => ({ default: module.SvbTransfer })));
 
 function listNotes() {
   try { return allNotes(localStorage).filter(note => Object.hasOwn(courseById, note.course.caseId)); }
@@ -18,12 +20,16 @@ function ProgressBackup({ onRestore }: { onRestore: () => void }) {
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
 
-  function download() {
+  async function download() {
+    setBusy(true);
     setError("");
     setMessage("");
     try {
       const archive = exportProgressArchive(localStorage);
-      const url = URL.createObjectURL(new Blob([JSON.stringify(archive)], { type: "application/json" }));
+      const svbTransfer = await import("./svb-study.ts").then(module => module.readSvbTransfer())
+        .then(({ attempts }) => attempts.length ? attempts : undefined)
+        .catch(() => { setError("本次备份不含青湾银行作答，浏览器的作答存储无法读取。"); return undefined; });
+      const url = URL.createObjectURL(new Blob([JSON.stringify({ ...archive, svbTransfer })], { type: "application/json" }));
       const link = document.createElement("a");
       link.href = url;
       link.download = "ecosimedu-四阶学习备份.json";
@@ -32,7 +38,7 @@ function ProgressBackup({ onRestore }: { onRestore: () => void }) {
       setMessage(`已导出 ${archive.entries.length} 条四阶记录。`);
     } catch {
       setError("无法读取本浏览器的四阶记录。请检查站点存储权限。");
-    }
+    } finally { setBusy(false); }
   }
 
   async function restore(event: FormEvent<HTMLFormElement>) {
@@ -52,8 +58,20 @@ function ProgressBackup({ onRestore }: { onRestore: () => void }) {
       catch { throw new Error("文件无法读取。请选择四阶课堂备份 JSON。"); }
       const result = restoreProgressArchive(localStorage, data);
       onRestore();
+      const svbTransfer = data && typeof data === "object" && "svbTransfer" in data ? data.svbTransfer : undefined;
+      let transferMessage = "";
+      if (svbTransfer !== undefined) {
+        try {
+          const restored = await import("./svb-study.ts").then(module => module.restoreSvbTransfer(svbTransfer));
+          if (restored) transferMessage = ` 青湾银行新增 ${restored} 次作答。`;
+          onRestore();
+        } catch (problem) {
+          setError(problem instanceof Error ? problem.message : "青湾银行作答无法恢复。");
+        }
+      }
       setMessage(`已导入 ${result.restored} 条，已有 ${result.existing} 条。` +
-        (result.conflicts ? ` ${result.conflicts} 条与本地记录不同，已保留本地记录。原记录可在原地址或另一浏览器档案恢复。` : ""));
+        (result.conflicts ? ` ${result.conflicts} 条与本地记录不同，已保留本地记录。原记录可在原地址或另一浏览器档案恢复。` : "") +
+        transferMessage);
       if (result.failed) setError(`${result.failed} 条未写入。请保留备份，检查存储容量后重新导入。`);
       else form.reset();
     } catch (problem) {
@@ -65,8 +83,8 @@ function ProgressBackup({ onRestore }: { onRestore: () => void }) {
 
   return <details className="trace-details progress-backup">
     <summary>备份与导入四阶学习</summary>
-    <p>更换地址或端口时，先在原地址导出续学位置与解释，再在这里导入。原实验室的作答、笔记和运行可由原版入口备份。</p>
-    <button type="button" onClick={download} disabled={busy}>导出四阶学习备份</button>
+    <p>备份包含四阶续学位置、解释和青湾银行的迁移作答。其余原实验室记录可由原版入口备份。</p>
+    <button type="button" onClick={() => void download()} disabled={busy}>导出四阶学习备份</button>
     <form onSubmit={restore}>
       <label>四阶学习备份 <input type="file" name="archive" accept=".json,application/json" required disabled={busy}/></label>
       <button disabled={busy}>导入四阶学习备份</button>
@@ -78,6 +96,7 @@ function ProgressBackup({ onRestore }: { onRestore: () => void }) {
 
 export function StudentNotes({ id }: { id: string | null }) {
   const [notes, setNotes] = useState(listNotes);
+  const [revision, setRevision] = useState(0);
   const opened = notes.find(note => note.id === id);
   return <>
     <StudentHeader/>
@@ -87,12 +106,13 @@ export function StudentNotes({ id }: { id: string | null }) {
         {id && <a href={notesLink()}>全部解释</a>}
         <a href={studentRoutes.notes}>原版实验笔记与学习记录</a>
       </nav>
-      {!id && <ProgressBackup onRestore={() => setNotes(listNotes())}/>}
+      {!id && <ProgressBackup onRestore={() => { setNotes(listNotes()); setRevision(value => value + 1); }}/>}
       {id && !opened && <StatusNotice tone="warning">这份解释在当前浏览器中不可用。可回到全部解释查找。</StatusNotice>}
       {!id && !notes.length && <p className="edu-status">在课堂完成政策对照并保存解释后，可在这里回查。<a href="./#paths">去选一门课</a></p>}
       <ol className="note-list">{(opened ? [opened] : notes).map(note => (
         <li key={note.id}>
-          <h2>{courseById[note.course.caseId].title}</h2>
+          <h2>{courseById[note.course.caseId].title}
+            {note.course.caseId === "svb_run" && (note.comparisonId.endsWith("/network") ? " · 分散信息来源" : " · 提高现金缓冲")}</h2>
           <p><time dateTime={note.savedAt}>{new Date(note.savedAt).toLocaleString()}</time> · 原政策预测：{trendLabel[note.prediction]}</p>
           {opened ? <dl className="note-text">
             <dt>模型规则</dt><dd>{note.rule}</dd>
@@ -106,6 +126,7 @@ export function StudentNotes({ id }: { id: string | null }) {
           </div>
         </li>
       ))}</ol>
+      {!id && <Suspense fallback={null}><SvbTransferRecord key={revision} recordOnly/></Suspense>}
     </main>
   </>;
 }
@@ -174,12 +195,16 @@ export function SavedSource({ lesson, id, side, caseId, market }: {
       {frame.equations && <ul>{frame.equations.map(equation => <li key={equation}>{equation}</li>)}</ul>}
       </EvidenceCard>
       <table className="source-metrics">
-        <caption>{caseId === "svb_run" ? "该轮开始与结束的数值" : "原事件前后数值"}</caption>
+        <caption>{caseId === "svb_run" && !selected ? "该轮开始与结束的数值" : "原事件前后数值"}</caption>
         <thead><tr><th scope="col">指标</th><th scope="col">之前</th><th scope="col">之后</th></tr></thead>
-        <tbody>{lesson.metrics.map(metric => <tr key={metric.id}>
-          <th scope="row">{metric.label}{metric.unit ? `（${metric.unit}）` : ""}</th>
-          <td>{displayObservation(evidence.before?.[metric.id])}</td><td>{displayObservation(evidence.after[metric.id])}</td>
-        </tr>)}</tbody>
+        <tbody>{lesson.metrics.map(metric => {
+          const values = selected ? bankEventValues(frame, run.frames[tick - 1], selected.id, metric.id) :
+            { before: evidence.before?.[metric.id], after: evidence.after[metric.id] };
+          return <tr key={metric.id}>
+            <th scope="row">{metric.label}{metric.unit ? `（${metric.unit}）` : ""}</th>
+            <td>{displayObservation(values?.before)}</td><td>{displayObservation(values?.after)}</td>
+          </tr>;
+        })}</tbody>
       </table>
     </main>
   </>;

@@ -73,7 +73,8 @@ export type Lesson = {
     timeline: readonly { label: string; highlighted?: boolean }[] };
   populationTitle: string;
   source: { kind: "illustrative" | CasePackage["identity"]; note: string;
-    references?: readonly { title: string; url: string }[] };
+    references?: readonly { title: string; url: string }[];
+    timeline?: readonly { date: string; text: string; url: string }[] };
   casePackage?: CasePackage;
   metricRoles: MetricRoles;
   decisions: readonly Decision[];
@@ -87,10 +88,17 @@ export type Lesson = {
   originalId?: string;
   explanationPrompt?: string;
   policy: { label: string; min: number; max: number; baseline: number; unit: string;
-    step?: number; describe?: string; labels?: Readonly<Record<number, string>>; project?: (run: Run) => readonly Frame[]; };
+    step?: number; describe?: string; labels?: Readonly<Record<number, string>>; project?: (run: Run) => readonly Frame[];
+    alternate?: { value: number; label: string; description: string }; };
   seed: number;
   run: (input: { seed: number; choices: readonly string[]; policy: number }) => Run;
 };
+
+export function legalPolicy(lesson: Lesson, value: unknown): value is number {
+  const { policy } = lesson;
+  return typeof value === "number" && Number.isInteger(value) && (policy.alternate?.value === value ||
+    value >= policy.min && value <= policy.max && (value - policy.min) % (policy.step ?? 1) === 0);
+}
 
 type Comparison = { run: Run; policy: number; prediction: Trend };
 
@@ -239,9 +247,7 @@ export function transition(lesson: Lesson, session: Session, command: Command): 
         traceFocus: command.focus, playing: false };
     }
     case "policy": {
-      if (stage !== 4 || session.comparison || !Number.isInteger(command.value) ||
-          command.value < lesson.policy.min || command.value > lesson.policy.max ||
-          (command.value - lesson.policy.min) % (lesson.policy.step ?? 1) !== 0 || command.value === session.policy) return session;
+      if (stage !== 4 || session.comparison || !legalPolicy(lesson, command.value) || command.value === session.policy) return session;
       return { ...session, policy: command.value, prediction: undefined };
     }
     case "predict":

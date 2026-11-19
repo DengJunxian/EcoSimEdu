@@ -103,6 +103,15 @@
   padding: var(--edu-s4);
 }
 .studio .trace-details li, .studio .bank-readout dd { overflow-wrap: anywhere; }
+.bank-readout .text-button { width: 100%; min-height: var(--edu-target); font-size: inherit; font-weight: 650; }
+.history-timeline > li { margin-block: var(--edu-s2); }
+.history-timeline a { display: inline-block; margin-inline-start: var(--edu-s2); }
+.svb-course-evidence > :not(:first-child) { margin-block-start: var(--edu-s3); }
+.svb-course-evidence th, .svb-course-evidence td { overflow-wrap: anywhere; padding-inline: var(--edu-s1); }
+.svb-course-evidence :is(td, th:not(:first-child)) {
+  white-space: nowrap; text-align: end; font-variant-numeric: tabular-nums;
+}
+.svb-course-evidence .choice { align-items: baseline; }
 .microscope-wrap { margin-top: var(--edu-s4); }
 .microscope-wrap > summary, .trace-microscope summary { cursor: pointer; font-weight: 700; }
 .microscope-wrap > summary { padding-block: var(--edu-s2); }
