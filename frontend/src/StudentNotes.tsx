@@ -1,12 +1,16 @@
 import { lazy, Suspense, useEffect, useState, type FormEvent } from "react";
 import { courseById } from "./curriculum.ts";
 import { displayObservation, frameLabel, type Lesson } from "./lesson.ts";
-import { allNotes, exportProgressArchive, notesLink, readNote, restoreProgressArchive, sourceLink, sourceRun, trendLabel } from "./learning-store.ts";
+import { allNotes, exportProgressArchive, notesLink, readNote, sourceLink, sourceRun, trendLabel } from "./learning-store.ts";
 import type { AuctionRun } from "./auction.ts";
 import { bankEventValues, seedEvidence } from "./run-evidence.ts";
 import { studentRoutes } from "../../content/student-navigation.ts";
 import { StudentHeader } from "./StudentHeader.tsx";
 import { EvidenceCard, PageTitle, StatusNotice } from "../../content/student-ui.tsx";
+import { StudyReflection } from "./StudyReflection.tsx";
+import { profileId } from "../../student-web/src/learning/learner-repository";
+
+const archiveModule = () => import("./study-archive.ts");
 
 const TransferRecord = lazy(() => import("./FlagshipTransfer.tsx").then(module => ({ default: module.FlagshipTransfer })));
 const otherFlagships = ["schelling_segregation", "double_auction"] as const;
@@ -21,11 +25,33 @@ function ProgressBackup({ onRestore }: { onRestore: () => void }) {
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
 
-  async function download() {
+  function downloadFile(raw: string, name: string) {
+    const url = URL.createObjectURL(new Blob([raw], { type: "application/json" }));
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = name;
+    link.click();
+    window.setTimeout(() => URL.revokeObjectURL(url), 1000);
+  }
+
+  async function download(kind: "progressive" | "full" | "recovery") {
     setBusy(true);
     setError("");
     setMessage("");
     try {
+      if (kind !== "progressive") {
+        const profile = await profileId(false);
+        const { exportStudy, latestRecovery } = await archiveModule();
+        if (kind === "recovery") {
+          const snapshot = await latestRecovery(profile);
+          if (!snapshot) throw new Error("此浏览器还没有导入前快照。");
+          downloadFile(snapshot.raw, "ecosimedu-导入前快照.json");
+        } else {
+          downloadFile(JSON.stringify(await exportStudy(localStorage, profile)), "ecosimedu-完整学习档案.json");
+        }
+        setMessage("学习档案已导出。");
+        return;
+      }
       const archive = exportProgressArchive(localStorage);
       const { readFlagshipTransfer } = await import("./flagship-study.ts");
       const results = await Promise.allSettled((["svb_run", ...otherFlagships] as const).map(readFlagshipTransfer));
@@ -34,17 +60,12 @@ function ProgressBackup({ onRestore }: { onRestore: () => void }) {
       const attempts = results.map(entry => entry.status === "fulfilled" ? entry.value.attempts : []);
       const svbTransfer = attempts[0].length ? attempts[0] : undefined;
       const flagshipTransfers = attempts.slice(1).flat();
-      const url = URL.createObjectURL(new Blob([JSON.stringify({
+      downloadFile(JSON.stringify({
         ...archive, svbTransfer, ...(flagshipTransfers.length ? { flagshipTransfers } : {}),
-      })], { type: "application/json" }));
-      const link = document.createElement("a");
-      link.href = url;
-      link.download = "ecosimedu-四阶学习备份.json";
-      link.click();
-      window.setTimeout(() => URL.revokeObjectURL(url), 1000);
+      }), "ecosimedu-四阶学习备份.json");
       setMessage(`已导出 ${archive.entries.length} 条四阶记录。`);
-    } catch {
-      setError("无法读取本浏览器的四阶记录。请检查站点存储权限。");
+    } catch (problem) {
+      setError(problem instanceof Error ? problem.message : "无法读取本浏览器的学习档案。");
     } finally { setBusy(false); }
   }
 
@@ -56,38 +77,48 @@ function ProgressBackup({ onRestore }: { onRestore: () => void }) {
     setError("");
     const form = event.currentTarget;
     const file = new FormData(form).get("archive");
+    let backedUp = false;
     try {
-      if (!(file instanceof File) || !file.size || file.size > 5_000_000) {
-        throw new Error("请选择不超过 5 MB 的四阶课堂备份。");
+      if (!(file instanceof File) || !file.size || file.size > 20_000_000) {
+        throw new Error("请选择不超过 20 MB 的 EcoSimEdu 学习档案。");
       }
+      const profile = await profileId(false);
+      const { snapshotBeforeImport, isStudyBundle, isIndexedArchive, restoreStudy, restoreWithProgress } = await archiveModule();
+      const before = await snapshotBeforeImport(localStorage, profile);
+      backedUp = true;
       let data: unknown;
       try { data = JSON.parse(await file.text()); }
-      catch { throw new Error("文件无法读取。请选择四阶课堂备份 JSON。"); }
-      const result = restoreProgressArchive(localStorage, data);
-      onRestore();
-      const svbTransfer = data && typeof data === "object" && "svbTransfer" in data ? data.svbTransfer : undefined;
-      const flagshipTransfers = data && typeof data === "object" && "flagshipTransfers" in data ? data.flagshipTransfers : undefined;
-      let transferMessage = "";
-      if (svbTransfer !== undefined || flagshipTransfers !== undefined) {
-        const { restoreFlagshipTransfers } = await import("./flagship-study.ts");
-        try {
-          const bank = svbTransfer === undefined ? 0 : await restoreFlagshipTransfers(svbTransfer, ["svb_run"]);
-          if (bank) transferMessage = ` 青湾银行新增 ${bank} 次作答。`;
-          const other = flagshipTransfers === undefined ? 0 : await restoreFlagshipTransfers(flagshipTransfers, otherFlagships);
-          if (other) transferMessage += ` 拍卖与居住隔离新增 ${other} 次作答。`;
-        } catch (problem) {
-          setError(problem instanceof Error ? problem.message : "迁移作答无法恢复。");
-        } finally {
-          onRestore();
-        }
+      catch { throw new Error("文件无法读取。请选择 EcoSimEdu 学习档案 JSON。"); }
+      if (isStudyBundle(data) || isIndexedArchive(data)) {
+        const restored = await restoreStudy(localStorage, profile, data);
+        const { indexed, progressive, teaching } = restored;
+        const conflicts = (progressive?.conflicts ?? 0) + (teaching?.conflicts ?? 0);
+        setMessage(`档案已导入：${indexed?.restored ?? 0} 次作答、${indexed?.restoredRecords ?? 0} 条活动或复习、${(progressive?.restored ?? 0) + (teaching?.restored ?? 0)} 条进度或反馈。` +
+          (indexed?.preservedVersions ? ` 已归档 ${indexed.preservedVersions} 次旧版作答。` : "") +
+          (conflicts ? ` ${conflicts} 条记录有冲突，已保留本地原记录。` : ""));
+      } else {
+        const svb = data && typeof data === "object" && "svbTransfer" in data ? data.svbTransfer : undefined;
+        const others = data && typeof data === "object" && "flagshipTransfers" in data ? data.flagshipTransfers : undefined;
+        const { verifiedFlagshipTransfers } = await import("./flagship-study.ts");
+        const bank = svb === undefined ? [] : verifiedFlagshipTransfers(svb, ["svb_run"]);
+        const remaining = others === undefined ? [] : verifiedFlagshipTransfers(others, otherFlagships);
+        const attempts = [...bank, ...remaining];
+        const { progressive } = await restoreWithProgress(localStorage, profile, data, attempts.length ? {
+          kind: "ecosimedu-learning-export", schema_version: 1, attempts,
+        } : undefined);
+        const priorIds = new Set(before.attempts.map(attempt => attempt.id));
+        const bankAdded = bank.filter(attempt => !priorIds.has(attempt.id)).length;
+        const otherAdded = remaining.filter(attempt => !priorIds.has(attempt.id)).length;
+        setMessage(`已导入 ${progressive.restored} 条，已有 ${progressive.existing} 条。` +
+          (progressive.conflicts ? ` ${progressive.conflicts} 条与本地记录不同，已保留本地记录。` : "") +
+          (bankAdded ? ` 青湾银行新增 ${bankAdded} 次作答。` : "") +
+          (otherAdded ? ` 拍卖与居住隔离新增 ${otherAdded} 次作答。` : ""));
       }
-      setMessage(`已导入 ${result.restored} 条，已有 ${result.existing} 条。` +
-        (result.conflicts ? ` ${result.conflicts} 条与本地记录不同，已保留本地记录。原记录可在原地址或另一浏览器档案恢复。` : "") +
-        transferMessage);
-      if (result.failed) setError(`${result.failed} 条未写入。请保留备份，检查存储容量后重新导入。`);
-      else form.reset();
+      onRestore();
+      form.reset();
     } catch (problem) {
-      setError(problem instanceof Error ? problem.message : "导入失败，请保留原备份。");
+      setError((problem instanceof Error ? problem.message : "导入失败，请保留源文件。") +
+        (backedUp ? " 可下载导入前快照。" : ""));
     } finally {
       setBusy(false);
     }
@@ -95,8 +126,12 @@ function ProgressBackup({ onRestore }: { onRestore: () => void }) {
 
   return <details className="trace-details progress-backup">
     <summary>备份与导入四阶学习</summary>
-    <p>备份包含四阶续学位置、解释和旗舰课的迁移作答。其余原实验室记录可由原版入口备份。</p>
-    <button type="button" onClick={() => void download()} disabled={busy}>导出四阶学习备份</button>
+    <p>完整档案包含四阶进度、解释、原实验室作答、复习和帮助记录。导入先保存本机快照。</p>
+    <div className="decision-actions">
+      <button type="button" onClick={() => void download("full")} disabled={busy}>导出完整学习档案</button>
+      <button type="button" onClick={() => void download("progressive")} disabled={busy}>导出四阶学习备份</button>
+      <button type="button" onClick={() => void download("recovery")} disabled={busy}>导出导入前快照</button>
+    </div>
     <form onSubmit={restore}>
       <label>四阶学习备份 <input type="file" name="archive" accept=".json,application/json" required disabled={busy}/></label>
       <button disabled={busy}>导入四阶学习备份</button>
@@ -127,15 +162,17 @@ export function StudentNotes({ id }: { id: string | null }) {
             {note.course.caseId === "svb_run" && (note.comparisonId.endsWith("/network") ? " · 分散信息来源" : " · 提高现金缓冲")}</h2>
           <p><time dateTime={note.savedAt}>{new Date(note.savedAt).toLocaleString()}</time> · 原政策预测：{trendLabel[note.prediction]}</p>
           {opened ? <dl className="note-text">
+            <dt>我的主张</dt><dd>{note.claim ?? note.comparison}</dd>
             <dt>模型规则</dt><dd>{note.rule}</dd>
             <dt>算术核对</dt><dd>{note.calculation}</dd>
-            <dt>配对差异</dt><dd>{note.comparison}</dd>
+            {note.claim && note.claim !== note.comparison && <><dt>配对差异</dt><dd>{note.comparison}</dd></>}
             <dt>现实假设</dt><dd>{note.hypothesis}</dd>
           </dl> : <p><a href={notesLink(note.id)}>打开已保存的解释</a></p>}
           <div className="note-links">
             <a href={sourceLink(note, "baseline")}>查看基线原事件 {note.evidence?.baseline?.eventId ?? note.baselineEvent}</a>
             <a href={sourceLink(note, "comparison")}>查看政策组原事件 {note.evidence?.comparison?.eventId ?? note.comparisonEvent}</a>
           </div>
+          {opened && <StudyReflection key={note.id} note={note}/>}
         </li>
       ))}</ol>
       {!id && <Suspense fallback={null}><div key={revision} className="flagship-records">

@@ -11,6 +11,8 @@ import { ActionPanel, Breadcrumb, EvidenceCard, MetricCard, PageTitle, ProgressS
 import { Workbench, workbenchMedia, type WorkbenchView } from "./Workbench.tsx";
 import { microscopeRole } from "./microscope.ts";
 import { TraceMicroscope } from "./TraceMicroscope.tsx";
+import { ForecastReview } from "./ForecastReview.tsx";
+import { hasSavedExplanation, LearningJourney, LearningObjectives } from "./ProgressiveLearning.tsx";
 import "./workbench.css";
 
 const MetricChart = lazy(() => import("./MetricChart"));
@@ -253,6 +255,7 @@ function LessonStudio({ lesson, review, reviewByTimeline, actorDetail, afterInve
   const { stage, run } = session;
   const asOf = session.revealed;
   const visibleFrames = useMemo(() => run?.frames.slice(0, asOf + 1) ?? [], [run, asOf]);
+  const explained = stage === 4 && hasSavedExplanation(session);
   const roleView = stage === 3 && session.perspective === "role";
   const canTrace = !!course && !!microscopeRole(lesson) && stage === 3;
   const frame = run?.frames[session.cursor];
@@ -336,6 +339,7 @@ function LessonStudio({ lesson, review, reviewByTimeline, actorDetail, afterInve
     <main className="shell lesson-shell studio" id="main" tabIndex={-1}>
       <Breadcrumb links={[{ href: "./#paths", label: "课程地图" }]} current={lesson.casePackage?.title ?? lesson.populationTitle}/>
       <ProgressStepper steps={stageNames} current={stage}/>
+      {course && <LearningObjectives lesson={lesson} session={session} explained={explained}/>}
       {restoreFailed && <StatusNotice tone="error">这份进度无法恢复。本页的操作会保留原记录。
         {course && <a href={courseLink(course, { fresh: "1" })}>开始并保存新练习</a>}
       </StatusNotice>}
@@ -447,6 +451,7 @@ function LessonStudio({ lesson, review, reviewByTimeline, actorDetail, afterInve
               {!ready && pauseTick !== undefined ? "下一步 · 查看后续报价" : "试一项政策"}
             </button>)}
           </section> : review?.(session, send)}
+          {stage === 3 && <ForecastReview lesson={lesson} session={session} locate={locateMetric}/>}
           {stage === 3 && <BridgeEvidence lesson={lesson} session={session} data={visibleFrames} locate={locateMetric} selectActor={selectActor}/>}
         </div>}
       </div>}
@@ -454,9 +459,10 @@ function LessonStudio({ lesson, review, reviewByTimeline, actorDetail, afterInve
         {session.comparison && <>
           {review?.(session, send)}
           {course && <Investigation key={session.comparison.run.id} course={course} lesson={lesson} session={session}
-            onSaved={afterInvestigation ? noteSaved : undefined}/>}
+            onSaved={noteSaved}/>}
         </>}
         {afterInvestigation?.(session)}
+        {course && explained && <LearningJourney caseId={course.caseId}/>}
       </div>}
       {course && session.choices.length > 0 && <a className="restart-link" href={courseLink(course, { fresh: "1" })}>从头再练</a>}
     </main>

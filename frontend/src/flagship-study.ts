@@ -24,7 +24,7 @@ export async function readFlagshipTransfer(caseId: FlagshipCase) {
   return { base, attempts: attempts.filter(attempt => attempt.item_id === item.id) };
 }
 
-export async function restoreFlagshipTransfers(attempts: unknown, allowed: readonly FlagshipCase[]) {
+export function verifiedFlagshipTransfers(attempts: unknown, allowed: readonly FlagshipCase[]) {
   if (!Array.isArray(attempts) || !attempts.every((entry: Partial<Attempt> | null) => {
     const caseId = allowed.find(id => id === entry?.case_id);
     if (!caseId || !entry) return false;
@@ -32,10 +32,5 @@ export async function restoreFlagshipTransfers(attempts: unknown, allowed: reado
     return entry.content_version === pack.content_version && entry.item_id === item.id && entry.activity_id === activity.id;
   })) throw new Error("迁移题的版本或作答记录无法核对。");
 
-  if (attempts.length === 0) return 0;
-  const { restoreLearning } = await import("../../student-web/src/learning/learning-archive");
-  const result = await restoreLearning(await profileId(false), {
-    kind: "ecosimedu-learning-export", schema_version: 1, attempts,
-  }, async caseId => flagshipStudy(caseId as FlagshipCase).pack);
-  return result.restored;
+  return attempts as Attempt[];
 }

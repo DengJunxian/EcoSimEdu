@@ -6,6 +6,7 @@ import type { EventEnvelope } from "./domain-contracts.ts";
 import type { ModelRun } from "./models/record.ts";
 import type { SvbRun } from "./svb.ts";
 import type { AuctionRun } from "./auction.ts";
+import { StudyReflection } from "./StudyReflection.tsx";
 
 function EvidencePicker({ events, name, label, selection, tickUnit }: {
   events: readonly EventEnvelope[]; name: string; label: string; selection?: string; tickUnit?: Lesson["tickUnit"];
@@ -38,6 +39,7 @@ export function Investigation({ course, lesson, session, onSaved }: {
   });
   const [savedId, setSavedId] = useState<string>();
   const previous = notes[0];
+  const saved = notes.find(note => note.id === savedId) ?? previous;
   const [status, setStatus] = useState("");
   const receipt = useRef<HTMLParagraphElement>(null);
   useEffect(() => {
@@ -98,6 +100,7 @@ export function Investigation({ course, lesson, session, onSaved }: {
       }
       const explanation: Explanation = {
         baselineEvent: selectedBaseline.frameTick, comparisonEvent: selectedComparison.frameTick,
+        claim: String(form.get("claim") ?? "").trim() || String(form.get("difference")).trim(),
         rule: String(form.get("rule")).trim(), calculation: String(form.get("calculation")).trim(),
         comparison: String(form.get("difference")).trim(), hypothesis: String(form.get("hypothesis")).trim(),
       };
@@ -119,9 +122,10 @@ export function Investigation({ course, lesson, session, onSaved }: {
           comparison: evidencePointer(browserEvidence(comparisonRun, selectedComparison, comparison.frames.length - 1)),
         };
         const savedAt = new Date().toISOString();
+        const outcomeId = published.learningOutcomes.find(goal => goal.id === form.get("outcome"))?.id;
         const saved: SavedExplanation = { ...explanation, choices: session.choices, prediction: session.comparison!.prediction,
           baselineId: baseline.id, comparisonId: comparison.id, savedAt, policy: session.comparison!.policy,
-          course, evidence };
+          course, evidence, outcomeId };
         const id = saveNote(localStorage, saved);
         setSavedId(id);
         setNotes(allNotes(localStorage, baseline.id, comparison.id));
@@ -133,6 +137,14 @@ export function Investigation({ course, lesson, session, onSaved }: {
         setBusy(false);
       }
     }}>
+      <label>这张解释卡对应的目标
+        <select name="outcome" defaultValue={previous?.outcomeId ?? published.learningOutcomes[0]?.id}>
+          {published.learningOutcomes.map(goal => <option key={goal.id} value={goal.id}>{goal.performance}</option>)}
+        </select>
+      </label>
+      <label>你的主张（可用下方的对照结论作为主张）
+        <textarea name="claim" rows={2} maxLength={1000} defaultValue={previous?.claim}/>
+      </label>
       <EvidencePicker tickUnit={lesson.tickUnit} events={baselineEvents} name="baselineEvent" label="无干预证据"
         selection={previous?.evidence?.baseline?.eventId ?? (previous && String(previous.baselineEvent))}/>
       <EvidencePicker tickUnit={lesson.tickUnit} events={comparisonEvents} name="comparisonEvent" label="政策组证据"
@@ -157,7 +169,10 @@ export function Investigation({ course, lesson, session, onSaved }: {
       </div>
     </form>
     <p ref={receipt} tabIndex={-1} role="status">{status}</p>
+    {saved?.evidence?.baseline && saved.evidence.comparison && <a href="#classroom-practice">去做独立练习</a>}
     {savedId && <a href={notesLink(savedId)}>在实验笔记打开已保存的解释</a>}
+    {saved?.evidence?.baseline && <StudyReflection key={saved.id} note={saved}
+      event={baselineEvents.find(event => event.eventId === saved.evidence!.baseline.eventId)}/>}
     {notes.length > 0 && <details className="trace-details">
       <summary>同条件的历史解释（{notes.length} 条）</summary>
       <ol>{notes.map(note => <li key={note.id}>

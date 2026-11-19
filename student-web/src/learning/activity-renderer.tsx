@@ -33,15 +33,15 @@ export function useLearningPackage(caseId: string) {
   return { pack: pack?.case_id === caseId ? pack : undefined, loadError };
 }
 
-export function LearningActivities({ pack, loadError, phase }: {
-  pack?: LearningPackage; loadError: boolean; phase: Phase;
+export function LearningActivities({ pack, loadError, phase, offline = false }: {
+  pack?: LearningPackage; loadError: boolean; phase: Phase; offline?: boolean;
 }) {
   if (loadError && ["explain", "notebook"].includes(phase)) return <p role="alert">学习任务暂时无法读取。刷新可重试。</p>;
   if (!pack) return null;
-  return <ActivityRenderer key={pack.case_id + pack.content_version} pack={pack} phase={phase}/>;
+  return <ActivityRenderer key={pack.case_id + pack.content_version} pack={pack} phase={phase} offline={offline}/>;
 }
 
-function ActivityRenderer({ pack, phase }: { pack: LearningPackage; phase: Phase }) {
+function ActivityRenderer({ pack, phase, offline }: { pack: LearningPackage; phase: Phase; offline: boolean }) {
   const { activities, first } = phaseActivities(pack, phase);
   const [session, setSession] = useState<SessionState>();
   const [fallback, setFallback] = useState(() => emptySession(pack, "storage-unavailable"));
@@ -129,26 +129,35 @@ function ActivityRenderer({ pack, phase }: { pack: LearningPackage; phase: Phase
     } finally { setBusy(false); }
   }
 
-  async function hint(level: 1 | 3) {
+  async function hint(level: 1 | 2 | 3) {
     if (!item || !activity) return;
     setBusy(true);
     setShownHelp(undefined);
     const kind = level === 3 ? "answer" : "hint";
     let text = level === 3 ? item.feedback.explanation : item.feedback.hint;
-    try { await expose(session ?? fallback, item, kind); }
+    try { await expose(session ?? fallback, item, kind, level === 2 ? 2 : 1); }
     catch {
       markUnsavedExposure(session ?? fallback, item);
       setError("帮助记录保存失败，本题下次提交会保留辅助标记。");
     }
-    try {
-      const previous = attempts.filter(attempt => attempt.item_id === item.id).at(-1)?.response;
-      const reply = await api<{ claim?: string; unsupported_scope?: string }>("/tutor", {
-        case_id: pack.case_id, question: "给我本题提示", scene: phase, hint_level: level,
-        learning_context: { activity_id: activity.id, item_id: item.id, item_version: item.version,
-          response: Array.isArray(previous) || typeof previous === "string" ? previous : null },
-      });
-      if (reply.unsupported_scope === "authored_exercise" && reply.claim) text = reply.claim;
-    } catch { /* Course content provides a local fallback. */ }
+    if (offline) {
+      if (level === 2) {
+        const fields = item.response_schema.fields?.map(field => field.label).join("、");
+        const steps = fields ? `分别核对${fields}，再检查单位。` : item.kind === "ordering" ?
+          "找出每个动作需要的输入，再判断哪一步必须先发生。" : "逐一用题干条件检验选项，圈出最先违背条件的那一步。";
+        text = `${text} ${steps}`;
+      }
+    } else {
+      try {
+        const previous = attempts.filter(attempt => attempt.item_id === item.id).at(-1)?.response;
+        const reply = await api<{ claim?: string; unsupported_scope?: string }>("/tutor", {
+          case_id: pack.case_id, question: "给我本题提示", scene: phase, hint_level: level,
+          learning_context: { activity_id: activity.id, item_id: item.id, item_version: item.version,
+            response: Array.isArray(previous) || typeof previous === "string" ? previous : null },
+        });
+        if (reply.unsupported_scope === "authored_exercise" && reply.claim) text = reply.claim;
+      } catch { /* Course content provides a local fallback. */ }
+    }
     setShownHelp({ id: item.id, text });
     setBusy(false);
   }
@@ -165,6 +174,7 @@ function ActivityRenderer({ pack, phase }: { pack: LearningPackage; phase: Phase
       setSession(saved.session);
       setAttempts(previous => [...previous, saved.attempt]);
       setShowFeedback(saved.attempt.id);
+      if (offline) window.dispatchEvent(new Event("ecosimedu-learning-update"));
     } catch {
       setError("作答未保存。请保留输入并重试。");
     } finally { setBusy(false); }
@@ -213,6 +223,7 @@ function ActivityRenderer({ pack, phase }: { pack: LearningPackage; phase: Phase
       {!feedback && activeAttempt && <p>上次作答已保存 · {evidenceLabels[activeAttempt.evidence_class]}</p>}
       <div className="toolbar">
         <button type="button" disabled={busy} onClick={() => void hint(1)}>看提示</button>
+        {offline && <button type="button" disabled={busy} onClick={() => void hint(2)}>看比较步骤</button>}
         <button type="button" disabled={busy} onClick={() => void hint(3)}>看参考解</button>
         {example && <button type="button" disabled={busy} onClick={() => void move(example, undefined, item)}>看完整例题</button>}
         <button type="button" disabled={busy} onClick={() => void move(next, previous)}>

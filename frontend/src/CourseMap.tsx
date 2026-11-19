@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { lazy, Suspense, useEffect, useState } from "react";
 import { courseLink, latestProgress, stageNames } from "./learning-store.ts";
 import { classroomHref } from "./classroom-routes.ts";
 import { concepts, courseById, pathways, type Course } from "./curriculum.ts";
@@ -6,6 +6,8 @@ import { StudentHeader } from "./StudentHeader.tsx";
 import { originalLessonHref } from "../../content/student-navigation.ts";
 import { CaseCard, PageTitle } from "../../content/student-ui.tsx";
 import "./course-map.css";
+
+const HomeStudyActions = lazy(() => import("./ProgressiveLearning.tsx").then(module => ({ default: module.HomeStudyActions })));
 
 function StartingPoint() {
   const opening = pathways[0].courses[0];
@@ -82,6 +84,7 @@ export function CourseMap() {
     <StudentHeader/>
     <main className="shell course-map" id="main" tabIndex={-1}>
       <StartingPoint/>
+      <Suspense fallback={null}><HomeStudyActions/></Suspense>
       <section className="map-paths" aria-labelledby="paths">
         <div className="paths-heading">
           <h2 id="paths" tabIndex={-1}>学习路径</h2>

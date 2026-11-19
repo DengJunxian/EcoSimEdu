@@ -4,7 +4,7 @@ import { emergenceExplanationTasks, evidenceKeyFor, evidenceUseLabels } from "./
 import { worksheetLabels } from "./worksheet-attempt";
 import { evaluate } from "./assessment";
 import type { Attempt, Exposure, LearningPackage } from "./education-types";
-import { emptySession, result, transact } from "./learner-repository";
+import { emptySession, result, transact, unsavedExposureIds } from "./learner-repository";
 import { parseTransfer } from "./transfer-record";
 import { parseEvidenceCheck } from "./evidence-checks";
 
@@ -42,8 +42,16 @@ export async function exportLearning(profile: string) {
       records[name] = values.filter(entry => owned(entry, profile));
     }
     const receipts = records.migration_backups!.map(({ legacy_key, digest, migrated_at }) => ({ legacy_key, digest, migrated_at }));
-    const exposures = await result(tx.objectStore("exposures").getAll()) as Exposure[];
-    return { kind: archiveKind, schema_version: 1, exported_at: new Date().toISOString(), attempts, receipts, records, exposures };
+    const exposures = await result(tx.objectStore("exposures").getAll()) as SavedExposure[];
+    const byId = new Map(exposures.map(entry => [entry.id, entry]));
+    for (const rawId of unsavedExposureIds()) {
+      const id = exposureArchiveId(rawId);
+      if (!id) continue;
+      byId.set(id, { max_hint_level: 0, answer_seen: false, exemplar_seen: false,
+        prior_feedback_for_variant: false, ...byId.get(id), id, exposure_unknown: true });
+    }
+    return { kind: archiveKind, schema_version: 1, exported_at: new Date().toISOString(), attempts, receipts, records,
+      exposures: [...byId.values()] };
   });
 }
 
@@ -199,16 +207,23 @@ function archivedAttempt(value: Record<string, unknown>, profile: string): Attem
 
 type SavedExposure = Exposure & { id: string };
 
+function exposureArchiveId(rawId: string) {
+  try {
+    const ids: unknown = JSON.parse(rawId);
+    if (strings(ids) && ids.length === 2 && caseKey.test(ids[0]) && /^[a-z0-9_-]{1,120}$/.test(ids[1])) {
+      return JSON.stringify(ids);
+    }
+  } catch { /* A malformed key cannot be tied to a real exercise. */ }
+}
+
 function archiveExposures(value: unknown): SavedExposure[] {
   if (value === undefined) return [];
   if (!Array.isArray(value) || value.length > 10000) throw new Error("作答帮助记录格式错误。");
   return value.map(entry => {
     if (!row(entry) || typeof entry.id !== "string" || !exposure(entry)) throw new Error("作答帮助记录缺少身份。");
-    const ids: unknown = JSON.parse((entry as SavedExposure).id);
-    if (!strings(ids) || ids.length !== 2 || !caseKey.test(ids[0]) || !/^[a-z0-9_-]{1,120}$/.test(ids[1])) {
-      throw new Error("作答帮助记录的案例或变式无法核对。");
-    }
-    return { id: JSON.stringify(ids), max_hint_level: entry.max_hint_level, answer_seen: entry.answer_seen,
+    const id = exposureArchiveId((entry as SavedExposure).id);
+    if (!id) throw new Error("作答帮助记录的案例或变式无法核对。");
+    return { id, max_hint_level: entry.max_hint_level, answer_seen: entry.answer_seen,
       exemplar_seen: entry.exemplar_seen, prior_feedback_for_variant: entry.prior_feedback_for_variant,
       solution_seen_at: entry.solution_seen_at, exposure_unknown: entry.exposure_unknown };
   });
@@ -226,7 +241,8 @@ async function mergeExposure(exposures: IDBObjectStore, entry: SavedExposure) {
 }
 
 export async function restoreLearning(profile: string, data: unknown,
-  loadPack = (caseId: string) => api<LearningPackage>(`/cases/${caseId}/lesson?schema_version=3`)) {
+  loadPack = (caseId: string) => api<LearningPackage>(`/cases/${caseId}/lesson?schema_version=3`),
+  beforeCommit?: () => void) {
   if (!row(data) || data.kind !== archiveKind || data.schema_version !== 1 || !Array.isArray(data.attempts) ||
       data.attempts.length > 10000 || !data.attempts.every(attempt => row(attempt) &&
         typeof attempt.case_id === "string" && /^[a-z_]{1,48}$/.test(attempt.case_id))) {
@@ -279,6 +295,7 @@ export async function restoreLearning(profile: string, data: unknown,
         restoredRecords++;
       }
     }
+    beforeCommit?.();
     return { restored, restoredRecords, preservedVersions };
   });
 }

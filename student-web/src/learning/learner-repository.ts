@@ -10,6 +10,19 @@ const emptyExposure: Exposure = {
   max_hint_level: 0, answer_seen: false, exemplar_seen: false, prior_feedback_for_variant: false, exposure_unknown: false,
 };
 const unknownExposures = new Set<string>();
+const unknownExposurePrefix = "civitas/exposure-unknown/";
+
+export function unsavedExposureIds() {
+  const ids = new Set(unknownExposures);
+  try {
+    for (const key of Object.keys(localStorage)) {
+      if (key.startsWith(unknownExposurePrefix) && localStorage.getItem(key) === "true") {
+        ids.add(key.slice(unknownExposurePrefix.length));
+      }
+    }
+  } catch { /* In-memory flags still apply until the tab closes. */ }
+  return ids;
+}
 
 export function result<T>(request: IDBRequest<T>) {
   return new Promise<T>((resolve, reject) => {
@@ -102,23 +115,23 @@ function exposureKey(session: SessionState, item: Item) {
 export function markUnsavedExposure(session: SessionState, item: Item) {
   const id = exposureKey(session, item);
   unknownExposures.add(id);
-  try { localStorage.setItem("civitas/exposure-unknown/" + id, "true"); } catch { /* Storage may be unavailable. */ }
+  try { localStorage.setItem(unknownExposurePrefix + id, "true"); } catch { /* Storage may be unavailable. */ }
 }
 
 async function readExposure(store: IDBObjectStore, id: string): Promise<Exposure> {
   let unknown = unknownExposures.has(id);
-  try { unknown ||= localStorage.getItem("civitas/exposure-unknown/" + id) === "true"; } catch { unknown = true; }
+  try { unknown ||= localStorage.getItem(unknownExposurePrefix + id) === "true"; } catch { unknown = true; }
   const saved = await result(store.get(id)) as Exposure | undefined;
   return { ...emptyExposure, ...saved, exposure_unknown: unknown || !!saved?.exposure_unknown };
 }
 
-export async function expose(session: SessionState, item: Item, kind: "hint" | "answer" | "example") {
+export async function expose(session: SessionState, item: Item, kind: "hint" | "answer" | "example", hintLevel: 1 | 2 = 1) {
   const id = exposureKey(session, item);
   await transact(["exposures"], "readwrite", async tx => {
     const exposures = tx.objectStore("exposures");
     const current = await readExposure(exposures, id);
     await result(exposures.put({
-      ...current, id, max_hint_level: kind === "hint" ? Math.max(current.max_hint_level, 1) : current.max_hint_level,
+      ...current, id, max_hint_level: kind === "hint" ? Math.max(current.max_hint_level, hintLevel) : current.max_hint_level,
       answer_seen: current.answer_seen || kind === "answer", exemplar_seen: current.exemplar_seen || kind === "example",
       solution_seen_at: current.solution_seen_at ?? (kind === "hint" ? undefined : new Date().toISOString()),
     }));

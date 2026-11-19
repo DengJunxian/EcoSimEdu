@@ -117,6 +117,7 @@ export type Explanation = {
   calculation: string;
   comparison: string;
   hypothesis: string;
+  claim?: string;
 };
 
 export type SavedExplanation = Explanation & {
@@ -128,6 +129,7 @@ export type SavedExplanation = Explanation & {
   policy?: number;
   course?: CourseRef;
   evidence?: { baseline: EvidencePointer; comparison: EvidencePointer };
+  outcomeId?: string;
 };
 
 export type StudentNote = SavedExplanation & { id: string; course: CourseRef };
@@ -139,6 +141,8 @@ function parseNote(value: SavedExplanation | undefined, id: string): StudentNote
     typeof value.savedAt !== "string" || !Number.isFinite(Date.parse(value.savedAt)) ||
     !trend(value.prediction) || !index(value.baselineEvent) || !index(value.comparisonEvent) ||
     !Array.isArray(value.choices) || !value.choices.every(choice => typeof choice === "string") ||
+    (value.claim !== undefined && (typeof value.claim !== "string" || value.claim.length > 1000)) ||
+    (value.outcomeId !== undefined && (typeof value.outcomeId !== "string" || !/^[a-z_]+\.[1-3]$/.test(value.outcomeId))) ||
     ![value.rule, value.calculation, value.comparison, value.hypothesis].every(text => typeof text === "string")) return undefined;
   if (value.course && typeof value.course.caseId === "string") return { ...value, id, course: value.course };
   const model = value.baselineId.split("/")[0];
@@ -218,7 +222,7 @@ export function exportProgressArchive(storage: Storage) {
   return { kind: archiveKind, entries };
 }
 
-export function restoreProgressArchive(storage: Storage, archive: unknown) {
+export function validateProgressArchive(archive: unknown) {
   const badFormat = "请选择从四阶课堂导出的备份 JSON。";
   if (!archive || typeof archive !== "object" || !("kind" in archive) || archive.kind !== archiveKind ||
     !("entries" in archive) || !Array.isArray(archive.entries)) throw new Error(badFormat);
@@ -242,7 +246,14 @@ export function restoreProgressArchive(storage: Storage, archive: unknown) {
     }
     records.set(key, raw);
   }
+  return records;
+}
 
+export function restoreProgressArchive(storage: Storage, archive: unknown) {
+  return addArchiveEntries(storage, validateProgressArchive(archive));
+}
+
+export function addArchiveEntries(storage: Storage, records: ReadonlyMap<string, string>, inserted?: Map<string, string>) {
   const result = { restored: 0, existing: 0, conflicts: 0, failed: 0 };
   for (const [key, raw] of records) {
     try {
@@ -251,6 +262,7 @@ export function restoreProgressArchive(storage: Storage, archive: unknown) {
       else if (current !== null) result.conflicts++;
       else {
         storage.setItem(key, raw);
+        inserted?.set(key, raw);
         result.restored++;
       }
     } catch {
