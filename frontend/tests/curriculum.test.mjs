@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import { test } from "node:test";
 import published from "../../cases/catalog.json" with { type: "json" };
-import { classroomHref, classrooms, hasClassroom, studentOrigin } from "../src/classroom-routes.ts";
+import { classroomHref, classrooms, hasClassroom } from "../src/classroom-routes.ts";
 import { concepts, courseById, pathways } from "../src/curriculum.ts";
 import { outcome, peak } from "../src/lesson.ts";
 import { svbLesson } from "../src/svb.ts";
@@ -27,17 +27,11 @@ test("all twelve registered cases appear once under four ordered paths", () => {
   assert.deepEqual(courseById.gamestop.after, courseById.flash_crash.after);
 });
 
-test("migrated classrooms use the progressive route and legacy records retain their origin", () => {
-  const origin = studentOrigin();
-  assert.equal(origin, "http://127.0.0.1:8877");
-  assert.equal(studentOrigin("http://localhost:8776/"), "http://localhost:8776");
-  assert.equal(studentOrigin("javascript:alert(0)"), origin);
-  assert.equal(studentOrigin("http://user:secret@localhost:8776"), origin);
+test("published classrooms and original pages use same-origin routes", () => {
   assert.deepEqual(published.filter(hasClassroom), published);
   assert.ok(Object.keys(classrooms).includes("demo"));
-  assert.equal(classroomHref("svb_run", origin), "?lesson=svb_run");
-  assert.equal(classroomHref("double_auction", origin), "?lesson=double_auction");
-  for (const id of published) assert.equal(classroomHref(id, origin), `?lesson=${id}`);
+  assert.equal(classroomHref("not/a/case"), "/learn/not%2Fa%2Fcase");
+  for (const id of published) assert.equal(classroomHref(id), `?lesson=${id}`);
 });
 
 test("both existing lesson adapters satisfy the migration contract", () => {

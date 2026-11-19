@@ -6,7 +6,7 @@ import sys
 from chart_probe import click_turning_point
 from playwright.sync_api import expect, sync_playwright
 
-base = sys.argv[1] if len(sys.argv) > 1 else "http://127.0.0.1:8878"
+base = (sys.argv[1] if len(sys.argv) > 1 else "http://127.0.0.1:8776/explore").rstrip("/")
 engine = sys.argv[2] if len(sys.argv) > 2 else "chromium"
 
 
@@ -47,7 +47,7 @@ def compare(page, prediction):
 
 
 def walk(page):
-    page.goto(base)
+    page.goto(base + "/")
     page.get_by_role("link", name="从双向拍卖开始").click()
     expect(page.get_by_role("heading", level=1)).to_have_text("你的报价会以什么价格成交？")
     expect(page.get_by_role("slider")).to_have_count(0)

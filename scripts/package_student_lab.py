@@ -31,13 +31,17 @@ def payload():
     paths.update(ROOT / name for name in ("PRODUCT.md", "STUDENT_LAB.md", "requirements-edu.lock",
                                           "requirements-edu-dev.lock", "docs/release/check_feedback.py"))
     for prefix, extensions in {
-        "cases": {".json", ".md", ".gz"}, "content": {".json"}, "docs": {".md", ".json", ".txt"},
+        "cases": {".json", ".md", ".gz"}, "content": {".json", ".ts"}, "docs": {".md", ".json", ".txt"},
         "schemas": {".json"}, "services/simulation": {".py"}, "tests": {".py", ".json"},
         "student-web/src": {".tsx", ".ts", ".css"}, "student-web/dist": {".html", ".js", ".css"},
+        "frontend/src": {".tsx", ".ts", ".css", ".json"}, "frontend/dist": {".html", ".js", ".css"},
+        "frontend/tests": {".mjs", ".py"},
     }.items():
         paths.update(path for path in (ROOT / prefix).rglob("*")
                      if path.is_file() and path.suffix in extensions and not path.name.startswith("."))
     paths.update(ROOT / "student-web" / name for name in ("build.js", "index.html", "package.json", "package-lock.json", "tsconfig.json"))
+    paths.update(ROOT / "frontend" / name for name in ("vite.config.ts", "index.html", "package.json",
+                                                        "package-lock.json", "tsconfig.json", "README.md", "MIGRATION.md"))
     if ROOT / "student-web/dist/index.html" not in paths:
         raise SystemExit("Build the student assets first.")
     return sorted(paths)
@@ -63,7 +67,7 @@ def pack(output):
             raise SystemExit(f"Credential-shaped content found in {name}")
         entries[name] = {"bytes": len(data), "sha256": checksum(data)}
         contents[name] = data
-    source = {name: record for name, record in entries.items() if not name.startswith("student-web/dist/")}
+    source = {name: record for name, record in entries.items() if not name.startswith(("student-web/dist/", "frontend/dist/"))}
     manifest = {
         "release_version": VERSION,
         "upstream_head": check_output(["git", "rev-parse", "HEAD"], cwd=ROOT, text=True).strip(),

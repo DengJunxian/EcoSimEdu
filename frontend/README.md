@@ -1,35 +1,43 @@
 # EcoSimEdu 渐进课堂
 
-[课程地图](http://127.0.0.1:8878/)按四条学习路径编排十二课。十二门课均在浏览器内计算和回放，基础教学只需本地静态文件。每张课程卡也能打开原课堂与进度。高级实验、复习、跨课作答和教师复核继续在原学生端使用。
+[课程地图](http://127.0.0.1:8776/explore/)按四条学习路径编排十二课。十二门课均在浏览器内计算和回放，基础教学只需本地静态文件。每张课程卡也能打开原课堂与进度。高级实验、复习、跨课作答和教师复核继续在原学生端使用。
 
 ## 启动与验证
 
-需要 Node.js 22.18 或更新版本。第一次安装依赖需要可用的 npm 缓存或网络。构建后的 `dist/` 可以由任意本地静态 HTTP 服务提供。基本交互只读取同源静态文件。
+需要 Node.js 22.18 或更新版本。第一次安装依赖需要可用的 npm 缓存或网络。运行依赖和原学生端设置见[学生实验室指南](../STUDENT_LAB.md)。
 
 ```sh
 npm --prefix frontend ci
 npm --prefix frontend test
 npm --prefix frontend run build
-npm --prefix frontend run preview -- --port 8878 --strictPort
+npm --prefix student-web ci
+npm --prefix student-web run build
+.venv/bin/python -m uvicorn services.simulation.api:app --host 127.0.0.1 --port 8776
 ```
 
-浏览器打开 [课程地图](http://127.0.0.1:8878/)。地图本身与新四阶课只需要静态服务。历史笔记与原课堂入口默认指向 `http://127.0.0.1:8877`。保留原服务的来源可以读到该浏览器中已有的学习记录。若旧服务使用 8776 端口，在构建时设置 `VITE_LEGACY_ORIGIN=http://127.0.0.1:8776`。
+打开[课程地图](http://127.0.0.1:8776/explore/)或[原学生实验室](http://127.0.0.1:8776/)。两个站内入口共用同一服务。课堂本身由浏览器规则运行，原版笔记、复习和模型设置使用同源路由。Vite 使用相对资产路径，构建产物也可由本机静态服务提供，用于打开旧来源中的四阶备份。FastAPI 在启动时发现两套构建目录。
+
+在 [四阶实验笔记](http://127.0.0.1:8776/explore/?view=notes) 展开「备份与导入四阶学习」。换过端口的用户应先在原浏览器档案和原地址导出，再到新地址导入。两边键值相同时会去重。同键不同内容时保留目标已有记录，原记录所在的地址和导出文件仍可使用。
+
+如果原独立静态版本没有备份按钮，请在原静态服务上提供本次的 `frontend/dist`。例如原地址是 `http://127.0.0.1:8878/`，停止自己启动的旧静态服务后，用以下命令在该端口提供新版静态文件，再访问 `http://127.0.0.1:8878/?view=notes` 导出。主机名、协议、端口和浏览器档案都应与保存时一致。
+
+```sh
+.venv/bin/python -m http.server 8878 --bind 127.0.0.1 --directory frontend/dist
+```
+
+原实验室的 IndexedDB 作答、旧课堂笔记和 SQLite 运行库各有相应备份与恢复入口。[原实验室换地址步骤](../STUDENT_LAB.md#换地址后恢复已有学习)
 
 用项目现有 Python Playwright 环境复跑课程地图和两种宽度的新四阶课堂。
 
 ```sh
 .venv/bin/python frontend/tests/map_browser.py
-.venv/bin/python frontend/tests/map_browser.py http://127.0.0.1:8878 http://127.0.0.1:8877 webkit
-.venv/bin/python frontend/tests/continue_browser.py
-.venv/bin/python frontend/tests/continue_browser.py http://127.0.0.1:8878 webkit
-.venv/bin/python frontend/tests/remaining_browser.py
-.venv/bin/python frontend/tests/remaining_browser.py http://127.0.0.1:8878 webkit
+.venv/bin/python frontend/tests/map_browser.py http://127.0.0.1:8776/explore/ webkit
+.venv/bin/python frontend/tests/continue_browser.py http://127.0.0.1:8776/explore/ webkit
+.venv/bin/python frontend/tests/remaining_browser.py http://127.0.0.1:8776/explore/ webkit
 .venv/bin/python -m frontend.tests.remaining_parity
 .venv/bin/python frontend/tests/auction_browser.py
-.venv/bin/python frontend/tests/auction_browser.py http://127.0.0.1:8878 webkit
 .venv/bin/python -m frontend.tests.auction_parity
 .venv/bin/python frontend/tests/svb_browser.py
-.venv/bin/python frontend/tests/svb_browser.py http://127.0.0.1:8878 webkit
 .venv/bin/python -m frontend.tests.svb_parity
 .venv/bin/python frontend/tests/browser.py
 ```
@@ -47,9 +55,9 @@ npm --prefix frontend run preview -- --port 8878 --strictPort
 
 ## 双向拍卖
 
-在 [基准课堂](http://127.0.0.1:8878/?lesson=double_auction)填写 B01 的整数限价，再预测能否买到。阶段二按订单事件回放。阶段三价格曲线只标记真正的成交点，每笔成交可回查两张报价。在簿单按规则决定成交价，后续自动报价可回指计算时采用的最近成交价。阶段四先预测每方每件收费 6 代币对期末成交量的影响，再按开盘、四个交易轮末及收盘对齐，导出时保留双侧的原始事件时钟。
+在 [基准课堂](http://127.0.0.1:8776/explore/?lesson=double_auction)填写 B01 的整数限价，再预测能否买到。阶段二按订单事件回放。阶段三价格曲线只标记真正的成交点，每笔成交可回查两张报价。在簿单按规则决定成交价，后续自动报价可回指计算时采用的最近成交价。阶段四先预测每方每件收费 6 代币对期末成交量的影响，再按开盘、四个交易轮末及收盘对齐，导出时保留双侧的原始事件时钟。
 
-[供需无交叠](http://127.0.0.1:8878/?lesson=double_auction&market=no-overlap) 将买方估值下调 65，沿用原案例的边界条件。选 35 可在事件 3 看到最高买价 35 和最低卖价 78。收盘所有有效单撤回，成交量为 0，成交价未定义，效率因可实现剩余上界为零而未定义。该分支可以另做同种子收费对照。
+[供需无交叠](http://127.0.0.1:8776/explore/?lesson=double_auction&market=no-overlap) 将买方估值下调 65，沿用原案例的边界条件。选 35 可在事件 3 看到最高买价 35 和最低卖价 78。收盘所有有效单撤回，成交量为 0，成交价未定义，效率因可实现剩余上界为零而未定义。该分支可以另做同种子收费对照。
 
 [开局资产](src/data/auction-opening.json)只保存原引擎固定种子 1962 的初始角色、随机下单顺序和报价噪声输入。[浏览器内核](src/auction.ts)实时计算交叉、定价、结算和撤单。双向拍卖运行可导出 JSON，`double-auction/browser-v1` 身份与原课保存的记录分开。实验来源使用原[案例定义](../cases/double_auction/case.json)。
 

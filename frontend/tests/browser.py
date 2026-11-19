@@ -5,7 +5,7 @@ from chart_probe import click_turning_point
 from playwright.sync_api import expect, sync_playwright
 
 
-base = sys.argv[1] if len(sys.argv) > 1 else "http://127.0.0.1:8878"
+base = (sys.argv[1] if len(sys.argv) > 1 else "http://127.0.0.1:8776/explore").rstrip("/")
 engine = sys.argv[2] if len(sys.argv) > 2 else "chromium"
 
 with sync_playwright() as playwright:

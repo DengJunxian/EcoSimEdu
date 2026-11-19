@@ -1,10 +1,12 @@
 import { useEffect, useState } from "react";
-import { courseLink, latestProgress, notesLink, stageNames } from "./learning-store.ts";
+import { courseLink, latestProgress, stageNames } from "./learning-store.ts";
 import { classroomHref, hasClassroom } from "./classroom-routes.ts";
 import { concepts, courseById, pathways, type Course } from "./curriculum.ts";
+import { StudentHeader } from "./StudentHeader.tsx";
+import { originalLessonHref } from "../../content/student-navigation.ts";
 import "./course-map.css";
 
-function StartingPoint({ legacyOrigin }: { legacyOrigin: string }) {
+function StartingPoint() {
   const opening = pathways[0].courses[0];
   const readLatest = () => {
     try { return latestProgress(localStorage, id => Object.hasOwn(courseById, id)); }
@@ -34,7 +36,7 @@ function StartingPoint({ legacyOrigin }: { legacyOrigin: string }) {
       </div> : <div>
         <h2>报出你的第一个价格</h2>
         <p>你想买一本二手教材。报出限价，看看哪两张订单成交，哪张订单决定了价格。</p>
-        <a className="map-action primary" href={classroomHref(opening.id, legacyOrigin)}>从双向拍卖开始</a>
+        <a className="map-action primary" href={classroomHref(opening.id)}>从双向拍卖开始</a>
       </div>}
       <svg className="trade-diagram" viewBox="0 0 170 124" aria-hidden="true">
         <path d="M25 33h38a27 27 0 0 1 27 27v3" fill="none" stroke="#f4c16a" strokeWidth="3"/>
@@ -50,7 +52,7 @@ function StartingPoint({ legacyOrigin }: { legacyOrigin: string }) {
   </section>;
 }
 
-function CourseRow({ course, legacyOrigin }: { course: Course; legacyOrigin: string }) {
+function CourseRow({ course }: { course: Course }) {
   const native = hasClassroom(course.id);
   return <li>
     <article className="map-course" id={`lesson-${course.id}`} aria-labelledby={`title-${course.id}`}>
@@ -70,31 +72,21 @@ function CourseRow({ course, legacyOrigin }: { course: Course; legacyOrigin: str
         </details>
       </div>
       <div className="course-entry">
-        <a className="map-action" href={classroomHref(course.id, legacyOrigin)}
+        <a className="map-action" href={classroomHref(course.id)}
           aria-label={`${native ? "打开四阶课堂" : "打开现有课堂"} · ${course.title}`}>
           {native ? "打开四阶课堂" : "打开现有课堂"}
         </a>
-        {native && <a href={`${legacyOrigin}/learn/${course.id}`} className="original-course">原课堂与进度</a>}
+        {native && <a href={originalLessonHref(course.id)} className="original-course">原课堂与进度</a>}
       </div>
     </article>
   </li>;
 }
 
-export function CourseMap({ legacyOrigin }: { legacyOrigin: string }) {
+export function CourseMap() {
   return <>
-    <a className="skip-link" href="#main">跳到主要内容</a>
-    <header className="site-header map-header">
-      <div className="shell">
-        <a className="brand" href="./">EcoSimEdu</a>
-        <nav aria-label="站点导航">
-          <a href="#paths">学习路径</a>
-          <a href={notesLink()}>实验笔记</a>
-          <a href={`${legacyOrigin}/#model-api`}>配置模型 API</a>
-        </nav>
-      </div>
-    </header>
+    <StudentHeader/>
     <main className="shell course-map" id="main" tabIndex={-1}>
-      <StartingPoint legacyOrigin={legacyOrigin}/>
+      <StartingPoint/>
       <section className="map-paths" aria-labelledby="paths">
         <div className="paths-heading">
           <h2 id="paths" tabIndex={-1}>学习路径</h2>
@@ -111,7 +103,7 @@ export function CourseMap({ legacyOrigin }: { legacyOrigin: string }) {
             <p>{path.summary}</p>
           </div>
           <ol className="map-courses">
-            {path.courses.map(course => <CourseRow key={course.id} course={course} legacyOrigin={legacyOrigin}/>)}
+            {path.courses.map(course => <CourseRow key={course.id} course={course}/>)}
           </ol>
         </section>)}
       </section>

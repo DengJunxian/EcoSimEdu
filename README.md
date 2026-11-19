@@ -10,17 +10,19 @@ Emergence Studio 从首页「从微观到宏观」进入十二课机制索引。
 
 ## 本机启动
 
-需要 Python 3.12、uv 和 Node.js 22.12 或更高版本。
+需要 Python 3.12、uv 和 Node.js 22.18 或更高版本。
 
 ```sh
 uv venv --python 3.12 .venv
 uv pip sync --python .venv/bin/python requirements-edu.lock
 npm --prefix student-web ci
 npm --prefix student-web run build
+npm --prefix frontend ci
+npm --prefix frontend run build
 .venv/bin/python -m uvicorn services.simulation.api:app --host 127.0.0.1 --port 8776
 ```
 
-打开 [学生实验室](http://127.0.0.1:8776/)。详细操作、API 配置和验收见 [学生实验室指南](STUDENT_LAB.md)、[开发指南](docs/developer-guide.md)和 [实施状态](docs/progress.md)。[模型实调记录](docs/release/rc10-live-three-courses.md)列出逐课用量与结果。
+打开 [渐进课堂](http://127.0.0.1:8776/explore/) 或同一地址下的 [学生实验室](http://127.0.0.1:8776/)。详细操作、API 配置和验收见 [学生实验室指南](STUDENT_LAB.md)、[开发指南](docs/developer-guide.md)和 [实施状态](docs/progress.md)。[模型实调记录](docs/release/rc10-live-three-courses.md)列出逐课用量与结果。
 
 本仓库包含教学源代码、课程配置、合成样本和经过公开发布处理的验证回执。课堂运行由新安装的本地实例生成，历史数据库和旧事件缓存随各自的本机环境保留。公开回执保留指标、用量和哈希，供应商请求及响应标识已清除。旧 RC9 与 RC10 归档回执仍对应各自的原始本地归档。
 

@@ -32,8 +32,21 @@ button:disabled { opacity: .55; cursor: default; }
 .text-button { padding-inline: 2px; color: var(--forest); text-decoration: underline; text-underline-offset: 4px;
   background: transparent; border-color: transparent; }
 .shell { margin-inline: auto; width: min(100% - 48px, 1296px); }
+.skip-link {
+  position: fixed;
+  z-index: 5;
+  top: 10px;
+  left: 12px;
+  padding: 9px 12px;
+  color: var(--ink);
+  background: var(--surface);
+  border-radius: 6px;
+}
+.skip-link:not(:focus) { clip-path: inset(50%); }
+.site-header nav { display: flex; flex-wrap: wrap; gap: 6px 16px; font-size: .92rem; }
+.site-header nav a { color: var(--forest); }
 .site-header { border-bottom: 1px solid var(--line); }
-.site-header .shell { height: 68px; display: flex; align-items: center; gap: 18px; color: var(--muted); }
+.site-header .shell { min-height: 68px; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 6px 18px; color: var(--muted); }
 .brand { color: var(--ink); font-size: 1.3rem; font-weight: 780; letter-spacing: -.035em; }
 .lesson-shell { padding-block: 24px 60px; }
 .stepper { gap: 8px 18px; border-bottom: 1px solid var(--line); padding-bottom: 17px; }
@@ -119,7 +132,7 @@ input[type="range"] { width: 100%; accent-color: var(--forest); height: 38px; }
 
 @media (max-width: 760px) {
   .shell { width: calc(100% - 32px); }
-  .site-header .shell { height: 52px; }
+  .site-header .shell { min-height: 52px; }
   .lesson-shell { padding-top: 16px; }
   .lesson-layout { grid-template-columns: minmax(0, 1fr); grid-template-rows: auto;
     grid-template-areas: "narrative" "visual" "evidence" "advance"; gap: 17px; margin-top: 24px; }
@@ -204,3 +217,8 @@ input[type="range"] { width: 100%; accent-color: var(--forest); height: 38px; }
   .site-header .shell { min-height: 52px; height: auto; flex-wrap: wrap; gap: 5px 14px; padding-block: 8px; }
   .replay-review { padding: 10px 12px; }
 }
+
+.progress-backup form { display: flex; flex-wrap: wrap; align-items: end; gap: 12px; margin-block: 12px; }
+.progress-backup label { display: grid; grid-template-columns: minmax(0, 1fr); gap: 4px; flex: 1 1 230px; min-width: 0; }
+.progress-backup input { width: 100%; min-width: 0; font: inherit; }
+.progress-backup [role="status"]:empty { margin: 0; }

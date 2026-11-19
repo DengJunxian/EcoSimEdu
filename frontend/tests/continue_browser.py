@@ -9,9 +9,8 @@ from tempfile import TemporaryDirectory
 from playwright.sync_api import expect, sync_playwright
 
 
-BASE = sys.argv[1] if len(sys.argv) > 1 else "http://127.0.0.1:8878"
+BASE = (sys.argv[1] if len(sys.argv) > 1 else "http://127.0.0.1:8776/explore").rstrip("/")
 ENGINE = sys.argv[2] if len(sys.argv) > 2 else "chromium"
-LEGACY = sys.argv[3] if len(sys.argv) > 3 else "http://127.0.0.1:8877"
 OUTPUT = Path("output/playwright/progressive-continue")
 OPTIONS = dict(viewport={"width": 390, "height": 844}, timezone_id="Asia/Shanghai", accept_downloads=True,
                reduced_motion="reduce")
@@ -48,7 +47,7 @@ def heading(page, title):
 
 
 def quote_today(page):
-    page.goto(BASE)
+    page.goto(BASE + "/")
     ui(page, "link", "从双向拍卖开始").press("Enter")
     page.get_by_label("开局限价（代币）").fill("96")
     hit(page, "确认限价")
@@ -68,7 +67,7 @@ def quote_today(page):
 
 
 def continue_tomorrow(page):
-    page.goto(BASE)
+    page.goto(BASE + "/")
     expect(ui(page, "heading", "继续上次学习")).to_be_visible()
     expect(page.get_by_text("双向拍卖 · 宏微观双屏联动")).to_be_visible()
     ui(page, "link", "继续上次学习").press("Enter")
@@ -111,7 +110,7 @@ def continue_tomorrow(page):
     ui(page, "link", "EcoSimEdu").press("Enter")
     ui(page, "link", "实验笔记").press("Enter")
     heading(page, "实验笔记")
-    expect(ui(page, "link", "原版实验笔记与学习记录")).to_have_attribute("href", f"{LEGACY}/notes")
+    expect(ui(page, "link", "原版实验笔记与学习记录")).to_have_attribute("href", "/notes")
     ui(page, "link", "打开已保存的解释").press("Enter")
     expect(page.get_by_text("先到的在簿买单 O001 决定价格。")).to_be_visible()
     page.screenshot(path=str(OUTPUT / f"{ENGINE}-note.png"))

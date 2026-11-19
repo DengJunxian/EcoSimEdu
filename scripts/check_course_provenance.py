@@ -193,7 +193,7 @@ def verify_archive(path, inventory_files):
         assert names == manifest["files"].keys() | {"RELEASE_MANIFEST.json"}
         data_files = {item["path"]: item["sha256"] for item in inventory_files}
         for name in sorted(names - {"RELEASE_MANIFEST.json"}):
-            assert Path(name).suffix in {".py", ".md", ".json", ".gz", ".txt", ".tsx", ".ts", ".css", ".html", ".js", ".lock"}
+            assert Path(name).suffix in {".py", ".md", ".json", ".gz", ".txt", ".tsx", ".ts", ".css", ".html", ".js", ".mjs", ".lock"}
             assert not name.startswith(".civitas-edu/") and (not name.endswith(".gz") or name in data_files)
             contents = archive.extractfile(prefix + name).read()
             manifest_entry = manifest["files"][name]

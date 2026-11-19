@@ -1,3 +1,4 @@
+import { courseById } from "./curriculum.ts";
 import { legalChoice, nextStageReady, startLesson, type Lesson, type Session, type Trend } from "./lesson.ts";
 
 const progressPrefix = "ecosimedu:progressive:progress:v1:";
@@ -119,8 +120,7 @@ export type StudentNote = SavedExplanation & { id: string; course: CourseRef };
 
 export const trendLabel = { up: "增加", same: "不变", down: "减少" };
 
-export function readNote(storage: Storage, id: string): StudentNote | undefined {
-  const value = readItem<SavedExplanation>(storage, explanationPrefix + id);
+function parseNote(value: SavedExplanation | undefined, id: string): StudentNote | undefined {
   if (!value || typeof value.baselineId !== "string" || typeof value.comparisonId !== "string" ||
     typeof value.savedAt !== "string" || !Number.isFinite(Date.parse(value.savedAt)) ||
     !trend(value.prediction) || !index(value.baselineEvent) || !index(value.comparisonEvent) ||
@@ -130,6 +130,10 @@ export function readNote(storage: Storage, id: string): StudentNote | undefined 
   const caseId = model === "double-auction" ? "double_auction" : model === "svb" ? "svb_run" : model;
   const market = caseId === "double_auction" && value.baselineId.split("/")[3] === "boundary" ? "no-overlap" : undefined;
   return { ...value, id, course: { caseId, market } };
+}
+
+export function readNote(storage: Storage, id: string): StudentNote | undefined {
+  return parseNote(readItem<SavedExplanation>(storage, explanationPrefix + id), id);
 }
 
 export function allNotes(storage: Storage, baselineId?: string, comparisonId?: string): StudentNote[] {
@@ -165,4 +169,57 @@ export function sourceRun(lesson: Lesson, note: StudentNote, side: "baseline" | 
   } catch {
     return undefined;
   }
+}
+
+const archiveKind = "ecosimedu-progressive-backup/v1";
+const knownKey = (key: string) => key.startsWith(progressPrefix) || key.startsWith(explanationPrefix);
+
+export function exportProgressArchive(storage: Storage) {
+  const entries = Object.keys(storage).filter(knownKey).flatMap(key => {
+    const raw = storage.getItem(key);
+    return raw === null ? [] : [[key, raw]];
+  });
+  return { kind: archiveKind, entries };
+}
+
+export function restoreProgressArchive(storage: Storage, archive: unknown) {
+  const badFormat = "请选择从四阶课堂导出的备份 JSON。";
+  if (!archive || typeof archive !== "object" || !("kind" in archive) || archive.kind !== archiveKind ||
+    !("entries" in archive) || !Array.isArray(archive.entries)) throw new Error(badFormat);
+
+  const records = new Map<string, string>();
+  for (const entry of archive.entries) {
+    if (!Array.isArray(entry) || entry.length !== 2 || typeof entry[0] !== "string" ||
+      typeof entry[1] !== "string" || !knownKey(entry[0]) || records.has(entry[0])) throw new Error(badFormat);
+    const [key, raw] = entry as [string, string];
+    let value;
+    try { value = JSON.parse(raw); } catch { throw new Error(badFormat); }
+    if (key.startsWith(progressPrefix)) {
+      if (!validProgress(value) || !Object.hasOwn(courseById, value.course.caseId) ||
+        (value.course.market !== undefined && (value.course.caseId !== "double_auction" || value.course.market !== "no-overlap")) ||
+        !value.choices.every(choice => typeof choice === "string") ||
+        key !== progressPrefix + courseKey(value.course)) throw new Error(badFormat);
+    } else {
+      const id = key.slice(explanationPrefix.length);
+      const note = id && parseNote(value, id);
+      if (!note || !Object.hasOwn(courseById, note.course.caseId)) throw new Error(badFormat);
+    }
+    records.set(key, raw);
+  }
+
+  const result = { restored: 0, existing: 0, conflicts: 0, failed: 0 };
+  for (const [key, raw] of records) {
+    try {
+      const current = storage.getItem(key);
+      if (current === raw) result.existing++;
+      else if (current !== null) result.conflicts++;
+      else {
+        storage.setItem(key, raw);
+        result.restored++;
+      }
+    } catch {
+      result.failed++;
+    }
+  }
+  return result;
 }

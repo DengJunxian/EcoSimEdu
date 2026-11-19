@@ -3,7 +3,7 @@ import { test } from "node:test";
 import { auctionLesson } from "../src/auction.ts";
 import { schellingLesson } from "../src/models/schelling-lesson.ts";
 import { startLesson, transition } from "../src/lesson.ts";
-import { allNotes, latestProgress, resumeProgress, saveProgress, sourceLink, sourceRun } from "../src/learning-store.ts";
+import { allNotes, exportProgressArchive, latestProgress, restoreProgressArchive, resumeProgress, saveProgress, sourceLink, sourceRun } from "../src/learning-store.ts";
 
 const storage = () => ({
   getItem(key) { return this[key] ?? null; },
@@ -76,4 +76,41 @@ test("existing v1 explanations open both original Schelling source events withou
   assert.equal(disk.getItem(key), old);
   assert.equal(disk.getItem("civitas/schelling_segregation/lesson-v2"), "old learner record");
   assert.equal(sourceRun(lesson, { ...note, comparisonEvent: 10000 }, "comparison"), undefined);
+});
+
+test("a four-stage backup preserves the original keys and skips conflicting records", () => {
+  const source = storage(), target = storage();
+  const lesson = auctionLesson(false);
+  const initial = perform(lesson, startLesson(lesson), beforeTrade);
+  saveProgress(source, auction, initial);
+  saveProgress(target, auction, perform(lesson, initial, [step]));
+  source.setItem("civitas/double_auction/lesson-v2", "original classroom");
+  const note = {
+    baselineEvent: 1, comparisonEvent: 2, choices: ["96", "no"], prediction: "down",
+    rule: "standing quote", calculation: "1 trade", comparison: "paired test", hypothesis: "costs",
+    savedAt: "2026-11-19T12:00:00.000Z", baselineId: initial.run.id, comparisonId: "branch",
+  };
+  const noteKey = `ecosimedu:progressive:explanation:v1:${note.baselineId}|original`;
+  source.setItem(noteKey, JSON.stringify(note, null, 2));
+  const archive = exportProgressArchive(source);
+  assert.equal(archive.entries.length, 2);
+  assert.deepEqual(restoreProgressArchive(target, archive), { restored: 1, existing: 0, conflicts: 1, failed: 0 });
+  assert.deepEqual(restoreProgressArchive(target, archive), { restored: 0, existing: 1, conflicts: 1, failed: 0 });
+  assert.equal(resumeProgress(target, auction, lesson).cursor, 1);
+  assert.equal(target.getItem(noteKey), source.getItem(noteKey));
+  assert.equal(source.getItem("civitas/double_auction/lesson-v2"), "original classroom");
+});
+
+test("a malformed backup makes no writes and a storage failure can be retried", () => {
+  const source = storage(), target = storage();
+  const lesson = auctionLesson(false);
+  saveProgress(source, auction, perform(lesson, startLesson(lesson), beforeTrade));
+  const archive = exportProgressArchive(source);
+  assert.throws(() => restoreProgressArchive(target, { ...archive,
+    entries: [...archive.entries, ["civitas/double_auction/lesson-v2", "{}"]] }));
+  assert.throws(() => restoreProgressArchive(target, { ...archive, entries: [...archive.entries, ...archive.entries] }));
+  assert.deepEqual(exportProgressArchive(target).entries, []);
+  assert.deepEqual(restoreProgressArchive({ ...target, setItem() { throw new Error("quota"); } }, archive),
+    { restored: 0, existing: 0, conflicts: 0, failed: 1 });
+  assert.equal(restoreProgressArchive(target, archive).restored, 1);
 });

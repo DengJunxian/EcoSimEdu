@@ -1,10 +1,10 @@
 import { lazy, Suspense, useEffect, useLayoutEffect, useReducer, useRef, useState, type ReactNode } from "react";
 import { ComparisonView, PredictionCard } from "./Counterfactual";
 import { chartMetric, displayNumber, frameLabel, matchesMetric, nextStageReady, relatedActors, startLesson, transition, type Command, type Lesson, type Session } from "./lesson.ts";
-import { courseRef, courseLink, notesLink, resumeProgress, saveProgress, stageNames, type CourseRef } from "./learning-store.ts";
+import { courseRef, courseLink, resumeProgress, saveProgress, stageNames, type CourseRef } from "./learning-store.ts";
 import { SavedSource } from "./StudentNotes";
 import { Investigation } from "./Investigation";
-import { studentOrigin } from "./classroom-routes.ts";
+import { StudentHeader } from "./StudentHeader.tsx";
 import { Inspector, MicroBoard, RoleView, Timeline } from "./visuals";
 
 const MetricChart = lazy(() => import("./MetricChart"));
@@ -197,7 +197,6 @@ function LessonStudio({ lesson, review, reviewByTimeline, course, fresh }: Studi
   const activeMetric = lesson.originalId && session.focusedMetric
     ? lesson.metrics.find(item => item.id === session.focusedMetric) ?? metric : metric;
   const nextTurning = run?.frames.some(item => item.tick > session.cursor && item.turningPoint);
-  const legacyOrigin = studentOrigin(import.meta.env.VITE_LEGACY_ORIGIN);
   const pauseTick = reviewByTimeline && stage === 3 && frame?.turningPoint && !session.playing ? frame.tick : undefined;
   useEffect(() => {
     if (pauseTick === undefined || !window.matchMedia("(max-width: 760px)").matches) return;
@@ -227,12 +226,8 @@ function LessonStudio({ lesson, review, reviewByTimeline, course, fresh }: Studi
   const locate = (tick: number, metricId = metric.id, actorId?: string) =>
     send({ type: "locate", tick, metricId, actorId });
   return <>
-    <header className="site-header">
-      <div className="shell"><a className="brand" href="./">EcoSimEdu</a><a href="./#paths">学习路径</a>
-        {course && <a href={notesLink()}>实验笔记</a>}
-        {course && <a href={`${legacyOrigin}/learn/${course.caseId}`}>原课堂与进度</a>}</div>
-    </header>
-    <main className="shell lesson-shell">
+    <StudentHeader caseId={course?.caseId}/>
+    <main className="shell lesson-shell" id="main" tabIndex={-1}>
       <nav aria-label="课堂进度">
         <ol className="stepper grid grid-cols-2 md:grid-cols-4">
           {stageNames.map((label, index) => <li key={label} aria-current={stage === index + 1 ? "step" : undefined}

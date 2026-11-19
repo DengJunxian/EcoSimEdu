@@ -1,4 +1,5 @@
 import { createElement } from "react";
+import { originalLessonHref } from "../../content/student-navigation.ts";
 import type { MigratedLesson } from "./models/course-lesson.ts";
 
 function loadCourse(load: () => Promise<MigratedLesson>) {
@@ -28,19 +29,6 @@ export function hasClassroom(id: string | null): id is keyof typeof classrooms {
   return id !== null && Object.hasOwn(classrooms, id);
 }
 
-export function studentOrigin(config?: string): string {
-  const local = "http://127.0.0.1:8877";
-  if (!config) return local;
-  try {
-    const url = new URL(config);
-    if (!["http:", "https:"].includes(url.protocol) || url.username || url.password) return local;
-    return url.origin;
-  } catch {
-    return local;
-  }
-}
-
-export function classroomHref(caseId: string, legacyOrigin: string): string {
-  return hasClassroom(caseId) ? `?${new URLSearchParams({ lesson: caseId })}` :
-    `${legacyOrigin}/learn/${encodeURIComponent(caseId)}`;
+export function classroomHref(caseId: string): string {
+  return hasClassroom(caseId) ? `?${new URLSearchParams({ lesson: caseId })}` : originalLessonHref(caseId);
 }

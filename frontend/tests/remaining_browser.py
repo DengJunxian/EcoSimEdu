@@ -5,7 +5,7 @@ from pathlib import Path
 
 from playwright.sync_api import expect, sync_playwright
 
-BASE = sys.argv[1] if len(sys.argv) > 1 else "http://127.0.0.1:8878"
+BASE = (sys.argv[1] if len(sys.argv) > 1 else "http://127.0.0.1:8776/explore").rstrip("/")
 ENGINE = sys.argv[2] if len(sys.argv) > 2 else "chromium"
 OUTPUT = Path("output/playwright/progressive-complete")
 SELECTION = {
@@ -40,7 +40,7 @@ def key_button(scope, name):
 def walk(page, case_id, width):
     action, baseline, treatment = SELECTION[case_id]
     definition = json.loads(Path(f"cases/{case_id}/case.json").read_text())
-    page.goto(BASE)
+    page.goto(BASE + "/")
     page.locator(f"#lesson-{case_id}").get_by_role("link", name="打开四阶课堂", exact=False).press("Enter")
     expect(page).to_have_url(f"{BASE}/?lesson={case_id}")
     expect(page.get_by_role("slider")).to_have_count(0)

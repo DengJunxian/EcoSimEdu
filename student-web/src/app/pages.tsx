@@ -14,6 +14,7 @@ import { readAuctionStudy } from "../cases/auction/auction-study";
 import { AuctionNotes } from "../cases/auction/auction-notes";
 import { Mechanism, QuoteDiagram } from "./mechanisms";
 import { LocalModelSettings } from "./local-model";
+import { exploreLessonHref, studentRoutes } from "../../../content/student-navigation";
 import type { Outcome } from "../learning/education-types";
 
 const HomeLearningActions = lazy(() => import("../learning/review-page").then(module => ({ default: module.HomeLearningActions })));
@@ -97,7 +98,8 @@ export function HomePage() {
         <h1>从一次选择，<br/>看见经济系统</h1>
         <p>报出一个价格，决定何时提款，或在地图上搬一次家。先做预测，再从仿真记录里追查你的选择如何进入群体结果。</p>
         <div className="app-actions">
-          <a className="app-button" href={auctionHref}>进入双向拍卖</a>
+          <a className="app-button" href={studentRoutes.explore}>打开渐进课堂</a>
+          <a href={auctionHref}>进入双向拍卖</a>
           <a href="/emergence">从微观到宏观</a>
           <a href="/paths">查看学习路径</a>
         </div>
@@ -184,6 +186,7 @@ export function CasePage({ course }: { course: CatalogCourse }) {
           <a className="app-button" href={hasNewClass ? `/learn/${course.case_id}` : legacyCourseHref(course.case_id)}>
             {(hasNewClass ? newProgress : resume) ? "继续学习" : "进入课堂"}
           </a>
+          <a href={exploreLessonHref(course.case_id)}>打开四阶课堂</a>
           <button type="button" aria-pressed={favorite} onClick={() => {
             try { setFavorites(toggleCourseFavorite(course.case_id)); setFavoriteError(""); }
             catch { setFavoriteError("收藏暂时无法保存。"); }
@@ -251,7 +254,10 @@ export function NotesPage() {
   const local = useLocalProgress(restored);
   return <main id="main" tabIndex={-1} className="container app-page app-inner">
     <h1>实验笔记</h1>
-    <div className="toolbar"><a href="/review">复习</a><a href="/concepts">按概念查看</a></div>
+    <div className="toolbar">
+      <a href={studentRoutes.review}>复习</a><a href="/concepts">按概念查看</a>
+      <a href={`${studentRoutes.explore}?view=notes`}>四阶课堂笔记</a>
+    </div>
     <Suspense fallback={null}><LearningRecords/></Suspense>
     <RestoreStudy courseFor={caseId => catalog.find(course => course.case_id === caseId) as Course}
       contentFor={caseId => fieldContent[caseId]}

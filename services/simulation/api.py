@@ -16,7 +16,7 @@ from typing import Literal
 from uuid import UUID
 
 from fastapi import FastAPI, HTTPException, Query, Request
-from fastapi.responses import FileResponse, JSONResponse
+from fastapi.responses import FileResponse, HTMLResponse, JSONResponse, RedirectResponse
 from fastapi.staticfiles import StaticFiles
 from pydantic import model_validator, BaseModel, ConfigDict, Field, StrictInt, ValidationError
 
@@ -38,6 +38,7 @@ from .tutor import answer_tutor
 
 PRESETS = ROOT / "cases/double_auction/presets.json.gz"
 BUILD = ROOT / "student-web/dist"
+EXPLORE_BUILD = ROOT / "frontend/dist"
 VERSION = "1.1.0-rc.4"
 EVENT_CACHE_BYTES = 24 * 1024 * 1024
 CANONICAL_RESULT_PREFIX = b'{"format":"canonical-result/1",'
@@ -945,7 +946,37 @@ def export(key: UUID):
     return get_run(key)
 
 
+@app.get("/explore", include_in_schema=False)
+def explore_redirect(request: Request):
+    query = request.url.query
+    return RedirectResponse("/explore/" + ("?" + query if query else ""))
+
+
+EXPLORE_AVAILABLE = (EXPLORE_BUILD / "index.html").is_file()
+if EXPLORE_AVAILABLE:
+    app.mount("/explore", StaticFiles(directory=EXPLORE_BUILD, html=True), name="explore")
+else:
+    @app.get("/explore/", include_in_schema=False)
+    def explore_unavailable():
+        return HTMLResponse(
+            '<html lang="zh-CN"><meta charset="utf-8"><title>EcoSimEdu · 渐进课堂</title>'
+            '<main><h1>渐进课堂尚未构建</h1>'
+            '<p>请在本机运行 <code>npm --prefix frontend run build</code> 后重启教学服务。</p>'
+            '<a href="/">返回学生实验室</a></main></html>', status_code=503,
+        )
+
+
 if BUILD.is_dir():
+    @app.get("/", include_in_schema=False)
+    def student_home(request: Request):
+        params = request.query_params
+        has_legacy_link = any(key in params for key in ("case", "run", "event", "tick", "boundary", "model_case"))
+        if EXPLORE_AVAILABLE and not has_legacy_link and (
+            params.get("view") == "notes" or ("view" not in params and "lesson" in params)
+        ):
+            return explore_redirect(request)
+        return student_page()
+
     @app.get("/cases", include_in_schema=False)
     @app.get("/experiments/multi-role", include_in_schema=False)
     @app.get("/compare", include_in_schema=False)
