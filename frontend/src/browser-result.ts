@@ -3,6 +3,11 @@ import type { ResultDigest } from "./domain-contracts.ts";
 import type { Run } from "./lesson.ts";
 import type { ModelRun } from "./models/record.ts";
 
+export async function sha256Text(text: string) {
+  const hash = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(text));
+  return Array.from(new Uint8Array(hash), byte => byte.toString(16).padStart(2, "0")).join("");
+}
+
 export async function browserResultDigest(run: Run): Promise<ResultDigest> {
   const evidence = {
     id: run.id,
@@ -20,7 +25,5 @@ export async function browserResultDigest(run: Run): Promise<ResultDigest> {
     if (value === null || typeof value !== "object" || Array.isArray(value)) return value;
     return Object.fromEntries(Object.keys(value).sort().map(key => [key, value[key]]));
   });
-  const hash = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(canonical));
-  const value = Array.from(new Uint8Array(hash), byte => byte.toString(16).padStart(2, "0")).join("");
-  return { algorithm: "sha256", scope: "browser-evidence/v1", value };
+  return { algorithm: "sha256", scope: "browser-evidence/v1", value: await sha256Text(canonical) };
 }

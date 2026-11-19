@@ -16,7 +16,7 @@ export const publicGoodsLesson = defineCourse("public_goods", publicCase, {
   rule: "个人净收益 = 保留代币 + 0.4 × 本轮总贡献 − 施罚成本 − 受罚扣损。部分角色按上期同伴贡献或受罚情况调整。",
   explanation: "引用一条贡献和一条结算，说明同样一枚代币对个人和小组的收益为何不同。",
   periodLabel: "公共池每轮结算", periods: windowOf(0, 10),
-}, (seed, action, scenario, params) => publicGoods(seed, action, scenario, params.unit_cost));
+}, (seed, action, scenario, params, input) => publicGoods(seed, action, scenario, params.unit_cost, input));
 
 export const commonsLesson = defineCourse("commons_governance", commonsCase, {
   title: "共享水域里，你今天取用多少？", role: "使用者 F01",
@@ -31,4 +31,4 @@ export const commonsLesson = defineCourse("commons_governance", commonsCase, {
   rule: "先分配现有存量，剩余量进入再生公式。下期的取用计划会受期初存量影响。",
   explanation: "用实际取用和再生两条记录写出存量恒等式，并解释这一期的选择怎样限制下一期。",
   periodLabel: "每期再生后存量", periods: windowOf(0, 12),
-}, (seed, action, scenario, params) => commons(seed, action, scenario, params.institution === "quota"));
+}, (seed, action, scenario, params, input) => commons(seed, action, scenario, params.institution === "quota", input));

@@ -64,7 +64,7 @@ class MetricDefinition(DomainModel):
 class MetricRoles(DomainModel):
     observation: str
     comparison: str
-    statistic: Literal["final", "peak"]
+    statistic: Literal["final", "peak", "cumulative"]
 
 
 class Clock(DomainModel):

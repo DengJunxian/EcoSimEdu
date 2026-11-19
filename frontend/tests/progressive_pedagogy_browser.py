@@ -258,11 +258,11 @@ def other_response_formats(journey):
 
     find(journey, "radio", "迁移到新情境").press("Space")
     expect(task).to_contain_text("二手教材价值 46 元")
-    hit(task, "跳过本题")
+    find(task, "button", "跳过本题").click()
     expect(task).to_contain_text("旧书价值 96")
-    hit(task, "跳过本题")
+    find(task, "button", "跳过本题").click()
     expect(task).to_contain_text("寄售平台向卖方收 6 元")
-    hit(task, "跳过并返回课堂")
+    find(task, "button", "跳过并返回课堂").click()
     hit(task, "继续涌现练习")
     for index, text in enumerate((
         "核对拍卖的首笔成交双边订单，和柠檬市场卖家退出时的保留价。",

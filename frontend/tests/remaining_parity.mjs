@@ -10,9 +10,11 @@ export const lessons = [schoolLesson, lemonsLesson, cascadeLesson, schellingLess
 
 if (process.argv[2] === "--pipe") {
   const requests = JSON.parse(readFileSync(0, "utf-8"));
-  for (const { id, choices, policy } of requests) {
+  for (const { id, choices, policy, seed: requestedSeed } of requests) {
     const lesson = lessons.find(candidate => candidate.id === id);
-    const run = lesson.run({ seed: lesson.seed, choices, policy });
+    const seed = requestedSeed ?? lesson.seed;
+    const execute = seed === lesson.seed ? lesson.run : await lesson.prepareSeed(seed);
+    const run = execute({ seed, choices, policy });
     console.log(JSON.stringify({ id, choices, policy, seed: run.seed, scenario: run.scenario, records: run.records,
       metrics: run.frames.map(frame => frame.metrics),
       ...(id === "schelling_segregation" ? { grids: run.frames.map(frame => frame.board) } : {}) }));

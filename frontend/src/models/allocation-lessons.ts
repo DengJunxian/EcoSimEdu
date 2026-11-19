@@ -16,7 +16,7 @@ export const beerLesson = defineCourse("beer_game", beerCase, {
     note: "同样的需求冲击、运输时间、产能和第 5 周零售订单。对照只改变预测使用的需求信号。" },
   rule: "每周先到货、履约，再更新本环节需求预测和下单。在途货物在到达周才计入可用库存。",
   explanation: "引用实际下单和到货周，解释为什么上游波动可能和最终消费需求不同。",
-  periodLabel: "自然周末", periods: windowOf(0, 40),
+  periodLabel: "自然周末", periods: windowOf(0, 40), stochastic: false,
 }, (seed, action, scenario, params) => beer(seed, action, scenario, params.share_demand));
 
 export const carbonLesson = defineCourse("carbon_market", carbonCase, {
@@ -33,5 +33,5 @@ export const carbonLesson = defineCourse("carbon_market", carbonCase, {
     note: "企业成本、基准排放和免费配额调整请求沿用基线。收紧总量后配额分布、减排与交易重新计算。" },
   rule: "按各吨边际减排成本排序。清算只转移登记过的配额编号，最终每吨排放缴回一张。",
   explanation: "引用一次编号转移和一次缴回，区分减排资源成本与支付给其他企业的交易款。",
-  periodLabel: "发行、减排、清算、缴回", periods: [0, 1, 2, 3],
-}, (seed, action, scenario, params) => carbon(seed, action, scenario, params.cap));
+  periodLabel: "履约阶段", periods: [0, 1, 2, 3], phaseLabels: ["发行", "减排", "清算", "缴回"],
+}, (seed, action, scenario, params, input) => carbon(seed, action, scenario, params.cap, input));

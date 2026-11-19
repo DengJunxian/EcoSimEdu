@@ -20,24 +20,31 @@ for expected in opening["rounds"]:
 cases = [(False, bid, fee) for bid in (1, 96, 108) for fee in (0, 6)]
 cases += [(True, 35, fee) for fee in (0, 6)]
 cases += [(False, bid, -1) for bid in (1, 96, 108)]
+pairs = [(seed, *scenario) for scenario in cases] + [
+    (seed + offset, boundary, 35 if boundary else 96, policy)
+    for offset in (1, 2) for boundary, policy in ((False, 0), (False, 6), (False, -1), (True, 0), (True, 6))
+]
 script = """
-import { simulateAuction } from './frontend/src/auction.ts';
+import { auctionLesson } from './frontend/src/auction.ts';
 const inputs = JSON.parse(process.argv[1]);
-const data = inputs.map(([boundary, bid, policy]) => {
-  const run = simulateAuction({seed: 1962, choices: [String(bid), 'yes'], policy}, boundary);
+const data = await Promise.all(inputs.map(async ([seed, boundary, bid, policy]) => {
+  const lesson = auctionLesson(boundary);
+  const execute = seed === lesson.seed ? lesson.run : await lesson.prepareSeed(seed);
+  const run = execute({seed, choices: [String(bid), 'yes'], policy});
   return { ceiling: run.ceiling, frames: run.frames.map(({record, book, accounts, metrics}) =>
     ({record, book, accounts, metrics})) };
-});
+}));
 process.stdout.write(JSON.stringify(data));
 """
 browser = json.loads(subprocess.check_output(
-    ["node", "--input-type=module", "-e", script, json.dumps(cases)], cwd=ROOT))
+    ["node", "--input-type=module", "-e", script, json.dumps(pairs)], cwd=ROOT))
 frames_checked = 0
-for (boundary, bid, policy), result in zip(cases, browser, strict=True):
+for selected_seed, result in zip(pairs, browser, strict=True):
+    match_seed, boundary, bid, policy = selected_seed
     demand = next(scenario for scenario in CASE["scenarios"] if scenario["id"] == "demand")
     shift = BOUNDARIES["double_auction"]["parameters"]["demand_shift"] if boundary else demand["demand_shift"] if policy == -1 else 0
     fee = 0 if policy == -1 else policy
-    legacy = run_auction("baseline", seed, bid, parameters={"demand_shift": shift, "fee": fee})
+    legacy = run_auction("baseline", match_seed, bid, parameters={"demand_shift": shift, "fee": fee})
     assert result["ceiling"] == legacy["metrics"]["ceiling"]
     last_price = None
     for frame, event, snapshot in zip(result["frames"], legacy["events"], legacy["snapshots"], strict=True):
@@ -55,5 +62,5 @@ for (boundary, bid, policy), result in zip(cases, browser, strict=True):
         frames_checked += 1
     for field in ("volume", "surplus", "platform_cash", "participant_surplus", "efficiency"):
         assert metrics[field] == legacy["metrics"][field], field
-    print(f"boundary={boundary}, bid={bid}, fee={fee}: {len(result['frames'])} frames")
-print(f"{frames_checked} matching event, book and account frames across {len(cases)} paths")
+    print(f"seed={match_seed}, boundary={boundary}, bid={bid}, fee={fee}: {len(result['frames'])} frames")
+print(f"{frames_checked} matching event, book and account frames across {len(pairs)} paths")

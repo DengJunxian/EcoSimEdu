@@ -1,7 +1,7 @@
-import input from "../data/classroom-inputs.json" with { type: "json" };
+import opening from "../data/classroom-inputs.json" with { type: "json" };
 import { Recorder, ids, profiles, recordOf, shown, sum, type Metrics } from "./record.ts";
 
-export function lemons(seed: number, action: string, scenario: string, fee: number) {
+export function lemons(seed: number, action: string, scenario: string, fee: number, input = opening) {
   const sellers = ids("S", input.qualities.length);
   const people = [...sellers, "B01"];
   const quality = recordOf(sellers, (_, i) => input.qualities[i]);
@@ -69,7 +69,7 @@ export function lemons(seed: number, action: string, scenario: string, fee: numb
 const probability = (power: number) => Math.round(1e6 * 2 ** power / (1 + 2 ** power)) / 1e4;
 const positive = (signal: string) => signal === "A" ? 1 : -1;
 
-export function cascade(seed: number, action: string, scenario: string, observed: boolean) {
+export function cascade(seed: number, action: string, scenario: string, observed: boolean, input = opening) {
   const people = ids("D", 12);
   const log = new Recorder(people, profiles(people, "抽样准确率 2/3，贝叶斯策略在平局时跟随私信号",
     "轮到自己时才收到私信号"));
@@ -119,7 +119,7 @@ export function cascade(seed: number, action: string, scenario: string, observed
   return log.run("information_cascade", seed, action, scenario);
 }
 
-export function matching(seed: number, action: string, scenario: string, immediate: boolean, additionalA: number) {
+export function matching(seed: number, action: string, scenario: string, immediate: boolean, additionalA: number, input = opening) {
   const { preferences, priorities } = input.schools;
   const students = Object.keys(preferences);
   const schools = ["A", "B", "C"];

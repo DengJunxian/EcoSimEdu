@@ -50,6 +50,8 @@ export type Frame = {
   board?: { size: number; cells: readonly (string | null)[]; marked: readonly number[] };
 };
 
+export type AlignedFrame = Frame & { sourceTick?: number; axisLabel?: string };
+
 export type Run = {
   id: RunId;
   seed: number;
@@ -88,9 +90,10 @@ export type Lesson = {
   originalId?: string;
   explanationPrompt?: string;
   policy: { label: string; min: number; max: number; baseline: number; unit: string;
-    step?: number; describe?: string; labels?: Readonly<Record<number, string>>; project?: (run: Run) => readonly Frame[];
-    rangeLabel?: string; alternates?: readonly { value: number; label: string; description: string }[]; };
+    step?: number; describe?: string; labels?: Readonly<Record<number, string>>; project?: (run: Run) => readonly AlignedFrame[];
+    rangeLabel?: string; alternates?: readonly { value: number; label: string; description: string; baselineLabel?: string }[]; };
   seed: number;
+  prepareSeed?: (seed: number) => Promise<Lesson["run"]>;
   run: (input: { seed: number; choices: readonly string[]; policy: number }) => Run;
 };
 
@@ -116,6 +119,8 @@ export type Session = {
   policy: number;
   prediction?: Trend;
   comparison?: Comparison;
+  multiSeed?: true;
+  comparisonFailed?: true;
 };
 
 export type Command =
@@ -128,6 +133,7 @@ export type Command =
   | { type: "perspective"; perspective: ObservationPerspective }
   | { type: "policy"; value: number }
   | { type: "predict"; value: Trend }
+  | { type: "seed-count"; multi: boolean }
   | { type: "compare" | "new-comparison" };
 
 export function startLesson(lesson: Lesson): Session {
@@ -170,6 +176,10 @@ export function relatedActors(frame: Frame, metricId?: string): string[] {
   return [...new Set(frame.events.flatMap(event =>
     metricId === undefined || matchesMetric(event, metricId)
       ? [...(event.participants ?? []), event.actorId, event.counterpartyId].filter((id): id is string => !!id) : []))];
+}
+
+function withoutComparisonFailure({ comparisonFailed: _failure, ...session }: Session): Session {
+  return session;
 }
 
 export function transition(lesson: Lesson, session: Session, command: Command): Session {
@@ -249,33 +259,52 @@ export function transition(lesson: Lesson, session: Session, command: Command): 
     }
     case "policy": {
       if (stage !== 4 || session.comparison || !legalPolicy(lesson, command.value) || command.value === session.policy) return session;
-      return { ...session, policy: command.value, prediction: undefined };
+      return { ...withoutComparisonFailure(session), policy: command.value, prediction: undefined };
     }
+    case "seed-count":
+      return stage === 4 && !session.comparison && !!lesson.prepareSeed
+        ? { ...withoutComparisonFailure(session), multiSeed: command.multi ? true : undefined, prediction: undefined }
+        : session;
     case "predict":
       return stage === 4 && !session.comparison && session.policy !== lesson.policy.baseline
         ? { ...session, prediction: command.value } : session;
     case "compare":
       if (stage !== 4 || !run || !session.prediction || session.policy === lesson.policy.baseline ||
           session.comparison) return session;
-      return { ...session, comparison: { policy: session.policy, prediction: session.prediction,
-        run: lesson.run({ seed: run.seed, choices: session.choices, policy: session.policy }) } };
+      try {
+        const branch = lesson.run({ seed: run.seed, choices: session.choices, policy: session.policy });
+        if (!validPair(run, branch, run.seed)) throw new Error("Invalid paired recording");
+        return { ...withoutComparisonFailure(session), comparison: { policy: session.policy, prediction: session.prediction, run: branch } };
+      } catch {
+        return { ...session, comparisonFailed: true };
+      }
     case "new-comparison":
       return stage === 4 ? { ...session, comparison: undefined, prediction: undefined } : session;
   }
 }
 
+export function validPair(baseline: Run, comparison: Run, seed: number): boolean {
+  const valid = (run: Run) => run.seed === seed && !!run.id && run.frames.length > 0 &&
+    run.frames.every((frame, tick) => frame.tick === tick &&
+      Object.values(frame.metrics).every(value => value == null || Number.isFinite(value)));
+  const participants = (run: Run) => run.frames[0].actors.map(actor => actor.id).sort().join("|");
+  return valid(baseline) && valid(comparison) && baseline.id !== comparison.id &&
+    participants(baseline) === participants(comparison);
+}
+
 export function peak(run: Run, metricId: string): number | null {
-  const observed = run.frames.map(frame => frame.metrics[metricId]).filter((value): value is number => typeof value === "number");
+  const observed = run.frames.map(frame => frame.metrics[metricId]).filter((value): value is number => typeof value === "number" && Number.isFinite(value));
   return observed.length ? Math.max(...observed) : null;
 }
 
 export function outcome(lesson: Lesson, run: Run): number | null {
   const id = comparisonMetric(lesson).id;
-  return lesson.metricRoles.statistic === "final" ? run.frames.at(-1)?.metrics[id] ?? null : peak(run, id);
+  const value = lesson.metricRoles.statistic === "peak" ? peak(run, id) : run.frames.at(-1)?.metrics[id];
+  return typeof value === "number" && Number.isFinite(value) ? value : null;
 }
 
 export function outcomeLabel(lesson: Lesson): string {
-  return `${lesson.metricRoles.statistic === "final" ? "期末" : "峰值"}${comparisonMetric(lesson).label}`;
+  return `${lesson.metricRoles.statistic === "peak" ? "峰值" : "期末"}${comparisonMetric(lesson).label}`;
 }
 
 export const displayNumber = (value: number | null | undefined) =>

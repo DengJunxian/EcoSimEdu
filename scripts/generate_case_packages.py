@@ -9,19 +9,20 @@ from services.simulation.projection import CLOCKS, metric_registry
 
 ROOT = Path(__file__).resolve().parents[1]
 INDEX = ROOT / "cases/case-packages-v1.json"
+# Observation key, comparison key, and aggregation for each published classroom.
 ROLES = {
-    "double_auction": ("price", "volume"),
-    "schelling_segregation": ("similarity", "similarity"),
-    "svb_run": ("queued", "queued"),
-    "information_cascade": ("public_a_pct", "cascade_decisions"),
-    "public_goods": ("net_income", "net_income"),
-    "commons_governance": ("stock", "stock"),
-    "lemons_market": ("quoted_pool_price", "traded"),
-    "school_matching": ("rejections", "first_true_choice"),
-    "beer_game": ("factory_order", "factory_variance_ratio"),
-    "carbon_market": ("planned_emissions", "abatement_cost"),
-    "flash_crash": ("bid_depth", "program_filled"),
-    "gamestop": ("last_price", "forced_cover"),
+    "double_auction": ("price", "volume", "cumulative"),
+    "schelling_segregation": ("similarity", "similarity", "final"),
+    "svb_run": ("queued", "queued", "final"),
+    "information_cascade": ("public_a_pct", "cascade_decisions", "cumulative"),
+    "public_goods": ("net_income", "net_income", "cumulative"),
+    "commons_governance": ("stock", "stock", "final"),
+    "lemons_market": ("quoted_pool_price", "traded", "cumulative"),
+    "school_matching": ("rejections", "first_true_choice", "final"),
+    "beer_game": ("factory_order", "factory_variance_ratio", "final"),
+    "carbon_market": ("planned_emissions", "abatement_cost", "final"),
+    "flash_crash": ("bid_depth", "program_filled", "cumulative"),
+    "gamestop": ("last_price", "forced_cover", "cumulative"),
 }
 MODELS = {
     "double_auction": ("十名买家与十名卖家由固定种子生成。", 20,
@@ -106,7 +107,7 @@ def build_packages():
         approved = set(learning["source_ids"])
         assert approved <= {source["source_id"] for source in refs}
         people, count, assumption = MODELS[case_id]
-        observed, comparison = ROLES[case_id]
+        observed, comparison, statistic = ROLES[case_id]
         clock = case.get("alignment") or CLOCKS[case_id]
         fields = [*metric_registry(case), *(
             {"id": key, "label": label, "unit": unit}
@@ -133,7 +134,7 @@ def build_packages():
             rights=[{"sourceId": row["source_id"], "status": row["rights"]["status"], "detail": row["rights"]["detail"],
                      "evidenceUrl": row["rights"]["evidence_url"], "distribution": row["course_distribution"]} for row in refs],
             learningOutcomes=learning["outcomes"], metrics=metrics,
-            browserMetricRoles={"observation": observed, "comparison": comparison, "statistic": "final"},
+            browserMetricRoles={"observation": observed, "comparison": comparison, "statistic": statistic},
             archivedMetricRoles={"observation": "last_price" if case_id == "double_auction" else observed,
                                  "comparison": comparison, "statistic": "final"},
             clock={"id": clock["field"], "label": clock["axis_label"]},

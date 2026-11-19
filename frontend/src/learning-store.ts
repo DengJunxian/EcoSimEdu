@@ -43,7 +43,7 @@ export function validChoices(lesson: Lesson, value: unknown, complete = true): v
     value.every((choice, i) => typeof choice === "string" && legalChoice(lesson.decisions[i], choice));
 }
 
-type SavedProgress = Omit<Session, "run" | "comparison" | "playing"> & {
+type SavedProgress = Omit<Session, "run" | "comparison" | "playing" | "comparisonFailed"> & {
   course: CourseRef;
   updatedAt: number;
   runId?: string;
@@ -55,7 +55,7 @@ export const stageNames = ["真实场景代入", "微观机制透视", "宏微�
 function validProgress(record: SavedProgress | undefined): record is SavedProgress {
   return !!record && typeof record.course?.caseId === "string" && index(record.updatedAt) &&
     index(record.stage) && record.stage >= 1 && record.stage <= 4 &&
-    index(record.cursor) && index(record.revealed) && record.cursor <= record.revealed &&
+    (record.multiSeed === undefined || record.multiSeed === true) && index(record.cursor) && index(record.revealed) && record.cursor <= record.revealed &&
     Array.isArray(record.choices) && record.choices.length > 0;
 }
 
@@ -68,7 +68,7 @@ export function latestProgress(storage: Storage, courseExists: (caseId: string) 
 
 export function saveProgress(storage: Storage, course: CourseRef, session: Session) {
   if (!session.choices.length) return;
-  const { run, comparison, playing: _playing, ...state } = session;
+  const { run, comparison, playing: _playing, comparisonFailed: _comparisonFailed, ...state } = session;
   const record: SavedProgress = { ...state, course, updatedAt: Date.now(), runId: run?.id, comparisonId: comparison?.run.id };
   storage.setItem(progressPrefix + courseKey(course), JSON.stringify(record));
 }
@@ -100,11 +100,13 @@ export function resumeProgress(storage: Storage, course: CourseRef, lesson: Less
     if (record.stage !== 4) return replay;
     if (!nextStageReady(lesson, { ...replay, stage: 3 }) || !legalPolicy(lesson, record.policy)) return undefined;
     const prediction = record.policy !== initial.policy && trend(record.prediction) ? record.prediction : undefined;
-    if (!record.comparisonId) return { ...replay, policy: record.policy, prediction };
+    const plan = { ...replay, policy: record.policy, prediction,
+      ...(record.multiSeed && lesson.prepareSeed ? { multiSeed: true as const } : {}) };
+    if (!record.comparisonId) return plan;
     if (!prediction) return undefined;
     const branch = lesson.run({ seed: run.seed, choices: record.choices, policy: record.policy });
     if (branch.id !== record.comparisonId) return undefined;
-    return { ...replay, policy: record.policy, prediction, comparison: { run: branch, policy: record.policy, prediction } };
+    return { ...plan, comparison: { run: branch, policy: record.policy, prediction } };
   } catch {
     return undefined;
   }

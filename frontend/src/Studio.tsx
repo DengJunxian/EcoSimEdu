@@ -1,5 +1,6 @@
 import { lazy, Suspense, useEffect, useLayoutEffect, useMemo, useReducer, useRef, useState, type ReactNode } from "react";
 import { ComparisonView, PredictionCard } from "./Counterfactual";
+import { ExperimentArchive } from "./ExperimentWorkbench.tsx";
 import { chartMetric, displayNumber, displayObservation, frameLabel, matchesMetric, nextStageReady, relatedActors, startLesson, transition, type Command, type Lesson, type Session } from "./lesson.ts";
 import { courseRef, courseLink, hasSavedProgress, resumeProgress, saveProgress, stageNames, type CourseRef } from "./learning-store.ts";
 import { SavedSource } from "./StudentNotes";
@@ -213,6 +214,7 @@ export function Studio(props: StudioProps) {
   const course = courseRef(query);
   const source = query.get("source");
   const side = query.get("side");
+  if (course && query.get("experiment") === "1") return <ExperimentArchive lesson={props.lesson} course={course}/>;
   if (course && source && (side === "baseline" || side === "comparison")) {
     return <SavedSource lesson={props.lesson} id={source} side={side} {...course}/>;
   }
@@ -369,7 +371,7 @@ function LessonStudio({ lesson, review, reviewByTimeline, actorDetail, afterInve
           {stage === 4 && <PredictionCard lesson={lesson} session={session} send={send}/>}
         </ActionPanel>
         {stage === 1 && <RoleView role={lesson.role}/>}
-        {stage === 4 && <ComparisonView lesson={lesson} session={session}/>}
+        {stage === 4 && <ComparisonView lesson={lesson} session={session} course={course}/>}
       </div>
 
       {replaying && <div className="studio-replay">
@@ -464,6 +466,7 @@ function LessonStudio({ lesson, review, reviewByTimeline, actorDetail, afterInve
         {afterInvestigation?.(session)}
         {course && explained && <LearningJourney caseId={course.caseId}/>}
       </div>}
+      {course && stage === 1 && <p><a href={courseLink(course, { experiment: "1" })}>恢复本课实验卡</a></p>}
       {course && session.choices.length > 0 && <a className="restart-link" href={courseLink(course, { fresh: "1" })}>从头再练</a>}
     </main>
   </>;

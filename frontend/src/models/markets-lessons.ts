@@ -18,7 +18,7 @@ export const flashLesson = defineCourse("flash_crash", flashCase, {
   rule: "先撮合这批卖单，再检查做市者的净增库存。撤回的是剩余挂单；被撤股票不会记入成交。",
   explanation: "引用一笔成交和撤单记录，解释同样的卖出计划如何遇到不同的可成交买量。",
   periodLabel: "市场模型步收尾", periods: windowOf(0, 200),
-}, (seed, action, scenario, params) => flashCrash(seed, action, scenario, params.withdraw_on_inventory));
+}, (seed, action, scenario, params, input) => flashCrash(seed, action, scenario, params.withdraw_on_inventory, input));
 
 export const gameLesson = defineCourse("gamestop", gameCase, {
   title: "听到热议，你会用现金跟进吗？", role: "学生投资者",
@@ -34,4 +34,4 @@ export const gameLesson = defineCourse("gamestop", gameCase, {
   rule: "转发沿用同一来源编号。价格由真实成交更新。担保现金低于按成交价估值的借券义务的 170% 时，触发回补规则。",
   explanation: "指认一条消息与一笔实际成交，说明借券账户为什么可能发出回补订单，以及订单是否实际成交。",
   periodLabel: "交易轮收尾", periods: windowOf(0, 10),
-}, (seed, action, scenario, params) => gamestop(seed, action, scenario, params.social_weight));
+}, (seed, action, scenario, params, input) => gamestop(seed, action, scenario, params.social_weight, input));

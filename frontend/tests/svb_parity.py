@@ -30,57 +30,60 @@ keys = ("cash", "queued", "requested", "paid", "equity", "sale_loss")
 ledger = {"units": "证券单位", "price": "证券现价", "marketValue": "证券市值",
           "loans": "贷款", "deposits": "存款负债", "borrowing": "支持借款负债"}
 checks = 0
-for action in ("withdraw_now", "withdraw_later"):
-    for name, policy in scenario.items():
-        python = simulate(CASE, name, seed, action)
-        browser = json.loads(subprocess.check_output(
-            ["node", "--input-type=module", "-e", """
-import { simulateSvb } from './frontend/src/svb.ts';
+for seed in (CASE["seed"], CASE["seed"] + 1, CASE["seed"] + 2):
+    people = _depositors(seed)
+    for action in ("withdraw_now", "withdraw_later"):
+        for name, policy in scenario.items():
+            python = simulate(CASE, name, seed, action)
+            browser = json.loads(subprocess.check_output(
+                ["node", "--input-type=module", "-e", """
+import { svbLesson } from './frontend/src/svb.ts';
 const [seed, action, policy] = process.argv.slice(1);
-process.stdout.write(JSON.stringify(simulateSvb({seed: Number(seed), choices: [action, 'at-payment'], policy: Number(policy)})));
+const run = Number(seed) === svbLesson.seed ? svbLesson.run : await svbLesson.prepareSeed(Number(seed));
+process.stdout.write(JSON.stringify(run({seed: Number(seed), choices: [action, 'at-payment'], policy: Number(policy)})));
 """, str(seed), action, str(policy)], cwd=ROOT))
-        snapshots = {0: python["snapshots"][0]}
-        requests, payments, messages = {}, {}, {}
-        visible = {actor: set() for actor in people}
-        assert browser["scenario"] == name
-        assert {actor: tuple(values) for actor, values in browser["network"].items()} == python["initial"]["network"]
-        for event in python["events"]:
-            tick = event["round"]
-            snapshots[tick] = python["snapshots"][event["seq"]]
-            if "requests" in event:
-                requests[tick] = [(item["person"], item["requested"]) for item in event["requests"]]
-            if "payments" in event:
-                payments[tick] = [(item["person"], item["amount"]) for item in event["payments"]]
-            if "messages" in event:
-                messages[tick] = event["messages"]
-        reference = snapshots[0]
-        originals = {}
-        for frame in browser["frames"]:
-            tick = frame["tick"]
-            reference = snapshots.get(tick, reference)
-            values = frame["metrics"]
-            assert {key: values[key] for key in keys} == reference["metrics"], (action, name, tick)
-            assert {key: values[key] for key in ledger} == {
-                key: reference["entities"]["BANK"][label] for key, label in ledger.items()}
-            assert values["sold"] == reference["entities"]["MARKET"]["证券单位"]
-            assert values["marketCash"] == reference["entities"]["MARKET"]["现金"]
-            assert values["supportCash"] == reference["entities"]["SUPPORT"]["现金"]
-            assert [actor["id"] for actor in frame["actors"]] == list(people)
-            for delivery in messages.get(tick, []):
-                origin = python["events"][delivery["origin_seq"]]
-                visible[delivery["to"]].add((delivery["from"], origin["round"]))
-            if tick:
-                assert set(browser["observations"][tick]) == set(people)
-                for actor, observed in browser["observations"][tick].items():
-                    assert {(ref["actorId"], ref["tick"]) for ref in observed} == visible[actor]
-                    assert all(originals[ref["eventId"]] == (ref["actorId"], ref["tick"]) and ref["tick"] < tick
-                               for ref in observed)
-            for event in frame["events"]:
-                if event["kind"] == "request":
-                    originals[event["id"]] = (event["actorId"], tick)
-            for kind, rows, metric in (("request", requests, "requested"), ("payment", payments, "paid")):
-                events = [(event["actorId"], event["deltas"][metric]) for event in frame["events"] if event["kind"] == kind]
-                assert events == rows.get(tick, []), (action, name, tick, kind)
-            checks += 1
-        print(f"{action} {name}: {len(browser['frames'])} frames with matching amounts and ordered events")
-print(f"Verified opening data and {checks} frames across {len(scenario) * 2} paths.")
+            snapshots = {0: python["snapshots"][0]}
+            requests, payments, messages = {}, {}, {}
+            visible = {actor: set() for actor in people}
+            assert browser["scenario"] == name
+            assert {actor: tuple(values) for actor, values in browser["network"].items()} == python["initial"]["network"]
+            for event in python["events"]:
+                tick = event["round"]
+                snapshots[tick] = python["snapshots"][event["seq"]]
+                if "requests" in event:
+                    requests[tick] = [(item["person"], item["requested"]) for item in event["requests"]]
+                if "payments" in event:
+                    payments[tick] = [(item["person"], item["amount"]) for item in event["payments"]]
+                if "messages" in event:
+                    messages[tick] = event["messages"]
+            reference = snapshots[0]
+            originals = {}
+            for frame in browser["frames"]:
+                tick = frame["tick"]
+                reference = snapshots.get(tick, reference)
+                values = frame["metrics"]
+                assert {key: values[key] for key in keys} == reference["metrics"], (action, name, tick)
+                assert {key: values[key] for key in ledger} == {
+                    key: reference["entities"]["BANK"][label] for key, label in ledger.items()}
+                assert values["sold"] == reference["entities"]["MARKET"]["证券单位"]
+                assert values["marketCash"] == reference["entities"]["MARKET"]["现金"]
+                assert values["supportCash"] == reference["entities"]["SUPPORT"]["现金"]
+                assert [actor["id"] for actor in frame["actors"]] == list(people)
+                for delivery in messages.get(tick, []):
+                    origin = python["events"][delivery["origin_seq"]]
+                    visible[delivery["to"]].add((delivery["from"], origin["round"]))
+                if tick:
+                    assert set(browser["observations"][tick]) == set(people)
+                    for actor, observed in browser["observations"][tick].items():
+                        assert {(ref["actorId"], ref["tick"]) for ref in observed} == visible[actor]
+                        assert all(originals[ref["eventId"]] == (ref["actorId"], ref["tick"]) and ref["tick"] < tick
+                                   for ref in observed)
+                for event in frame["events"]:
+                    if event["kind"] == "request":
+                        originals[event["id"]] = (event["actorId"], tick)
+                for kind, rows, metric in (("request", requests, "requested"), ("payment", payments, "paid")):
+                    events = [(event["actorId"], event["deltas"][metric]) for event in frame["events"] if event["kind"] == kind]
+                    assert events == rows.get(tick, []), (action, name, tick, kind)
+                checks += 1
+            print(f"{seed} {action} {name}: {len(browser['frames'])} frames with matching amounts and ordered events")
+print(f"Verified opening data and {checks} frames across {len(scenario) * 6} paths.")

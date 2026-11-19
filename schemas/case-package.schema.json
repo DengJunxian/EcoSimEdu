@@ -113,7 +113,8 @@
         "statistic": {
           "enum": [
             "final",
-            "peak"
+            "peak",
+            "cumulative"
           ],
           "title": "Statistic",
           "type": "string"

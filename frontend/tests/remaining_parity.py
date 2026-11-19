@@ -71,6 +71,12 @@ def main():
                 for item in definitions[key]["action"]["options"] for policy in (baseline, comparison)]
     requests += [{"id": "schelling_segregation", "choices": [item["id"], "prediction-0"], "policy": policy}
                  for item in spatial["action"]["options"] for policy in (0, boundaries["schelling_segregation"]["parameters"]["threshold"])]
+    requests += [
+        {"id": key, "seed": definitions[key]["seed"] + offset,
+         "choices": [definitions[key]["action"]["default"], "prediction-0"], "policy": policy}
+        for key, (_, baseline, comparison) in CASES.items() if key != "beer_game"
+        for offset in (1, 2) for policy in (baseline, comparison)
+    ]
     report = subprocess.run(["node", "frontend/tests/remaining_parity.mjs", "--pipe"], cwd=ROOT,
                             input=json.dumps(requests), text=True, capture_output=True, check=True)
     counts = Counter()
@@ -80,8 +86,9 @@ def main():
         action = request["choices"][0]
         case = definitions[key]
         label = f"{key}/{action}/{browser['scenario']}"
-        actual = CASES[key][0].simulate(case, browser["scenario"], case["seed"], action)
-        assert browser["seed"] == case["seed"], label
+        seed = request.get("seed", case["seed"])
+        actual = CASES[key][0].simulate(case, browser["scenario"], seed, action)
+        assert browser["seed"] == seed, label
         assert len(browser["metrics"]) == len(actual["events"]), (label, len(browser["metrics"]), len(actual["events"]))
         for event, expected, metrics, snapshot in zip(browser["records"], actual["events"], browser["metrics"],
                                                        actual["snapshots"], strict=True):

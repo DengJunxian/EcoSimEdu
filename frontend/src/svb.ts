@@ -1,6 +1,7 @@
 import course from "../../cases/svb_run/case.json" with { type: "json" };
 import opening from "./data/svb-opening.json" with { type: "json" };
 import { casePackage } from "./domain-contracts.ts";
+import { pairedInput } from "./seed-assets.ts";
 import type { Actor, Frame, Lesson, LessonEvent, Run } from "./lesson.ts";
 
 const { rules, player_id: playerId } = course;
@@ -8,9 +9,6 @@ const buffer = course.scenarios.find(scenario => scenario.id === "liquidity_buff
 const distributed = course.scenarios.find(scenario => scenario.id === "network")!;
 export const distributedPolicy = -1;
 const player = opening.people.find(person => person.id === playerId)!;
-const order = opening.distributedOrder;
-const distributedGraph = Object.fromEntries(order.map((id, i) =>
-  [id, [-1, -2, 1].map(offset => order[(i + offset + order.length) % order.length])]));
 const historyReview = "https://www.federalreserve.gov/publications/2023-April-SVB-Evolution-of-Silicon-Valley-Bank.htm";
 
 type Received = NonNullable<LessonEvent["observed"]>;
@@ -20,13 +18,16 @@ export type SvbRun = Run & {
   observations: readonly Readonly<Record<string, Received>>[];
 };
 
-export function simulateSvb({ seed, choices, policy }: Parameters<Lesson["run"]>[0]): SvbRun {
-  if (seed !== opening.seed || !course.action.options.some(option => option.id === choices[0]) ||
+export function simulateSvb({ seed, choices, policy }: Parameters<Lesson["run"]>[0], input: Omit<typeof opening, "source"> = opening): SvbRun {
+  if (seed !== input.seed || !course.action.options.some(option => option.id === choices[0]) ||
       (policy !== 0 && policy !== buffer && policy !== distributedPolicy)) throw new Error("未知开局、行动或政策");
 
   const scenario = policy === distributedPolicy ? "network" : policy === buffer ? "liquidity_buffer" : "baseline";
   const cashReallocation = scenario === "liquidity_buffer" ? buffer : 0;
-  const people = opening.people.map(row => ({
+  const order = input.distributedOrder;
+  const distributedGraph = Object.fromEntries(order.map((id, i) =>
+    [id, [-1, -2, 1].map(offset => order[(i + offset + order.length) % order.length])]));
+  const people = input.people.map(row => ({
     ...row, neighbors: scenario === "network" ? distributedGraph[row.id] : row.neighbors,
     pending: 0, payout: 0, protectiveRequested: false,
     payrollRound: row.id === playerId ? (choices[0] === "withdraw_now" ? 1 : 2) : row.payrollRound,
@@ -231,7 +232,7 @@ export const svbLesson: Lesson = {
     { id: "sale_loss", label: "累计折价损失", unit: "资金单位", color: "#46516a" },
   ],
   bridge: { minTick: 3, metrics: ["cash", "equity", "requested", "paid", "sold", "price", "borrowing"],
-    closeLabel: "查看运行收尾",
+    closeLabel: "查看运行收尾", comparisonAxis: "开局及清结算轮末",
     prompt: "对照累计申请、实付与轮末待付。点指标回查原事件，看看银行怎样筹集现金，以及上一轮的待付如何传回储户。",
     rule: "上一轮发生急售或存在待付时，下一轮风险分分别加 14 或 20。是否追加申请还取决于个人阈值和未保障余额。" },
   priceMetric: "price",
@@ -246,7 +247,13 @@ export const svbLesson: Lesson = {
     rangeLabel: "现金组合",
     alternates: [{ value: distributedPolicy, label: distributed.label, description: distributed.description }],
     labels: { [0]: "维持原组合与网络", [buffer]: "提高现金缓冲", [distributedPolicy]: distributed.label },
-    describe: `将价值 ${buffer} 的证券换成现金。两组初始资产总额和权益相同。政策组可立即动用的现金更多，承受重估的证券更少。比较第 ${rules.steps} 轮末的待付金额。` },
+    project: run => run.frames.map(frame => ({ ...frame, sourceTick: frame.tick,
+      axisLabel: frame.tick ? `第 ${frame.tick} 轮末` : "开局" })),
+    describe: `将价值 ${buffer} 的证券换成现金。两组初始资产总额和权益相同。政策组可立即动用的现金更多，证券头寸减少，利率敞口也随之降低。对照同时改变开局流动性和利率敞口。比较第 ${rules.steps} 轮末的待付金额。` },
   seed: opening.seed,
+  prepareSeed: async seed => {
+    const inputs = await pairedInput("svb", opening.seed, seed);
+    return request => simulateSvb(request, inputs);
+  },
   run: simulateSvb,
 };

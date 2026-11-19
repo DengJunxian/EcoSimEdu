@@ -1,9 +1,8 @@
-import { lazy, Suspense } from "react";
-import { comparisonMetric, displayNumber, displayObservation, outcome, outcomeLabel, peak, type Command, type Lesson, type Session, type Trend } from "./lesson.ts";
-
-const MetricChart = lazy(() => import("./MetricChart"));
-
-const predictions: Record<Trend, string> = { down: "减少", same: "不变", up: "增加" };
+import { useMemo } from "react";
+import { outcomeLabel, type Command, type Lesson, type Session, type Trend } from "./lesson.ts";
+import { pairedSeeds } from "./experiments.ts";
+import { StudyResults, predictions } from "./ExperimentWorkbench.tsx";
+import type { CourseRef } from "./learning-store.ts";
 
 export function PredictionCard({ lesson, session, send }: {
   lesson: Lesson; session: Session; send: (command: Command) => void;
@@ -30,8 +29,13 @@ export function PredictionCard({ lesson, session, send }: {
         onChange={event => send({ type: "policy", value: Number(event.target.value) })}/>
       <p>{policy.describe ?? `基线每轮 ${policy.baseline} ${policy.unit}，保留原有个体和你的入场决策。`}</p>
     </>}
+    {lesson.prepareSeed ? <label className="choice study-seed-choice">
+      <input type="checkbox" checked={!!session.multiSeed} disabled={locked}
+        onChange={event => send({ type: "seed-count", multi: event.target.checked })}/>
+      同时比较另外两组种子（{pairedSeeds(lesson, true).slice(1).join("、")}）
+    </label> : lesson.casePackage && <p className="small">本课使用固定需求和时滞，只运行一组种子。</p>}
     <fieldset disabled={!changed || locked}>
-      <legend>你预计{outcomeLabel(lesson)}会怎样变？</legend>
+      <legend>{session.multiSeed ? `${outcomeLabel(lesson)}的配对差值取中位数。你预计方向是？` : `你预计${outcomeLabel(lesson)}会怎样变？`}</legend>
       {(Object.keys(predictions) as Trend[]).map(value => <label className="choice" key={value}>
         <input type="radio" name="prediction" checked={session.prediction === value}
           onChange={() => send({ type: "predict", value })}/>{predictions[value]}
@@ -39,63 +43,26 @@ export function PredictionCard({ lesson, session, send }: {
     </fieldset>
     {!locked && <button className="primary" disabled={!session.prediction}
       onClick={() => send({ type: "compare" })}>运行并验证</button>}
+    {!locked && session.comparisonFailed && <p role="alert">这次运行未完成。原预测和参数已保留，可重新运行。</p>}
     {locked && <button onClick={() => send({ type: "new-comparison" })}>再做一组对照</button>}
-    <p className="small" role="status">{locked ? "已完成同种子对照。原预测保留在本次结果中。" : ""}</p>
+    <p className="small" role="status">{locked ? "课堂种子的两组运行已完成，原预测随结果保存。" : ""}</p>
   </section>;
 }
 
-export function ComparisonView({ lesson, session }: { lesson: Lesson; session: Session }) {
+export function ComparisonView({ lesson, session, course }: { lesson: Lesson; session: Session; course?: CourseRef }) {
   const baseline = session.run;
-  const policy = session.comparison;
-  const metric = comparisonMetric(lesson);
-  if (!baseline || !policy) return <section className="canvas-panel pending-comparison">
+  const comparison = session.comparison;
+  const plan = useMemo(() => ({
+    course: { caseId: course?.caseId ?? "demo", market: course?.market }, choices: session.choices,
+    policy: comparison?.policy ?? lesson.policy.baseline, prediction: comparison?.prediction ?? "same" as const,
+    seeds: pairedSeeds(lesson, !!session.multiSeed),
+  }), [course?.caseId, course?.market, session.choices, session.multiSeed, comparison, lesson]);
+  const primary = useMemo(() => baseline && comparison ? { baseline, branch: comparison.run } : undefined, [baseline, comparison]);
+  if (!baseline || !comparison) return <section className="canvas-panel pending-comparison">
     <h2>比较相同条件下的两次运行</h2>
     <p>先调整政策条件，然后预测{outcomeLabel(lesson)}会怎样变化。</p>
   </section>;
 
-  const baselineValue = outcome(lesson, baseline);
-  const policyValue = outcome(lesson, policy.run);
-  const observed = baselineValue === null || policyValue === null ? null :
-    Math.abs(policyValue - baselineValue) < 1e-10 ? "same" : policyValue < baselineValue ? "down" : "up";
-  const scale = Math.max(1, peak(baseline, metric.id) ?? 0, peak(policy.run, metric.id) ?? 0);
-  const left = lesson.policy.project?.(baseline) ?? baseline.frames;
-  const right = lesson.policy.project?.(policy.run) ?? policy.run.frames;
-  return <section className="comparison" aria-label="反事实对照结果">
-    <h2>同种子运行结果</h2>
-    <p>原预测：{predictions[policy.prediction]}。实际：{observed ? predictions[observed] : "无法比较"}。
-      {observed === null ? "至少一组没有可比较的观测值。" :
-        policy.prediction === observed ? "结果与预测一致。" : "可对照两组曲线，看看差异从哪一轮开始。"}</p>
-    {lesson.policy.project && <p>{lesson.bridge?.comparisonAxis ?
-      `对齐口径 · ${lesson.bridge.comparisonAxis}。无对应观察值的时点留空。` : "按交易轮末对齐。横轴从开盘、各轮结束到收盘。"}</p>}
-    <div className="comparison-grid">
-      {[
-        { name: "无干预基线", amount: lesson.policy.baseline, value: baselineValue, run: baseline, frames: left },
-        { name: "引入政策", amount: policy.policy, value: policyValue, run: policy.run, frames: right },
-      ].map(item => <section key={item.name}>
-        <h3>{item.name}</h3>
-        <p>{lesson.policy.alternates?.find(choice => choice.value === item.amount)?.label ??
-          `${lesson.policy.label} · ${lesson.policy.labels?.[item.amount] ?? `${item.amount} ${lesson.policy.unit}`}`}</p>
-        <p>{outcomeLabel(lesson)} <strong>{item.value === null ? "未定义" : `${displayNumber(item.value)} ${metric.unit}`}</strong></p>
-        {lesson.metricRoles.statistic === "final" && lesson.bridge?.metrics.includes("equity") &&
-          <p>期末银行权益 <strong>{item.run.frames.at(-1)!.metrics.equity} {metric.unit}</strong></p>}
-        <Suspense fallback={<p>正在绘制曲线…</p>}>
-          <MetricChart metric={metric} frames={item.frames} maximum={scale}/>
-        </Suspense>
-      </section>)}
-    </div>
-    {lesson.metricRoles.statistic === "final" && <p>配对差异 · 种子 {baseline.seed}，保留同一组参与者与入场决策。
-      {baselineValue !== null && policyValue !== null && `干预组减基线 = ${displayNumber(policyValue - baselineValue)} ${metric.unit}。`}</p>}
-    <details className="trace-details">
-      <summary>按{lesson.tickUnit === "event" && !lesson.policy.project ? "事件" : "轮次"}查看两组{metric.label}</summary>
-      <table>
-        <caption>{metric.label}（{metric.unit}）</caption>
-        <thead><tr><th scope="col">{lesson.tickUnit === "event" && !lesson.policy.project ? "事件序号" : "轮次"}</th><th scope="col">无干预基线</th><th scope="col">引入政策</th></tr></thead>
-        <tbody>{left.map(frame => <tr key={frame.tick}>
-          <th scope="row">{lesson.policy.project && frame.tick === 0 && !lesson.bridge?.comparisonAxis ? "开盘" :
-            lesson.policy.project && frame.tick === left.length - 1 && !lesson.bridge?.comparisonAxis ? "收盘" : frame.tick}</th><td>{displayObservation(frame.metrics[metric.id])}</td>
-          <td>{displayObservation(right.find(item => item.tick === frame.tick)?.metrics[metric.id])}</td>
-        </tr>)}</tbody>
-      </table>
-    </details>
-  </section>;
+  return <StudyResults key={JSON.stringify([baseline.id, comparison.run.id, session.choices, comparison.prediction, session.multiSeed])}
+    lesson={lesson} plan={plan} primary={primary}/>;
 }

@@ -3,7 +3,7 @@ import packages from "../../cases/case-packages-v1.json" with { type: "json" };
 export type MetricRoles = {
   observation: string;
   comparison: string;
-  statistic: "final" | "peak";
+  statistic: "final" | "peak" | "cumulative";
 };
 
 export type MetricDefinition = {

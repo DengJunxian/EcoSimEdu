@@ -1,6 +1,7 @@
 import definition from "../../../cases/schelling_segregation/case.json" with { type: "json" };
 import boundaries from "../../../cases/boundaries.json" with { type: "json" };
 import { coordinates, openingChoice, openingNeighbors, openingTarget, schelling } from "./schelling.ts";
+import { seedOffset } from "../seed-assets.ts";
 import { defineCourse, metric, windowOf } from "./course-lesson.ts";
 
 const standard = defineCourse("schelling_segregation", definition, {
@@ -16,12 +17,15 @@ const standard = defineCourse("schelling_segregation", definition, {
     note: "同一批住户、同一张开局地图、同一学生决定。每户只改变阈值规则；可用空位和后续路径仍随运行变化。" },
   rule: "计数只纳入已占邻格。同组邻接比例为全体同组邻接计数 ÷ 全体已占邻接计数。低于阈值才搜索满足阈值的空位。",
   explanation: "选择一条具体搬迁和一条对照运行中的事件。写明谁的邻居集合变了、邻接比例怎样变化，并区分一次配对结果和对真实社区的解释假设。",
-  baseline: 30, alternative: 50, periodLabel: "各轮收尾", periods: windowOf(0, 8),
+  baseline: 30, alternative: 50, periodLabel: "各轮收尾", periods: windowOf(0, 8), phaseLabels: ["开局决定后"],
   map: true,
 }, (seed, action, scenario, params) => schelling(seed, action, scenario, params.threshold));
 
 const edge = boundaries.schelling_segregation;
 const zero = definition.scenarios.find(scenario => scenario.id === "zero")!;
+const scenarioFor = (policy: number) => policy === zero.parameters.threshold ? zero :
+  policy === edge.parameters.threshold ? { id: "boundary", parameters: edge.parameters } :
+    definition.scenarios.find(entry => entry.parameters.threshold === policy);
 
 export const schellingLesson: typeof standard = {
   ...standard,
@@ -31,6 +35,17 @@ export const schellingLesson: typeof standard = {
       { value: edge.parameters.threshold, label: `最低比例 ${edge.parameters.threshold}%`,
         description: "用相同开局和学生决定试验严格阈值。查明停下时是全部达标、无合格空格，还是轮数到了上限。" },
     ] },
+  async prepareSeed(seed) {
+    const index = seedOffset(definition.seed, seed);
+    const { default: inputs } = await import("../data/paired-schelling.json", { with: { type: "json" } });
+    return request => {
+      const scenario = scenarioFor(request.policy);
+      if (request.seed !== seed || !scenario || !definition.action.options.some(option => option.id === request.choices[0]))
+        throw new Error("未知社区开局、动作或政策");
+      return { ...schelling(seed, request.choices[0], scenario.id, request.policy, inputs[index]),
+        intervention: scenario.parameters };
+    };
+  },
   run(input) {
     if (input.seed !== definition.seed || !definition.action.options.some(option => option.id === input.choices[0]))
       throw new Error("未知社区开局或动作");

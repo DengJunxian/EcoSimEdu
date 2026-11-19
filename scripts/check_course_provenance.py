@@ -82,6 +82,15 @@ def inventory():
              "固定种子的 60 名教学储户与集中、分散两种观察关系",
              "从原 Python 内核提取合成开局与同种子打乱顺序。浏览器按相同邻接规则生成分散图",
              "python -m frontend.tests.svb_parity")
+    register("frontend/src/data/paired-inputs.json", "teaching_input", "V2-08", [
+        case for case in CATALOG if case not in {"beer_game", "schelling_segregation"}
+    ], "每课额外两组规则开局和抽样输入",
+             "以 Python 原案例输入生成机制和连续备选种子提取开局及随机输入",
+             "python -m frontend.tests.generate_classroom_inputs --check")
+    register("frontend/src/data/paired-schelling.json", "teaching_input", "V2-08", ["schelling_segregation"],
+             "两组开局网格、访问序列与候选搜索输入",
+             "按原 Python 引擎和命名子流生成输入",
+             "python -m frontend.tests.generate_classroom_inputs --check")
     register("content/concepts.json", "authored_learning_design", "1", CATALOG, "每项独立概念及其先修",
              "课内概念、误解定义与跨课连接", "python -m scripts.check_learning_packages")
     for case_id in CATALOG:

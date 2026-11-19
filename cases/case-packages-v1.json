@@ -177,7 +177,7 @@
     "browserMetricRoles": {
       "observation": "price",
       "comparison": "volume",
-      "statistic": "final"
+      "statistic": "cumulative"
     },
     "archivedMetricRoles": {
       "observation": "last_price",
@@ -773,7 +773,7 @@
     "browserMetricRoles": {
       "observation": "public_a_pct",
       "comparison": "cascade_decisions",
-      "statistic": "final"
+      "statistic": "cumulative"
     },
     "archivedMetricRoles": {
       "observation": "public_a_pct",
@@ -906,7 +906,7 @@
     "browserMetricRoles": {
       "observation": "net_income",
       "comparison": "net_income",
-      "statistic": "final"
+      "statistic": "cumulative"
     },
     "archivedMetricRoles": {
       "observation": "net_income",
@@ -1193,7 +1193,7 @@
     "browserMetricRoles": {
       "observation": "quoted_pool_price",
       "comparison": "traded",
-      "statistic": "final"
+      "statistic": "cumulative"
     },
     "archivedMetricRoles": {
       "observation": "quoted_pool_price",
@@ -1889,7 +1889,7 @@
     "browserMetricRoles": {
       "observation": "bid_depth",
       "comparison": "program_filled",
-      "statistic": "final"
+      "statistic": "cumulative"
     },
     "archivedMetricRoles": {
       "observation": "bid_depth",
@@ -2085,7 +2085,7 @@
     "browserMetricRoles": {
       "observation": "last_price",
       "comparison": "forced_cover",
-      "statistic": "final"
+      "statistic": "cumulative"
     },
     "archivedMetricRoles": {
       "observation": "last_price",

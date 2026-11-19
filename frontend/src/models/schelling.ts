@@ -3,7 +3,6 @@ import { Recorder, profiles, roundEven, type Entity } from "./record.ts";
 
 const residents = opening.grid.filter((resident): resident is string => resident !== null).sort();
 const positionOf = new Map(residents.map((resident, index) => [resident, index]));
-const hashes = Uint8Array.from(atob(opening.search_digests), byte => byte.charCodeAt(0));
 const size = opening.size;
 const neighbors = opening.grid.map((_, cell) => {
   const row = Math.floor(cell / size), col = cell % size;
@@ -17,10 +16,10 @@ const neighbors = opening.grid.map((_, cell) => {
 });
 
 // CPython Random seeds the MT19937 array from the UTF-8 key followed by its SHA-512 digest.
-function shuffleCandidates(candidates: number[], key: string, offset: number) {
+function shuffleCandidates(candidates: number[], key: string, digest: Uint8Array) {
   const bytes = new Uint8Array(key.length + 64);
   bytes.set(new TextEncoder().encode(key));
-  bytes.set(hashes.subarray(offset, offset + 64), key.length);
+  bytes.set(digest, key.length);
   const words = new Uint32Array(Math.ceil(bytes.length / 4));
   bytes.reverse().forEach((byte, i) => { words[i >>> 2] |= byte << (i % 4 * 8); });
   const state = new Uint32Array(624);
@@ -87,8 +86,10 @@ export function residentOptions(grid: readonly (string | null)[], resident: stri
   return { origin, home, satisfied: meetsThreshold(home, threshold), legal };
 }
 
-export function schelling(seed: number, action: string, scenario: string, threshold: number) {
-  const grid = [...opening.grid];
+export function schelling(seed: number, action: string, scenario: string, threshold: number, input = opening) {
+  const hashes = Uint8Array.from(atob(input.search_digests), byte => byte.charCodeAt(0));
+  const target = input.student_target;
+  const grid = [...input.grid];
   const cells = new Map(grid.flatMap((actor, i) => actor ? [[actor, i] as const] : []));
   const vacancies = new Set(grid.flatMap((actor, i) => actor ? [] : [i]));
   const eligible = (local: readonly [number, number]) => meetsThreshold(local, threshold);
@@ -140,14 +141,14 @@ export function schelling(seed: number, action: string, scenario: string, thresh
         `${row.actor} 的同组邻居 / 已占邻居 ${row.before.join("/")} → ${row.after.join("/")}` })));
   }
 
-  const marked = [cells.get("A001")!, openingChoice];
+  const marked = [cells.get("A001")!, target];
   emit("opening", `社区共有 ${residents.length} 户，最低同类比例为 ${threshold}%`, 0, ["A001"], marked,
-    { size, grid: opening.grid, student_target: openingChoice });
-  if (action === "move") relocate("A001", openingChoice, 0, true);
+    { size, grid: input.grid, student_target: target });
+  if (action === "move") relocate("A001", target, 0, true);
   else emit("student_stay", "A001 留在原地。", 0, ["A001"], marked);
 
   let lastRound = 0, terminal = "round_limit";
-  for (const [index, visit] of opening.visits.entries()) {
+  for (const [index, visit] of input.visits.entries()) {
     const round = index + 1;
     lastRound = round;
     const start = moves;
@@ -155,7 +156,8 @@ export function schelling(seed: number, action: string, scenario: string, thresh
       const origin = cells.get(actor)!;
       if (eligible(counts(grid, origin, actor))) continue;
       const candidates = [...vacancies].sort((a, b) => a - b);
-      shuffleCandidates(candidates, `${seed}:search:${round}:${actor}`, (index * residents.length + positionOf.get(actor)!) * 64);
+      const offset = (index * residents.length + positionOf.get(actor)!) * 64;
+      shuffleCandidates(candidates, `${seed}:search:${round}:${actor}`, hashes.subarray(offset, offset + 64));
       const destination = candidates.find(cell => eligible(counts(grid, cell, actor, origin)));
       if (destination !== undefined) relocate(actor, destination, round);
     }

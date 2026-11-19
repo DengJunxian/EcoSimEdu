@@ -2,7 +2,8 @@ import course from "../../cases/double_auction/case.json" with { type: "json" };
 import boundaries from "../../cases/boundaries.json" with { type: "json" };
 import opening from "./data/auction-opening.json" with { type: "json" };
 import { casePackage } from "./domain-contracts.ts";
-import type { Actor, Frame, Lesson, LessonEvent, Run } from "./lesson.ts";
+import { pairedInput } from "./seed-assets.ts";
+import type { Actor, AlignedFrame, Frame, Lesson, LessonEvent, Run } from "./lesson.ts";
 
 type Side = "buy" | "sell";
 type Account = { side: Side; marginals: number[]; cash: number; goods: number; filled: number };
@@ -33,16 +34,16 @@ const paidFee = course.scenarios.find(row => row.id === "fee")!.fee;
 const demandScenario = course.scenarios.find(row => row.id === "demand")!;
 export const demandPolicy = -1;
 
-export function simulateAuction({ seed, choices, policy }: Parameters<Lesson["run"]>[0], boundary = false): AuctionRun {
+export function simulateAuction({ seed, choices, policy }: Parameters<Lesson["run"]>[0], boundary = false, input: Omit<typeof opening, "source"> = opening): AuctionRun {
   const bid = Number(choices[0]);
   const baseShift = boundary ? boundarySpec.parameters.demand_shift : 0;
   const higherDemand = !boundary && policy === demandPolicy;
-  if (seed !== opening.seed || !Number.isInteger(bid) || bid < 1 || bid > course.player_value + baseShift ||
+  if (seed !== input.seed || !Number.isInteger(bid) || bid < 1 || bid > course.player_value + baseShift ||
       (policy !== 0 && policy !== paidFee && !higherDemand)) throw new Error("未知开局、限价或费用");
   const shift = higherDemand ? demandScenario.demand_shift : baseShift;
   const fee = higherDemand ? 0 : policy;
 
-  const agents: Record<string, Account> = Object.fromEntries(Object.entries(opening.accounts).map(([id, data]) => {
+  const agents: Record<string, Account> = Object.fromEntries(Object.entries(input.accounts).map(([id, data]) => {
     const side = data.side as Side;
     return [id, { ...data, side, marginals: data.marginals.map(value => value + (side === "buy" ? shift : 0)) }];
   }));
@@ -174,7 +175,7 @@ export function simulateAuction({ seed, choices, policy }: Parameters<Lesson["ru
 
   emit({ event_type: "market_open" }, { text: "市场开盘，当前订单簿为空。", deltas: {} });
   quote(course.player_id, bid, "student", 0);
-  opening.rounds.forEach((turn, round) => {
+  input.rounds.forEach((turn, round) => {
     for (const [id, noise] of turn as [string, number][]) {
       const actor = agents[id];
       if (actor.filled === actor.marginals.length) continue;
@@ -199,15 +200,19 @@ export function simulateAuction({ seed, choices, policy }: Parameters<Lesson["ru
     seed, frames, market, bid, fee, demandShift: shift, ceiling, quotes };
 }
 
-export function roundEnds(run: Run): readonly Frame[] {
+export function roundEnds(run: Run): readonly AlignedFrame[] {
   const frames = (run as AuctionRun).frames;
-  const aligned = [frames[0]];
-  for (let round = 0; round < course.rounds; round++) {
-    const last = frames.filter(frame => frame.record.round === round).at(-1) ?? aligned.at(-1)!;
-    aligned.push({ ...last, tick: round + 1 });
-  }
-  aligned.push({ ...frames.at(-1)!, tick: course.rounds + 1 });
-  return aligned;
+  let latestPrice: number | null = null;
+  const prices = frames.map(frame => {
+    if (frame.record.event_type === "trade") latestPrice = frame.metrics.price;
+    return latestPrice;
+  });
+  const point = (frame: AuctionFrame | undefined, tick: number, axisLabel: string) => frame ? {
+    ...frame, tick, sourceTick: frame.tick, axisLabel, metrics: { ...frame.metrics, last_price: prices[frame.tick] },
+  } : { tick, axisLabel, metrics: {}, events: [], actors: [] };
+  return [point(frames[0], 0, "开盘"), ...Array.from({ length: course.rounds }, (_, round) =>
+    point(frames.filter(frame => frame.record.round === round).at(-1), round + 1, `第 ${round + 1} 轮末`)),
+    point(frames.at(-1), course.rounds + 1, "收盘")];
 }
 
 export function auctionLesson(boundary: boolean): Lesson {
@@ -249,14 +254,18 @@ export function auctionLesson(boundary: boolean): Lesson {
     bridge: { minTick: 3, metrics: ["best_bid", "best_ask", "volume"],
       rule: "价格优先，同价先到优先。交叉时用已经在簿的订单定价。",
       prompt: "播放到关键事件，核对造成变化的报价。成交以后，下一张自动报价可以引用刚成交的价格。",
-      closeLabel: "快进到收盘" },
+      closeLabel: "快进到收盘", comparisonAxis: "开盘、报价轮末与收盘" },
     tickUnit: "event",
     policy: { label: "每件成交时每方缴费", min: 0, max: paidFee, step: paidFee, baseline: 0, unit: "代币",
       rangeLabel: "成交收费",
-      alternates: boundary ? undefined : [{ value: demandPolicy, label: demandScenario.label,
+      alternates: boundary ? undefined : [{ value: demandPolicy, label: demandScenario.label, baselineLabel: "原买方估值，交易费 0",
         description: `买方各单位估值增加 ${demandScenario.demand_shift} 代币。卖方成本、种子和你的原始限价保持相同，交易费为 0。` }],
       project: roundEnds, describe: "保留同一种子和你的原始限价。收费改变买家的总支出和卖家的净收入，费用转入平台。" },
     seed: opening.seed,
+    prepareSeed: async seed => {
+      const inputs = await pairedInput("auction", opening.seed, seed);
+      return request => simulateAuction(request, boundary, inputs);
+    },
     run: input => simulateAuction(input, boundary),
   };
 }

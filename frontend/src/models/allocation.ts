@@ -1,7 +1,7 @@
-import input from "../data/classroom-inputs.json" with { type: "json" };
+import opening from "../data/classroom-inputs.json" with { type: "json" };
 import { Recorder, ids, profiles, recordOf, roundEven, shown, sum } from "./record.ts";
 
-export function carbon(seed: number, action: string, scenario: string, cap: number) {
+export function carbon(seed: number, action: string, scenario: string, cap: number, input = opening) {
   const firms = ids("F", input.firms.length);
   const registry = "登记簿";
   const participants = [...firms, registry];

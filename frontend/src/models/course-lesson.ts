@@ -1,5 +1,7 @@
-import type { Frame, Lesson, Metric, Run } from "../lesson.ts";
+import type { AlignedFrame, Frame, Lesson, Metric, Run } from "../lesson.ts";
 import { casePackage } from "../domain-contracts.ts";
+import { pairedInput } from "../seed-assets.ts";
+import type classroomInputs from "../data/classroom-inputs.json";
 import type { ModelRun } from "./record.ts";
 
 type Case = {
@@ -21,6 +23,8 @@ type Teaching = {
   explanation: string;
   periodLabel: string;
   periods: readonly number[];
+  phaseLabels?: readonly string[];
+  stochastic?: boolean;
   selectFrame?: (run: ModelRun, period: number) => Frame | undefined;
   baseline?: number;
   alternative?: number;
@@ -38,23 +42,32 @@ export const metric = (id: string, label: string, unit: string): Metric => ({ id
 
 export function defineCourse<T extends Case>(
   id: string, source: T, teaching: Teaching,
-  simulate: (seed: number, action: string, scenario: string, params: T["scenarios"][number]["parameters"]) => ModelRun,
+  simulate: (seed: number, action: string, scenario: string, params: T["scenarios"][number]["parameters"], input?: typeof classroomInputs) => ModelRun,
 ): MigratedLesson {
   const { policy } = teaching;
   const published = casePackage(id);
   const baseline = teaching.baseline ?? 0, alternative = teaching.alternative ?? 1;
   const openingCase = source.scenarios.find(entry => entry.id === "baseline")!;
   const comparison = source.scenarios.find(entry => entry.id === policy.id)!;
-  const project = (run: Run) => {
+  const project = (run: Run): AlignedFrame[] => {
     const recorded = run as ModelRun;
     const byPeriod = new Map(recorded.records.map(event => [event.period, recorded.frames[event.seq]]));
     return teaching.periods.map((period, index) => {
       const selected = teaching.selectFrame
         ? teaching.selectFrame(recorded, period)
         : byPeriod.get(period);
-      return { ...(selected ?? { metrics: {}, actors: [], events: [] }), tick: index };
+      return { ...(selected ?? { metrics: {}, actors: [], events: [] }), tick: index, sourceTick: selected?.tick,
+        axisLabel: teaching.phaseLabels?.[index] ?? String(period) };
     });
   };
+  const withInputs = (expected: number, input?: typeof classroomInputs): Lesson["run"] =>
+    ({ seed, choices, policy: option }) => {
+      if (seed !== expected || !source.action.options.some(action => action.id === choices[0]) ||
+          (option !== baseline && option !== alternative)) throw new Error(`Invalid classroom input for ${id}`);
+      const scenario = option === baseline ? openingCase : comparison;
+      return { ...simulate(seed, choices[0], scenario.id, scenario.parameters as T["scenarios"][number]["parameters"], input),
+        intervention: scenario.parameters };
+    };
   return {
     id, explanationPrompt: teaching.explanation, originalId: id, contentVersion: published.browserContentVersion, teaching, title: teaching.title, seed: source.seed,
     role: { title: teaching.role, perspective: teaching.story, facts: teaching.facts,
@@ -83,13 +96,9 @@ export function defineCourse<T extends Case>(
     policy: { label: policy.label, min: baseline, max: alternative, baseline, unit: "", step: alternative - baseline,
       labels: { [baseline]: policy.names[0], [alternative]: policy.names[1] },
       describe: policy.note, project },
-    run({ seed, choices, policy: option }) {
-      if (seed !== source.seed || !source.action.options.some(action => action.id === choices[0]) ||
-        (option !== baseline && option !== alternative)) throw new Error(`Invalid classroom input for ${id}`);
-      const scenario = option === baseline ? openingCase : comparison;
-      return { ...simulate(seed, choices[0], scenario.id, scenario.parameters as T["scenarios"][number]["parameters"]),
-        intervention: scenario.parameters };
-    },
+    prepareSeed: teaching.stochastic === false || teaching.map ? undefined :
+      async seed => withInputs(seed, await pairedInput("classroom", source.seed, seed)),
+    run: withInputs(source.seed),
   };
 }
 

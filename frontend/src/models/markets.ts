@@ -1,4 +1,4 @@
-import input from "../data/classroom-inputs.json" with { type: "json" };
+import opening from "../data/classroom-inputs.json" with { type: "json" };
 import { Recorder, ids, profiles, recordOf, sum } from "./record.ts";
 
 type Account = { cash: number; shares: number; debt?: number };
@@ -132,7 +132,7 @@ class TradeTape {
 export const maker = "做市者 0（学生）";
 const makers = [maker, "做市者 1", "做市者 2", "做市者 3", "做市者 4"];
 
-export function flashCrash(seed: number, action: string, scenario: string, withdraw: boolean) {
+export function flashCrash(seed: number, action: string, scenario: string, withdraw: boolean, input = opening) {
   const buyers = ids("被动买家 ", 17, 0);
   const sellers = ids("被动卖家 ", 17, 0);
   const program = "卖出程序";
@@ -195,7 +195,7 @@ const momentum = ids("趋势投资者 ", 4, 1, 1);
 const followers = ids("关注投资者 ", 5, 1, 1);
 const retail = "学生投资者", borrower = "借券账户", lender = "出借账户";
 
-export function gamestop(seed: number, action: string, scenario: string, socialWeight: number) {
+export function gamestop(seed: number, action: string, scenario: string, socialWeight: number, input = opening) {
   const accounts: Record<string, Account> = recordOf([...dealers, ...values, ...momentum, ...followers, retail], actor =>
     ({ cash: 16_000, shares: dealers.includes(actor) ? 28 : 4 }));
   accounts[borrower] = { cash: 14_000, shares: 0, debt: 0 };

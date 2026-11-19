@@ -1,0 +1,16 @@
+.study-results { min-width: 0; }
+.study-method { display: grid; gap: var(--edu-s2); margin-block: var(--edu-s3); }
+.study-method dt { font-weight: 700; }
+.study-method dd { margin: 0; }
+.study-seed-choice { display: flex; gap: var(--edu-s2); align-items: center; min-height: var(--edu-target); }
+.study-curve-choice { display: flex; flex-wrap: wrap; align-items: center; gap: var(--edu-s2); margin-block: var(--edu-s3); }
+.study-curve-choice select {
+  min-height: var(--edu-target); max-width: 100%; padding-inline: var(--edu-s2);
+  border: 1px solid var(--edu-control); border-radius: var(--edu-control-radius);
+}
+.study-table { overflow-x: auto; }
+.study-table table { width: 100%; }
+.study-table .text-button { display: block; text-align: start; min-height: var(--edu-target); }
+.study-results .decision-actions a { display: inline-flex; align-items: center; text-decoration: underline; }
+.experiment-archive input { max-width: 100%; }
+.experiment-archive > * + * { margin-block-start: var(--edu-s3); }

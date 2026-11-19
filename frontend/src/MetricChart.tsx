@@ -35,8 +35,8 @@ function financialSegments(frames: readonly Frame[], id: string): LineSeriesOpti
   return series;
 }
 
-export default function MetricChart({ metric, frames, cursor, maximum, financial, onSelect }: {
-  metric: Metric; frames: readonly Frame[]; cursor?: number; maximum?: number; financial?: boolean; onSelect?: (tick: number) => void;
+export default function MetricChart({ metric, frames, cursor, bounds, labels, financial, onSelect }: {
+  metric: Metric; frames: readonly Frame[]; cursor?: number; bounds?: { min: number; max: number }; labels?: readonly string[]; financial?: boolean; onSelect?: (tick: number) => void;
 }) {
   const container = useRef<HTMLDivElement>(null);
   const chart = useRef<EChartsType | null>(null);
@@ -60,8 +60,8 @@ export default function MetricChart({ metric, frames, cursor, maximum, financial
     plot.setOption({
       animation: false,
       grid,
-      xAxis: { type: "category", boundaryGap: false, data: frames.map(frame => frame.tick) },
-      yAxis: { type: "value", minInterval: financial ? 0.01 : undefined, scale: financial, max: maximum, splitLine: { lineStyle: { color: "#d9e2d9" } } },
+      xAxis: { type: "category", boundaryGap: false, data: labels ?? frames.map(frame => frame.tick), axisLabel: { hideOverlap: true } },
+      yAxis: { type: "value", minInterval: financial ? 0.01 : undefined, scale: financial || !!bounds, min: bounds?.min, max: bounds?.max, splitLine: { lineStyle: { color: "#d9e2d9" } } },
       series: [{ type: "line", showSymbol: true, lineStyle: { color: metric.color, width: 2 },
         data: frames.map(frame => {
           const color = frame.turningPoint ? "#ae5b23" : metric.color;
@@ -70,7 +70,7 @@ export default function MetricChart({ metric, frames, cursor, maximum, financial
         }),
       }, ...(financial ? financialSegments(frames, metric.id) : [])],
     }, { replaceMerge: ["series"] });
-  }, [metric, frames, maximum, financial]);
+  }, [metric, frames, bounds, labels, financial]);
   useEffect(() => {
     const plot = chart.current;
     if (!plot) return;
@@ -78,7 +78,7 @@ export default function MetricChart({ metric, frames, cursor, maximum, financial
     highlighted.current = cursor === undefined ? -1 :
       frames[cursor]?.tick === cursor ? cursor : frames.findIndex(frame => frame.tick === cursor);
     if (highlighted.current >= 0) plot.dispatchAction({ type: "highlight", seriesIndex: 0, dataIndex: highlighted.current });
-  }, [metric, frames, cursor, maximum, financial]);
+  }, [metric, frames, cursor, bounds, labels, financial]);
   function locate(event: MouseEvent<HTMLDivElement>) {
     const plot = chart.current;
     if (!onSelect || !plot) return;

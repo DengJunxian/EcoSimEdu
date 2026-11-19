@@ -1,7 +1,7 @@
-import input from "../data/classroom-inputs.json" with { type: "json" };
+import opening from "../data/classroom-inputs.json" with { type: "json" };
 import { Recorder, ids, profiles, recordOf, roundEven, shown, sum, type Entity, type Metrics } from "./record.ts";
 
-export function publicGoods(seed: number, action: string, scenario: string, cost: number | null) {
+export function publicGoods(seed: number, action: string, scenario: string, cost: number | null, input = opening) {
   const players = ids("P", 4, 1, 1);
   const pool = "公共池";
   const participants = [...players, pool];
@@ -65,7 +65,7 @@ export function publicGoods(seed: number, action: string, scenario: string, cost
   return log.run("public_goods", seed, action, scenario);
 }
 
-export function commons(seed: number, action: string, scenario: string, limited: boolean) {
+export function commons(seed: number, action: string, scenario: string, limited: boolean, input = opening) {
   const users = ids("F", 24);
   const stockId = "水域";
   const participants = [...users, stockId];
