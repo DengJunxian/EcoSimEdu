@@ -45,6 +45,6 @@ test("an unavailable metric stays undefined and does not create a zero-valued pe
     { tick: 1, actors: [], metrics: { price: null }, events: [] },
   ] };
   assert.equal(peak(run, "price"), null);
-  assert.equal(outcome({ ...svbLesson, metrics: [{ id: "price" }] }, run), null);
+  assert.equal(outcome({ ...svbLesson, metricRoles: { ...svbLesson.metricRoles, comparison: "price" }, metrics: [{ id: "price" }] }, run), null);
   assert.equal(peak({ ...run, frames: [...run.frames, { metrics: { price: -2 } }] }, "price"), -2);
 });

@@ -1,0 +1,406 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$defs": {
+    "Clock": {
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "title": "Id",
+          "type": "string"
+        },
+        "label": {
+          "title": "Label",
+          "type": "string"
+        }
+      },
+      "required": [
+        "id",
+        "label"
+      ],
+      "title": "Clock",
+      "type": "object"
+    },
+    "DataProvenance": {
+      "additionalProperties": false,
+      "properties": {
+        "resultKind": {
+          "const": "teaching_simulation",
+          "default": "teaching_simulation",
+          "title": "Resultkind",
+          "type": "string"
+        },
+        "originalSourceData": {
+          "items": {
+            "$ref": "#/$defs/SourceData"
+          },
+          "title": "Originalsourcedata",
+          "type": "array"
+        }
+      },
+      "required": [
+        "originalSourceData"
+      ],
+      "title": "DataProvenance",
+      "type": "object"
+    },
+    "HistoricalFact": {
+      "additionalProperties": false,
+      "properties": {
+        "text": {
+          "title": "Text",
+          "type": "string"
+        },
+        "sourceIds": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Sourceids",
+          "type": "array"
+        }
+      },
+      "required": [
+        "text",
+        "sourceIds"
+      ],
+      "title": "HistoricalFact",
+      "type": "object"
+    },
+    "MetricDefinition": {
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "title": "Id",
+          "type": "string"
+        },
+        "label": {
+          "title": "Label",
+          "type": "string"
+        },
+        "unit": {
+          "title": "Unit",
+          "type": "string"
+        },
+        "definition": {
+          "title": "Definition",
+          "type": "string"
+        },
+        "undefinedReason": {
+          "title": "Undefinedreason",
+          "type": "string"
+        }
+      },
+      "required": [
+        "id",
+        "label",
+        "unit",
+        "definition",
+        "undefinedReason"
+      ],
+      "title": "MetricDefinition",
+      "type": "object"
+    },
+    "MetricRoles": {
+      "additionalProperties": false,
+      "properties": {
+        "observation": {
+          "title": "Observation",
+          "type": "string"
+        },
+        "comparison": {
+          "title": "Comparison",
+          "type": "string"
+        },
+        "statistic": {
+          "enum": [
+            "final",
+            "peak"
+          ],
+          "title": "Statistic",
+          "type": "string"
+        }
+      },
+      "required": [
+        "observation",
+        "comparison",
+        "statistic"
+      ],
+      "title": "MetricRoles",
+      "type": "object"
+    },
+    "SourceData": {
+      "additionalProperties": false,
+      "properties": {
+        "sourceId": {
+          "title": "Sourceid",
+          "type": "string"
+        },
+        "acquisition": {
+          "title": "Acquisition",
+          "type": "string"
+        },
+        "version": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Version"
+        },
+        "license_status": {
+          "title": "License Status",
+          "type": "string"
+        },
+        "distribution": {
+          "title": "Distribution",
+          "type": "string"
+        }
+      },
+      "required": [
+        "sourceId",
+        "acquisition",
+        "version",
+        "license_status",
+        "distribution"
+      ],
+      "title": "SourceData",
+      "type": "object"
+    },
+    "SourceReference": {
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "title": "Id",
+          "type": "string"
+        },
+        "title": {
+          "title": "Title",
+          "type": "string"
+        },
+        "url": {
+          "title": "Url",
+          "type": "string"
+        },
+        "locator": {
+          "title": "Locator",
+          "type": "string"
+        },
+        "support": {
+          "title": "Support",
+          "type": "string"
+        },
+        "limits": {
+          "title": "Limits",
+          "type": "string"
+        }
+      },
+      "required": [
+        "id",
+        "title",
+        "url",
+        "locator",
+        "support",
+        "limits"
+      ],
+      "title": "SourceReference",
+      "type": "object"
+    },
+    "SourceRights": {
+      "additionalProperties": false,
+      "properties": {
+        "sourceId": {
+          "title": "Sourceid",
+          "type": "string"
+        },
+        "status": {
+          "title": "Status",
+          "type": "string"
+        },
+        "detail": {
+          "title": "Detail",
+          "type": "string"
+        },
+        "evidenceUrl": {
+          "title": "Evidenceurl",
+          "type": "string"
+        },
+        "distribution": {
+          "title": "Distribution",
+          "type": "string"
+        }
+      },
+      "required": [
+        "sourceId",
+        "status",
+        "detail",
+        "evidenceUrl",
+        "distribution"
+      ],
+      "title": "SourceRights",
+      "type": "object"
+    },
+    "SyntheticPopulation": {
+      "additionalProperties": false,
+      "properties": {
+        "description": {
+          "title": "Description",
+          "type": "string"
+        },
+        "count": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Count"
+        },
+        "kind": {
+          "const": "synthetic",
+          "default": "synthetic",
+          "title": "Kind",
+          "type": "string"
+        }
+      },
+      "required": [
+        "description"
+      ],
+      "title": "SyntheticPopulation",
+      "type": "object"
+    }
+  },
+  "additionalProperties": false,
+  "properties": {
+    "schemaVersion": {
+      "const": 1,
+      "default": 1,
+      "title": "Schemaversion",
+      "type": "integer"
+    },
+    "caseId": {
+      "title": "Caseid",
+      "type": "string"
+    },
+    "caseVersion": {
+      "title": "Caseversion",
+      "type": "string"
+    },
+    "browserContentVersion": {
+      "title": "Browsercontentversion",
+      "type": "string"
+    },
+    "learningContentVersion": {
+      "title": "Learningcontentversion",
+      "type": "string"
+    },
+    "title": {
+      "title": "Title",
+      "type": "string"
+    },
+    "identity": {
+      "enum": [
+        "historical_event",
+        "academic_experiment",
+        "laboratory_experiment",
+        "theoretical_model",
+        "institutional_case"
+      ],
+      "title": "Identity",
+      "type": "string"
+    },
+    "identityLabel": {
+      "title": "Identitylabel",
+      "type": "string"
+    },
+    "background": {
+      "title": "Background",
+      "type": "string"
+    },
+    "historicalFacts": {
+      "items": {
+        "$ref": "#/$defs/HistoricalFact"
+      },
+      "title": "Historicalfacts",
+      "type": "array"
+    },
+    "sourceReferences": {
+      "items": {
+        "$ref": "#/$defs/SourceReference"
+      },
+      "title": "Sourcereferences",
+      "type": "array"
+    },
+    "modelAssumptions": {
+      "items": {
+        "type": "string"
+      },
+      "title": "Modelassumptions",
+      "type": "array"
+    },
+    "syntheticPopulation": {
+      "$ref": "#/$defs/SyntheticPopulation"
+    },
+    "dataProvenance": {
+      "$ref": "#/$defs/DataProvenance"
+    },
+    "rights": {
+      "items": {
+        "$ref": "#/$defs/SourceRights"
+      },
+      "title": "Rights",
+      "type": "array"
+    },
+    "learningOutcomes": {
+      "items": {
+        "additionalProperties": true,
+        "type": "object"
+      },
+      "title": "Learningoutcomes",
+      "type": "array"
+    },
+    "metrics": {
+      "items": {
+        "$ref": "#/$defs/MetricDefinition"
+      },
+      "title": "Metrics",
+      "type": "array"
+    },
+    "browserMetricRoles": {
+      "$ref": "#/$defs/MetricRoles"
+    },
+    "archivedMetricRoles": {
+      "$ref": "#/$defs/MetricRoles"
+    },
+    "clock": {
+      "$ref": "#/$defs/Clock"
+    }
+  },
+  "required": [
+    "caseId",
+    "caseVersion",
+    "browserContentVersion",
+    "learningContentVersion",
+    "title",
+    "identity",
+    "identityLabel",
+    "background",
+    "historicalFacts",
+    "sourceReferences",
+    "modelAssumptions",
+    "syntheticPopulation",
+    "dataProvenance",
+    "rights",
+    "learningOutcomes",
+    "metrics",
+    "browserMetricRoles",
+    "archivedMetricRoles",
+    "clock"
+  ],
+  "title": "CasePackage",
+  "type": "object"
+}

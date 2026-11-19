@@ -1,0 +1,11 @@
+{
+  "sourceCommit": "8fc89711edb6a43e79e8b808ffb245edfdfe127b",
+  "storageKey": "ecosimedu:progressive:explanation:v1:double-auction/browser-v1/1962/base/96/0|2026-11-19T19:15:34.749Z|2680765244-766804262-865122550",
+  "storedValue": "{\"baselineEvent\":4,\"comparisonEvent\":4,\"rule\":\"在簿订单决定本次价格。\",\"calculation\":\"基线事件 4 成交价 96 代币。\",\"comparison\":\"收费组沿用同种子与限价。\",\"hypothesis\":\"改变报价分布时应重新核对。\",\"choices\":[\"96\",\"no\"],\"prediction\":\"down\",\"baselineId\":\"double-auction/browser-v1/1962/base/96/0\",\"comparisonId\":\"double-auction/browser-v1/1962/base/96/6\",\"savedAt\":\"2026-11-19T19:15:34.749Z\",\"policy\":6}",
+  "comparisonTrade": {
+    "seq": 4,
+    "price": 96,
+    "buyer_id": "B01",
+    "seller_id": "S02"
+  }
+}

@@ -1,3 +1,6 @@
+import { browserResultDigest } from "./browser-result.ts";
+import { browserEvents } from "./run-evidence.ts";
+import { browserEngineVersion, type EvidencePointer } from "./domain-contracts.ts";
 import { courseById } from "./curriculum.ts";
 import { legalChoice, nextStageReady, startLesson, type Lesson, type Session, type Trend } from "./lesson.ts";
 
@@ -114,6 +117,8 @@ export type SavedExplanation = Explanation & {
   baselineId: string;
   comparisonId: string;
   policy?: number;
+  course?: CourseRef;
+  evidence?: { baseline: EvidencePointer; comparison: EvidencePointer };
 };
 
 export type StudentNote = SavedExplanation & { id: string; course: CourseRef };
@@ -126,6 +131,7 @@ function parseNote(value: SavedExplanation | undefined, id: string): StudentNote
     !trend(value.prediction) || !index(value.baselineEvent) || !index(value.comparisonEvent) ||
     !Array.isArray(value.choices) || !value.choices.every(choice => typeof choice === "string") ||
     ![value.rule, value.calculation, value.comparison, value.hypothesis].every(text => typeof text === "string")) return undefined;
+  if (value.course && typeof value.course.caseId === "string") return { ...value, id, course: value.course };
   const model = value.baselineId.split("/")[0];
   const caseId = model === "double-auction" ? "double_auction" : model === "svb" ? "svb_run" : model;
   const market = caseId === "double_auction" && value.baselineId.split("/")[3] === "boundary" ? "no-overlap" : undefined;
@@ -158,14 +164,35 @@ export function sourceLink(note: StudentNote, side: "baseline" | "comparison") {
   return courseLink(note.course, { source: note.id, side });
 }
 
-export function sourceRun(lesson: Lesson, note: StudentNote, side: "baseline" | "comparison") {
+export async function sourceRun(lesson: Lesson, note: StudentNote, side: "baseline" | "comparison") {
   if (!validChoices(lesson, note.choices)) return undefined;
   const policy = side === "baseline" ? lesson.policy.baseline : note.policy ?? lesson.policy.max;
   if (!validPolicy(lesson, policy) || side === "comparison" && policy === lesson.policy.baseline) return undefined;
   try {
+    const course = lesson.casePackage;
     const run = lesson.run({ seed: lesson.seed, choices: note.choices, policy });
     const tick = side === "baseline" ? note.baselineEvent : note.comparisonEvent;
-    if (run.id === (side === "baseline" ? note.baselineId : note.comparisonId) && run.frames[tick]) return { run, tick };
+    if (!course || run.id !== (side === "baseline" ? note.baselineId : note.comparisonId) || !run.frames[tick]) return;
+    const digest = await browserResultDigest(run);
+    const events = browserEvents(run, course, tick);
+    if (note.evidence !== undefined) {
+      const stored = note.evidence?.[side];
+      if (!stored || stored.runId !== run.id || stored.caseId !== course.caseId ||
+        stored.versions?.case !== course.caseVersion || stored.versions?.engine !== browserEngineVersion ||
+        stored.versions?.content !== course.browserContentVersion || stored.frameTick !== tick ||
+        stored.resultDigest?.algorithm !== digest.algorithm || stored.resultDigest?.scope !== digest.scope ||
+        stored.resultDigest?.value !== digest.value) return;
+      const event = events.find(entry => entry.frameTick === tick && entry.eventId === stored.eventId);
+      return event ? { run, tick, event, digest, verification: "saved" as const } : undefined;
+    }
+
+    const { default: legacy } = await import("./data/legacy-fingerprints.json", { with: { type: "json" } });
+    const fingerprints: Readonly<Record<string, string>> = legacy.fingerprints;
+    if (!Object.hasOwn(fingerprints, run.id) || fingerprints[run.id] !== digest.value) return;
+    // A legacy SVB note linked to a round, with no selection of a transaction inside that round.
+    const event = course.caseId === "svb_run" ? undefined : events.find(entry => entry.sequence === tick);
+    if (course.caseId !== "svb_run" && !event) return;
+    return { run, tick, event, digest, verification: "legacy" as const };
   } catch {
     return undefined;
   }

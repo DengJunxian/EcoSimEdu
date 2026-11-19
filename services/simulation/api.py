@@ -20,7 +20,7 @@ from fastapi.responses import FileResponse, HTMLResponse, JSONResponse, Redirect
 from fastapi.staticfiles import StaticFiles
 from pydantic import model_validator, BaseModel, ConfigDict, Field, StrictInt, ValidationError
 
-from . import live, live_client, live_l2
+from . import domain, live, live_client, live_l2
 from .auction import BOUNDARIES, CASE, ENGINE_VERSION, ROOT, SCENARIOS, canonical_json, digest, run_auction
 from .auction_view import project_auction
 from .emergence import cascade as cascade_trace
@@ -32,7 +32,7 @@ from .emergence.schemas import EmergenceTrace, Perspective, source_ref
 from .flagship_view import CLASSROOMS, project_flagship
 from .lesson_scenes import ENGINE_VERSIONS, load_lesson_scenes
 from .lessons import CATALOG, briefing, load_case, simulate
-from .projection import metric_registry, paired_projection, sampled_metric
+from .projection import CLOCKS, metric_registry, paired_projection, sampled_metric
 from . import parameter_specs
 from .tutor import answer_tutor
 
@@ -211,6 +211,12 @@ def get_case(case_id):
         return load_case(case_id)
     except KeyError as error:
         raise HTTPException(422, "CASE_NOT_AVAILABLE") from error
+
+
+@app.get("/api/cases/{case_id}/package", response_model=domain.CasePackage)
+def published_case_package(case_id: str):
+    get_case(case_id)
+    return domain.case_packages()[case_id]
 
 
 @app.get("/api/cases/{case_id}/briefing")
@@ -939,6 +945,37 @@ def rule_reference(key: UUID):
             for entry in metric_registry(lesson)
         ],
     }
+
+
+def normalized_run(run, case_version=None, engine_version=None):
+    if not run.get("result") or not run.get("case_version"):
+        raise HTTPException(409, "RUN_ENVELOPE_NOT_AVAILABLE")
+    if ((case_version is not None and case_version != run["case_version"]) or
+            (engine_version is not None and engine_version != run["result"].get("engine_version"))):
+        raise HTTPException(409, "RUN_VERSION_MISMATCH")
+    case_id = run["case_id"]
+    known = {ENGINE_VERSIONS[case_id], parameter_specs.EXTENDED_ENGINES.get(case_id)} - {None}
+    return domain.archived_envelope(run, get_case(case_id), CLOCKS.get(case_id), known)
+
+
+@app.get("/api/runs/{key}/envelope", response_model=domain.RunEnvelope)
+def run_envelope(key: UUID, case_version: str | None = None, engine_version: str | None = None):
+    return normalized_run(get_run(key), case_version, engine_version)
+
+
+@app.get("/api/runs/{key}/archive/evidence/{seq}", response_model=domain.Evidence)
+def archived_event_evidence(key: UUID, seq: int, scope: Literal["archive"]):
+    run = get_run(key)
+    envelope = normalized_run(run)
+    result = run["result"]
+    events = result["events"]
+    if run["execution_status"] not in {"completed", "cancelled"} or not 0 <= seq < len(events) or events[seq]["seq"] != seq:
+        raise HTTPException(404, "EVENT_NOT_AVAILABLE")
+    record = events[seq]
+    tick = record["tick"]
+    frames = result["snapshots"]
+    frame_tick = tick if 0 <= tick < len(frames) and frames[tick]["tick"] == tick else None
+    return domain.archived_evidence(envelope, record, frame_tick, events)
 
 
 @app.get("/api/runs/{key}/export")

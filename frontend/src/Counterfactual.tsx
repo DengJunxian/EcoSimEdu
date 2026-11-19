@@ -1,5 +1,5 @@
 import { lazy, Suspense } from "react";
-import { displayNumber, outcome, outcomeLabel, peak, type Command, type Lesson, type Session, type Trend } from "./lesson.ts";
+import { comparisonMetric, displayNumber, displayObservation, outcome, outcomeLabel, peak, type Command, type Lesson, type Session, type Trend } from "./lesson.ts";
 
 const MetricChart = lazy(() => import("./MetricChart"));
 
@@ -33,7 +33,7 @@ export function PredictionCard({ lesson, session, send }: {
 export function ComparisonView({ lesson, session }: { lesson: Lesson; session: Session }) {
   const baseline = session.run;
   const policy = session.comparison;
-  const metric = lesson.metrics[0];
+  const metric = comparisonMetric(lesson);
   if (!baseline || !policy) return <section className="canvas-panel pending-comparison">
     <h2>比较相同条件下的两次运行</h2>
     <p>先调整政策条件，然后预测{outcomeLabel(lesson)}会怎样变化。</p>
@@ -49,7 +49,7 @@ export function ComparisonView({ lesson, session }: { lesson: Lesson; session: S
   return <section className="comparison" aria-label="反事实对照结果">
     <h2>同种子运行结果</h2>
     <p>原预测：{predictions[policy.prediction]}。实际：{observed ? predictions[observed] : "无法比较"}。
-      {observed === null ? "至少一组的比较指标未定义。" :
+      {observed === null ? "至少一组没有可比较的观测值。" :
         policy.prediction === observed ? "结果与预测一致。" : "可对照两组曲线，看看差异从哪一轮开始。"}</p>
     {lesson.policy.project && <p>{lesson.bridge?.comparisonAxis ?
       `对齐口径 · ${lesson.bridge.comparisonAxis}。无对应观察值的时点留空。` : "按交易轮末对齐。横轴从开盘、各轮结束到收盘。"}</p>}
@@ -61,14 +61,14 @@ export function ComparisonView({ lesson, session }: { lesson: Lesson; session: S
         <h3>{item.name}</h3>
         <p>{lesson.policy.label} · {lesson.policy.labels?.[item.amount] ?? `${item.amount} ${lesson.policy.unit}`}</p>
         <p>{outcomeLabel(lesson)} <strong>{item.value === null ? "未定义" : `${displayNumber(item.value)} ${metric.unit}`}</strong></p>
-        {lesson.policy.measure === "final" && lesson.bridge?.metrics.includes("equity") &&
+        {lesson.metricRoles.statistic === "final" && lesson.bridge?.metrics.includes("equity") &&
           <p>期末银行权益 <strong>{item.run.frames.at(-1)!.metrics.equity} {metric.unit}</strong></p>}
         <Suspense fallback={<p>正在绘制曲线…</p>}>
           <MetricChart metric={metric} frames={item.frames} maximum={scale}/>
         </Suspense>
       </section>)}
     </div>
-    {lesson.policy.measure === "final" && <p>配对差异 · 种子 {baseline.seed}，保留同一组参与者与入场决策。
+    {lesson.metricRoles.statistic === "final" && <p>配对差异 · 种子 {baseline.seed}，保留同一组参与者与入场决策。
       {baselineValue !== null && policyValue !== null && `干预组减基线 = ${displayNumber(policyValue - baselineValue)} ${metric.unit}。`}</p>}
     <details className="trace-details">
       <summary>按{lesson.tickUnit === "event" && !lesson.policy.project ? "事件" : "轮次"}查看两组{metric.label}</summary>
@@ -77,8 +77,8 @@ export function ComparisonView({ lesson, session }: { lesson: Lesson; session: S
         <thead><tr><th scope="col">{lesson.tickUnit === "event" && !lesson.policy.project ? "事件序号" : "轮次"}</th><th scope="col">无干预基线</th><th scope="col">引入政策</th></tr></thead>
         <tbody>{left.map(frame => <tr key={frame.tick}>
           <th scope="row">{lesson.policy.project && frame.tick === 0 && !lesson.bridge?.comparisonAxis ? "开盘" :
-            lesson.policy.project && frame.tick === left.length - 1 && !lesson.bridge?.comparisonAxis ? "收盘" : frame.tick}</th><td>{displayNumber(frame.metrics[metric.id])}</td>
-          <td>{displayNumber(right.find(item => item.tick === frame.tick)?.metrics[metric.id])}</td>
+            lesson.policy.project && frame.tick === left.length - 1 && !lesson.bridge?.comparisonAxis ? "收盘" : frame.tick}</th><td>{displayObservation(frame.metrics[metric.id])}</td>
+          <td>{displayObservation(right.find(item => item.tick === frame.tick)?.metrics[metric.id])}</td>
         </tr>)}</tbody>
       </table>
     </details>

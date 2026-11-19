@@ -1,3 +1,4 @@
+import type { ReactNode } from "react";
 import { auctionLesson, type AuctionRun } from "./auction.ts";
 import type { Command, Session } from "./lesson.ts";
 import { Studio } from "./Studio";
@@ -15,7 +16,9 @@ function exportRun(session: Session) {
   window.setTimeout(() => URL.revokeObjectURL(url), 1000);
 }
 
-function AuctionEvidence({ session, send }: { session: Session; send: (command: Command) => void }) {
+function AuctionEvidence({ session, send, nextAction }: {
+  session: Session; send: (command: Command) => void; nextAction?: ReactNode;
+}) {
   const run = session.run as AuctionRun | undefined;
   if (!run || session.stage === 1) return null;
   const frame = run.frames[session.cursor];
@@ -60,6 +63,8 @@ function AuctionEvidence({ session, send }: { session: Session; send: (command: 
       当前最高买价 {bestBid ? `${bestBid.price}（${bestBid.order_id}）` : "无"}，
       最低卖价 {bestAsk ? `${bestAsk.price}（${bestAsk.order_id}）` : "无"}。
     </p>}
+    {trade && <p>结算价 {trace.price} 代币来自在簿订单 {trace.maker_order_id}。</p>}
+    {nextAction}
     {trade && <>
       <ul className="auction-orders">
         {orderIds.map(id => {
@@ -73,7 +78,6 @@ function AuctionEvidence({ session, send }: { session: Session; send: (command: 
           </li>;
         })}
       </ul>
-      <p>结算价 {trace.price} 代币来自在簿订单 {trace.maker_order_id}。</p>
       <details className="trace-details">
         <summary>核对成交剩余</summary>
         <p>买方剩余 {trace.buyer_surplus} + 卖方剩余 {trace.seller_surplus} +
@@ -91,5 +95,6 @@ const boundary = new URLSearchParams(location.search).get("market") === "no-over
 const lesson = auctionLesson(boundary);
 
 export default function AuctionClassroom() {
-  return <Studio lesson={lesson} reviewByTimeline review={(session, send) => <AuctionEvidence session={session} send={send}/>}/>;
+  return <Studio lesson={lesson} reviewByTimeline
+    review={(session, send, nextAction) => <AuctionEvidence session={session} send={send} nextAction={nextAction}/>}/>;
 }

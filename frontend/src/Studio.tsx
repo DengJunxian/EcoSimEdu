@@ -154,7 +154,7 @@ function IntervalLookup({ data, locate }: { data: NonNullable<Session["run"]>["f
 
 type StudioProps = {
   lesson: Lesson;
-  review?: (session: Session, send: (command: Command) => void) => ReactNode;
+  review?: (session: Session, send: (command: Command) => void, nextAction?: ReactNode) => ReactNode;
   reviewByTimeline?: boolean;
 };
 
@@ -238,9 +238,14 @@ function LessonStudio({ lesson, review, reviewByTimeline, course, fresh }: Studi
         <div className="narrative">
           <h1 tabIndex={-1} ref={heading}>{stage === 1 ? lesson.title : stageNames[stage - 1]}</h1>
           {stage === 1 ? <RoleDecisions lesson={lesson} session={session} send={send}/> : <p>{stage === 3 ? lesson.bridge?.prompt ?? prompts[2] : prompts[stage - 1]}</p>}
-          {stage === 1 && <p className="source-note">{lesson.source.note}</p>}
+          {stage === 1 && <p className="source-note">{lesson.casePackage && <strong>{lesson.casePackage.identityLabel} · </strong>}
+            {lesson.source.note}</p>}
           {stage === 1 && lesson.source.references && <details className="trace-details">
-            <summary>查看历史来源</summary>
+            <summary>{lesson.source.kind === "historical_event" ? "查看历史来源" : "查看案例资料与模型假设"}</summary>
+            {lesson.casePackage && <>
+              <p>{lesson.casePackage.syntheticPopulation.description}</p>
+              {lesson.casePackage.modelAssumptions.map(item => <p key={item}>{item}</p>)}
+            </>}
             <ul>{lesson.source.references.map(source => <li key={source.url}>
               <a href={source.url} target="_blank" rel="noreferrer">{source.title}</a>
             </li>)}</ul>
@@ -288,11 +293,10 @@ function LessonStudio({ lesson, review, reviewByTimeline, course, fresh }: Studi
             {reviewByTimeline && stage === 3 && <section ref={pauseReview} tabIndex={-1}
               className="replay-review" aria-label="当前成交证据与下一步">
               {turnNotice}
-              {review?.(session, send)}
-              <button className="primary stage-action" ref={stageAction} disabled={!ready && pauseTick === undefined}
+              {review?.(session, send, <button className="primary stage-action" ref={stageAction} disabled={!ready && pauseTick === undefined}
                 onClick={() => send({ type: ready ? "next-stage" : "step" })}>
                 {!ready && pauseTick !== undefined ? "下一步 · 查看后续报价" : "试一项政策"}
-              </button>
+              </button>)}
             </section>}
             {actor && <Inspector actor={actor} stateName={lesson.states[actor.state].label}
               frame={frame} tickUnit={lesson.tickUnit} metricId={activeMetric.id} locate={stage === 3 ? locate : undefined}/>}

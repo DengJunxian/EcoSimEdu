@@ -1,0 +1,266 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$defs": {
+    "EconomicTime": {
+      "additionalProperties": false,
+      "properties": {
+        "clockId": {
+          "title": "Clockid",
+          "type": "string"
+        },
+        "value": {
+          "title": "Value",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "clockId",
+        "value"
+      ],
+      "title": "EconomicTime",
+      "type": "object"
+    },
+    "EventEnvelope": {
+      "additionalProperties": false,
+      "properties": {
+        "runId": {
+          "title": "Runid",
+          "type": "string"
+        },
+        "eventId": {
+          "title": "Eventid",
+          "type": "string"
+        },
+        "sequence": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Sequence"
+        },
+        "frameTick": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Frametick"
+        },
+        "economicTime": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/EconomicTime"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "actorIds": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Actorids",
+          "type": "array"
+        },
+        "kind": {
+          "title": "Kind",
+          "type": "string"
+        },
+        "summary": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Summary"
+        },
+        "record": {
+          "additionalProperties": true,
+          "title": "Record",
+          "type": "object"
+        },
+        "sourceEvents": {
+          "items": {
+            "$ref": "#/$defs/SourceEvent"
+          },
+          "title": "Sourceevents",
+          "type": "array"
+        }
+      },
+      "required": [
+        "runId",
+        "eventId",
+        "sequence",
+        "frameTick",
+        "economicTime",
+        "actorIds",
+        "kind",
+        "summary",
+        "record"
+      ],
+      "title": "EventEnvelope",
+      "type": "object"
+    },
+    "ResultDigest": {
+      "additionalProperties": false,
+      "properties": {
+        "algorithm": {
+          "const": "sha256",
+          "default": "sha256",
+          "title": "Algorithm",
+          "type": "string"
+        },
+        "scope": {
+          "enum": [
+            "browser-evidence/v1",
+            "stored-result/v1"
+          ],
+          "title": "Scope",
+          "type": "string"
+        },
+        "value": {
+          "pattern": "^[a-f0-9]{64}$",
+          "title": "Value",
+          "type": "string"
+        }
+      },
+      "required": [
+        "scope",
+        "value"
+      ],
+      "title": "ResultDigest",
+      "type": "object"
+    },
+    "SourceEvent": {
+      "additionalProperties": false,
+      "properties": {
+        "eventId": {
+          "title": "Eventid",
+          "type": "string"
+        },
+        "frameTick": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Frametick"
+        }
+      },
+      "required": [
+        "eventId",
+        "frameTick"
+      ],
+      "title": "SourceEvent",
+      "type": "object"
+    },
+    "Versions": {
+      "additionalProperties": false,
+      "properties": {
+        "case": {
+          "title": "Case",
+          "type": "string"
+        },
+        "engine": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Engine"
+        },
+        "content": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Content"
+        }
+      },
+      "required": [
+        "case",
+        "engine",
+        "content"
+      ],
+      "title": "Versions",
+      "type": "object"
+    }
+  },
+  "additionalProperties": false,
+  "properties": {
+    "schemaVersion": {
+      "const": 1,
+      "default": 1,
+      "title": "Schemaversion",
+      "type": "integer"
+    },
+    "runId": {
+      "title": "Runid",
+      "type": "string"
+    },
+    "caseId": {
+      "title": "Caseid",
+      "type": "string"
+    },
+    "versions": {
+      "$ref": "#/$defs/Versions"
+    },
+    "resultDigest": {
+      "$ref": "#/$defs/ResultDigest"
+    },
+    "scope": {
+      "enum": [
+        "archive",
+        "visible_prefix"
+      ],
+      "title": "Scope",
+      "type": "string"
+    },
+    "asOf": {
+      "anyOf": [
+        {
+          "type": "integer"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Asof"
+    },
+    "event": {
+      "$ref": "#/$defs/EventEnvelope"
+    }
+  },
+  "required": [
+    "runId",
+    "caseId",
+    "versions",
+    "resultDigest",
+    "scope",
+    "event"
+  ],
+  "title": "Evidence",
+  "type": "object"
+}

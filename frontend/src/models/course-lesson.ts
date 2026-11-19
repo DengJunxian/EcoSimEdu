@@ -1,10 +1,10 @@
 import type { Frame, Lesson, Metric, Run } from "../lesson.ts";
+import { casePackage } from "../domain-contracts.ts";
 import type { ModelRun } from "./record.ts";
 
 type Case = {
-  title: string; seed: number; version: string;
+  title: string; seed: number;
   action: { label: string; options: readonly { id: string; label: string }[]; default: string };
-  sources: readonly { title: string; url: string }[];
   scenarios: readonly { id: string; parameters: object }[];
 };
 
@@ -16,7 +16,6 @@ type Teaching = {
   steps: readonly [string, string, string];
   predict: { question: string; answers: readonly [string, string] };
   metrics: readonly [Metric, ...Metric[]];
-  target: string;
   policy: { id: string; label: string; names: readonly [string, string]; note: string };
   rule: string;
   explanation: string;
@@ -42,6 +41,7 @@ export function defineCourse<T extends Case>(
   simulate: (seed: number, action: string, scenario: string, params: T["scenarios"][number]["parameters"]) => ModelRun,
 ): MigratedLesson {
   const { policy } = teaching;
+  const published = casePackage(id);
   const baseline = teaching.baseline ?? 0, alternative = teaching.alternative ?? 1;
   const openingCase = source.scenarios.find(entry => entry.id === "baseline")!;
   const comparison = source.scenarios.find(entry => entry.id === policy.id)!;
@@ -56,13 +56,13 @@ export function defineCourse<T extends Case>(
     });
   };
   return {
-    id, explanationPrompt: teaching.explanation, originalId: id, contentVersion: source.version, teaching, title: teaching.title, seed: source.seed,
+    id, explanationPrompt: teaching.explanation, originalId: id, contentVersion: published.browserContentVersion, teaching, title: teaching.title, seed: source.seed,
     role: { title: teaching.role, perspective: teaching.story, facts: teaching.facts,
       timeline: teaching.steps.map((label, i) => ({ label, highlighted: i === 0 })) },
     populationTitle: source.title,
-    source: { kind: "documented_case",
-      note: "历史材料提供背景。角色、数字与结果来自本课的教学模型。",
-      references: source.sources },
+    source: { kind: published.identity, note: "角色、数字与结果来自本课的教学模型。",
+      references: published.sourceReferences },
+    casePackage: published, metricRoles: published.browserMetricRoles,
     decisions: [
       { prompt: source.action.label, options: source.action.options.map(option => ({
         ...option, response: "本次运行将采用这个决定。",
@@ -72,8 +72,8 @@ export function defineCourse<T extends Case>(
       })) },
     ],
     metrics: teaching.metrics,
-    bridge: { minTick: 2, metrics: teaching.metrics.filter(item => item.id !== teaching.target).map(item => item.id),
-      chartMetric: teaching.target, rule: teaching.rule, closeLabel: "查看运行收尾",
+    bridge: { minTick: 2, metrics: teaching.metrics.filter(item => item.id !== published.browserMetricRoles.observation).map(item => item.id),
+      rule: teaching.rule, closeLabel: "查看运行收尾",
       prompt: "播放到关键时点，沿曲线回查原始事件，再看这次变化是否进入后续的个体决策。",
       comparisonAxis: teaching.periodLabel },
     tickUnit: "event",
@@ -82,7 +82,7 @@ export function defineCourse<T extends Case>(
     priceMetric: teaching.priceMetric,
     policy: { label: policy.label, min: baseline, max: alternative, baseline, unit: "", step: alternative - baseline,
       labels: { [baseline]: policy.names[0], [alternative]: policy.names[1] },
-      describe: policy.note, measure: "final", project },
+      describe: policy.note, project },
     run({ seed, choices, policy: option }) {
       if (seed !== source.seed || !source.action.options.some(action => action.id === choices[0]) ||
         (option !== baseline && option !== alternative)) throw new Error(`Invalid classroom input for ${id}`);

@@ -1,6 +1,7 @@
 import course from "../../cases/double_auction/case.json" with { type: "json" };
 import boundaries from "../../cases/boundaries.json" with { type: "json" };
 import opening from "./data/auction-opening.json" with { type: "json" };
+import { casePackage } from "./domain-contracts.ts";
 import type { Actor, Frame, Lesson, LessonEvent, Run } from "./lesson.ts";
 
 type Side = "buy" | "sell";
@@ -204,6 +205,7 @@ export function roundEnds(run: Run): readonly Frame[] {
 }
 
 export function auctionLesson(boundary: boolean): Lesson {
+  const published = casePackage(course.case_id);
   const value = course.player_value + (boundary ? boundarySpec.parameters.demand_shift : 0);
   return {
     title: boundary ? "买卖两边都报价，为什么没有成交？" : "你的报价会以什么价格成交？",
@@ -215,7 +217,8 @@ export function auctionLesson(boundary: boolean): Lesson {
         { label: "你手里的现金", value: `${course.initial_cash} 代币` }],
       timeline: [{ label: "提交限价" }, { label: "等待或成交", highlighted: true }, { label: "收盘撤单" }],
     },
-    source: { kind: "documented_case", note: "参考 Vernon L. Smith 的双向拍卖实验。人物、数值和订单均由本课模型生成。",
+    casePackage: published, metricRoles: published.browserMetricRoles,
+    source: { kind: published.identity, note: "参考 Vernon L. Smith 的双向拍卖实验。人物、数值和订单均由本课模型生成。",
       references: course.sources },
     decisions: [
       { prompt: "你愿意报出多少？", amount: { label: "开局限价", min: 1, max: value,
@@ -237,13 +240,13 @@ export function auctionLesson(boundary: boolean): Lesson {
       standing: { label: "有在簿单", color: "#f4c16a" },
       filled: { label: "已有成交", color: "#78cdc2" },
     },
-    bridge: { minTick: 3, metrics: ["best_bid", "best_ask", "volume"], chartMetric: "price",
+    bridge: { minTick: 3, metrics: ["best_bid", "best_ask", "volume"],
       rule: "价格优先，同价先到优先。交叉时用已经在簿的订单定价。",
       prompt: "播放到关键事件，核对造成变化的报价。成交以后，下一张自动报价可以引用刚成交的价格。",
       closeLabel: "快进到收盘" },
     tickUnit: "event",
     policy: { label: "每件成交时每方缴费", min: 0, max: paidFee, step: paidFee, baseline: 0, unit: "代币",
-      measure: "final", project: roundEnds, describe: "保留同一种子和你的原始限价。收费改变买家的总支出和卖家的净收入，费用转入平台。" },
+      project: roundEnds, describe: "保留同一种子和你的原始限价。收费改变买家的总支出和卖家的净收入，费用转入平台。" },
     seed: opening.seed,
     run: input => simulateAuction(input, boundary),
   };

@@ -1,0 +1,2088 @@
+[
+  {
+    "schemaVersion": 1,
+    "caseId": "double_auction",
+    "caseVersion": "1.0.0",
+    "browserContentVersion": "browser-classroom/1",
+    "learningContentVersion": "1.0.0",
+    "title": "双向拍卖",
+    "identity": "academic_experiment",
+    "identityLabel": "学术实验",
+    "background": "Vernon L. Smith 用双向拍卖研究竞争市场。实验中的买家和卖家分别知道自己的价值或成本，可以主动报价。这里的角色、报价策略和成交记录均由教学模型生成。",
+    "historicalFacts": [],
+    "sourceReferences": [
+      {
+        "id": "S02",
+        "title": "An Experimental Study of Competitive Market Behavior",
+        "url": "https://www.journals.uchicago.edu/doi/10.1086/258609",
+        "locator": "期刊印刷第 112–114 页，§II Experimental Procedure",
+        "support": "私下分配买家保留价值和卖家成本；参与者可以报买价和卖价，实验记录实际交易。",
+        "limits": "课件中的报价、角色参数和成交轨迹由本地模型独立生成。"
+      },
+      {
+        "id": "S03",
+        "title": "Vernon L. Smith – Biographical",
+        "url": "https://www.nobelprize.org/prizes/economic-sciences/2002/smith/biographical/",
+        "locator": "The early years to 1975 下回顾 1955 年 Purdue 及 1952 年 Chamberlin 教学的两段",
+        "support": "作者回忆在 1956 年 1 月的课堂上，为参与者私下设置成本或价值，并允许双方报价。",
+        "limits": "该来源是第一人称回忆。论文原始实验方法另见 S02。"
+      }
+    ],
+    "modelAssumptions": [
+      "现金、库存与私有保留价值约束报价。买卖交叉时采用在簿订单价格，同价按到达先后撮合。"
+    ],
+    "syntheticPopulation": {
+      "description": "十名买家与十名卖家由固定种子生成。",
+      "count": 20,
+      "kind": "synthetic"
+    },
+    "dataProvenance": {
+      "resultKind": "teaching_simulation",
+      "originalSourceData": [
+        {
+          "sourceId": "S02",
+          "acquisition": "not_acquired",
+          "version": null,
+          "license_status": "unconfirmed",
+          "distribution": "not_included"
+        },
+        {
+          "sourceId": "S03",
+          "acquisition": "not_applicable",
+          "version": null,
+          "license_status": "not_applicable",
+          "distribution": "not_included"
+        }
+      ]
+    },
+    "rights": [
+      {
+        "sourceId": "S02",
+        "status": "copyright_notice",
+        "detail": "期刊权利页注明 © 1962 The University of Chicago，提供权限申请；未见开放再分发授权。",
+        "evidenceUrl": "https://www.journals.uchicago.edu/doi/10.1086/258609",
+        "distribution": "link_and_paraphrase"
+      },
+      {
+        "sourceId": "S03",
+        "status": "stated_terms",
+        "detail": "页面注明 © The Nobel Foundation 2002；法律声明对自述的复用或翻译要求许可。",
+        "evidenceUrl": "https://www.nobelprize.org/uploads/2018/08/legal_notice.pdf",
+        "distribution": "link_and_paraphrase"
+      }
+    ],
+    "learningOutcomes": [
+      {
+        "id": "double_auction.1",
+        "version": 1,
+        "concept_ids": [
+          "C02"
+        ],
+        "performance": "计算买方、卖方和平台收益并核对合计",
+        "evidence_requirement": "首次无该题提示且达到该任务的规则判据",
+        "phase": "explain",
+        "task": "按新价格计算价值、成本和双边费用",
+        "transfer": "在二手交易中扣除新增验货耗材"
+      },
+      {
+        "id": "double_auction.2",
+        "version": 1,
+        "concept_ids": [
+          "C14"
+        ],
+        "performance": "沿成交事件追踪买卖订单，判断哪些报价具备撮合条件",
+        "evidence_requirement": "首次无该题提示且达到该任务的规则判据",
+        "phase": "observe",
+        "task": "给定限价与到达时序判断可成交报价",
+        "transfer": "判断新增平台规则怎样改变成交机会"
+      },
+      {
+        "id": "double_auction.3",
+        "version": 1,
+        "concept_ids": [
+          "C03"
+        ],
+        "performance": "解释费用、资源耗用和未实现交易机会对总剩余的影响",
+        "evidence_requirement": "首次无该题提示且达到该任务的规则判据",
+        "phase": "compare",
+        "task": "在固定价值、成本和数量时拆解费用流向",
+        "transfer": "计算扣资源成本后的三方合计"
+      }
+    ],
+    "metrics": [
+      {
+        "id": "last_price",
+        "label": "最近成交价",
+        "unit": "代币/件",
+        "definition": "截至当前时点最近一笔实际成交的价格。",
+        "undefinedReason": "截至该时点尚未成交。"
+      },
+      {
+        "id": "volume",
+        "label": "累计成交",
+        "unit": "件",
+        "definition": "截至该事件累计成交的物品件数。",
+        "undefinedReason": "该时点缺少市场快照。"
+      },
+      {
+        "id": "surplus",
+        "label": "累计总剩余",
+        "unit": "代币",
+        "definition": "该观察时点模型记录的累计总剩余。",
+        "undefinedReason": "该时点无适用观测值。"
+      },
+      {
+        "id": "price",
+        "label": "本笔成交价",
+        "unit": "代币/件",
+        "definition": "当前事件的实际成交价格。",
+        "undefinedReason": "当前事件没有成交。"
+      },
+      {
+        "id": "best_bid",
+        "label": "最高在簿买价",
+        "unit": "代币",
+        "definition": "尚在订单簿内的最高买价。",
+        "undefinedReason": "买方订单簿为空。"
+      },
+      {
+        "id": "best_ask",
+        "label": "最低在簿卖价",
+        "unit": "代币",
+        "definition": "尚在订单簿内的最低卖价。",
+        "undefinedReason": "卖方订单簿为空。"
+      },
+      {
+        "id": "platform_cash",
+        "label": "平台现金",
+        "unit": "代币",
+        "definition": "该观察时点模型记录的平台现金。",
+        "undefinedReason": "该时点无适用观测值。"
+      },
+      {
+        "id": "participant_surplus",
+        "label": "参与者剩余",
+        "unit": "代币",
+        "definition": "该观察时点模型记录的参与者剩余。",
+        "undefinedReason": "该时点无适用观测值。"
+      },
+      {
+        "id": "efficiency",
+        "label": "配置效率",
+        "unit": "比例",
+        "definition": "实际总剩余除以最大可实现总剩余。",
+        "undefinedReason": "可实现总剩余为零。"
+      }
+    ],
+    "browserMetricRoles": {
+      "observation": "price",
+      "comparison": "volume",
+      "statistic": "final"
+    },
+    "archivedMetricRoles": {
+      "observation": "last_price",
+      "comparison": "volume",
+      "statistic": "final"
+    },
+    "clock": {
+      "id": "round",
+      "label": "报价轮次"
+    }
+  },
+  {
+    "schemaVersion": 1,
+    "caseId": "schelling_segregation",
+    "caseVersion": "1.0.0",
+    "browserContentVersion": "browser-classroom/1",
+    "learningContentVersion": "1.0.0",
+    "title": "居住隔离",
+    "identity": "theoretical_model",
+    "identityLabel": "理论模型",
+    "background": "Schelling 用局部迁居规则研究空间分化。这节课使用 20×20 的虚构社区，居民分为 A 和 B 两组，初始空置率为 15%。",
+    "historicalFacts": [],
+    "sourceReferences": [
+      {
+        "id": "S04",
+        "title": "Dynamic Models of Segregation",
+        "url": "https://doi.org/10.1080/0022250X.1971.9989794",
+        "locator": "期刊印刷第 143 页摘要、第 154–155 页二维棋盘、邻居和空位的设置",
+        "support": "从局部邻居构成偏好和搬迁规则研究群体空间分化。",
+        "limits": "课件的网格、阈值及边界条件自定；属于理论示例。"
+      },
+      {
+        "id": "S04-N",
+        "title": "NetLogo Models Library: Segregation",
+        "url": "https://ccl.northwestern.edu/netlogo/models/Segregation",
+        "locator": "WHAT IS IT?、HOW TO USE IT、THINGS TO NOTICE",
+        "support": "以相似性阈值解释局部迁居和整体分区，给出课堂可操作示例。",
+        "limits": "当前课件使用自编迁居实现。NetLogo 程序、参数表及附图未引入。"
+      }
+    ],
+    "modelAssumptions": [
+      "同组比例按已占邻格计算。低于当前阈值的住户搜索合格空位。"
+    ],
+    "syntheticPopulation": {
+      "description": "20×20 网格中的 A、B 两组合成住户和 60 处空位。",
+      "count": 340,
+      "kind": "synthetic"
+    },
+    "dataProvenance": {
+      "resultKind": "teaching_simulation",
+      "originalSourceData": [
+        {
+          "sourceId": "S04",
+          "acquisition": "not_applicable",
+          "version": null,
+          "license_status": "not_applicable",
+          "distribution": "not_included"
+        },
+        {
+          "sourceId": "S04-N",
+          "acquisition": "not_applicable",
+          "version": null,
+          "license_status": "not_applicable",
+          "distribution": "not_included"
+        }
+      ]
+    },
+    "rights": [
+      {
+        "sourceId": "S04",
+        "status": "copyright_notice",
+        "detail": "扫描版第 143 页注明 Gordon and Breach Science Publishers 版权；未见开放再分发授权。",
+        "evidenceUrl": "https://www.stat.berkeley.edu/~aldous/157/Papers/Schelling_Seg_Models.pdf",
+        "distribution": "link_and_paraphrase"
+      },
+      {
+        "sourceId": "S04-N",
+        "status": "stated_terms",
+        "detail": "原页 COPYRIGHT AND LICENSE 标明 CC BY-NC-SA 3.0；商用另有许可路径。",
+        "evidenceUrl": "https://ccl.northwestern.edu/netlogo/models/Segregation",
+        "distribution": "link_and_paraphrase"
+      }
+    ],
+    "learningOutcomes": [
+      {
+        "id": "schelling_segregation.1",
+        "version": 1,
+        "concept_ids": [
+          "C06"
+        ],
+        "performance": "计算未搬居民的邻居比例及阈值状态",
+        "evidence_requirement": "首次无该题提示且达到该任务的规则判据",
+        "phase": "explain",
+        "task": "计算 B 搬离前后的同类比例",
+        "transfer": "判断边界位置的有效分母"
+      },
+      {
+        "id": "schelling_segregation.2",
+        "version": 1,
+        "concept_ids": [
+          "C07"
+        ],
+        "performance": "解释满意率与同类邻接率怎样汇总",
+        "evidence_requirement": "首次无该题提示且达到该任务的规则判据",
+        "phase": "observe",
+        "task": "辨认局部满意与全图同类边",
+        "transfer": "分析阈值为零的分群初态"
+      },
+      {
+        "id": "schelling_segregation.3",
+        "version": 1,
+        "concept_ids": [
+          "C18"
+        ],
+        "performance": "区分模型停止条件与现实分群解释",
+        "evidence_requirement": "首次无该题提示且达到该任务的规则判据",
+        "phase": "compare",
+        "task": "判断达到轮数上限所支持的结论",
+        "transfer": "为校园分群比较提出可辨异的资料"
+      }
+    ],
+    "metrics": [
+      {
+        "id": "satisfied",
+        "label": "达到本组阈值的居民",
+        "unit": "%",
+        "definition": "该观察时点模型记录的达到本组阈值的居民。",
+        "undefinedReason": "该时点无适用观测值。"
+      },
+      {
+        "id": "similarity",
+        "label": "同类邻接率",
+        "unit": "%",
+        "definition": "同组占用邻接计数除以全部已占邻接计数。",
+        "undefinedReason": "没有已占邻接。"
+      },
+      {
+        "id": "moves",
+        "label": "累计搬迁",
+        "unit": "次",
+        "definition": "该观察时点模型记录的累计搬迁。",
+        "undefinedReason": "该时点无适用观测值。"
+      },
+      {
+        "id": "remaining",
+        "label": "尚未达到阈值",
+        "unit": "人",
+        "definition": "该观察时点模型记录的尚未达到阈值。",
+        "undefinedReason": "该时点无适用观测值。"
+      }
+    ],
+    "browserMetricRoles": {
+      "observation": "similarity",
+      "comparison": "similarity",
+      "statistic": "final"
+    },
+    "archivedMetricRoles": {
+      "observation": "similarity",
+      "comparison": "similarity",
+      "statistic": "final"
+    },
+    "clock": {
+      "id": "round",
+      "label": "更新轮次"
+    }
+  },
+  {
+    "schemaVersion": 1,
+    "caseId": "svb_run",
+    "caseVersion": "1.0.0",
+    "browserContentVersion": "browser-classroom/1",
+    "learningContentVersion": "1.0.0",
+    "title": "硅谷银行挤兑",
+    "identity": "historical_event",
+    "identityLabel": "历史事件",
+    "background": "2023 年 3 月 10 日，加州监管机构关闭硅谷银行。美联储复盘指出，利率上升、风险管理薄弱、科技企业存款集中及大量未保险存款，使银行容易遭遇相关提款。3 月 12 日，美国财政部、美联储和 FDIC 宣布保障该行所有存款人。实验中的 60 名储户、消息和金额是独立的教学模拟。",
+    "historicalFacts": [
+      {
+        "text": "加州监管机构于 2023 年 3 月 10 日关闭硅谷银行。",
+        "sourceIds": [
+          "S01"
+        ]
+      },
+      {
+        "text": "3 月 12 日三机构公布处置安排，保障该行全部存款人。",
+        "sourceIds": [
+          "SVB-RESOLUTION"
+        ]
+      }
+    ],
+    "sourceReferences": [
+      {
+        "id": "S01",
+        "title": "Review of the Federal Reserve’s Supervision and Regulation of Silicon Valley Bank",
+        "url": "https://www.federalreserve.gov/publications/2023-April-SVB-Executive-Summary.htm",
+        "locator": "报告印刷第 1–4 页，Executive Summary，尤见 Growth of SVBFG 与 Failure of SVB",
+        "support": "3 月 9 日存款流出逾 400 亿美元，3 月 10 日关闭；复盘讨论集中未保险存款、利率风险、管理与监督问题。",
+        "limits": "课件的储户网络、逐笔取款、资产价格和现金账本为教学设定。"
+      },
+      {
+        "id": "SVB-RESOLUTION",
+        "title": "Joint Statement by Treasury, Federal Reserve, and FDIC",
+        "url": "https://www.federalreserve.gov/newsevents/pressreleases/monetary20230312b.htm",
+        "locator": "正文财政部长批准 FDIC 处置的段落，以及关于股东与部分无担保债权人的段落",
+        "support": "公告称保障 SVB 全部储户，3 月 13 日起可取用存款；股东与部分无担保债权人未获相同保护。",
+        "limits": "这是特定机构的处置公告，课件安全网规则为简化设定。"
+      },
+      {
+        "id": "S29",
+        "title": "Bank Runs, Deposit Insurance, and Liquidity",
+        "url": "https://knowledge.uchicago.edu/records/3sa4m-hvw53",
+        "locator": "期刊印刷第 401–402 页摘要和导言；第 408–410 页 Equilibrium Decisions",
+        "support": "私人可观察的流动性需求与活期存款合约的多重均衡，其中有挤兑均衡。",
+        "limits": "理论合约与课中的银行资产负债表、提款传播和火售规则为不同建模层。"
+      }
+    ],
+    "modelAssumptions": [
+      "提款先申请后支付。现金不足时依次使用支持借款和证券急售，净资产按当期账表计量。"
+    ],
+    "syntheticPopulation": {
+      "description": "三组各 20 名虚构储户，另有教学银行与现金、证券交易对手。",
+      "count": 60,
+      "kind": "synthetic"
+    },
+    "dataProvenance": {
+      "resultKind": "teaching_simulation",
+      "originalSourceData": [
+        {
+          "sourceId": "S01",
+          "acquisition": "not_acquired",
+          "version": null,
+          "license_status": "unconfirmed",
+          "distribution": "not_included"
+        },
+        {
+          "sourceId": "SVB-RESOLUTION",
+          "acquisition": "not_applicable",
+          "version": null,
+          "license_status": "not_applicable",
+          "distribution": "not_included"
+        },
+        {
+          "sourceId": "S29",
+          "acquisition": "not_applicable",
+          "version": null,
+          "license_status": "not_applicable",
+          "distribution": "not_included"
+        }
+      ]
+    },
+    "rights": [
+      {
+        "sourceId": "S01",
+        "status": "stated_terms",
+        "detail": "美联储网站 Copyright/trademark 说明 Board 信息默认属公有领域并要求注明出处，第三方素材、标识等另行处理。",
+        "evidenceUrl": "https://www.federalreserve.gov/disclaimer.htm",
+        "distribution": "link_and_paraphrase"
+      },
+      {
+        "sourceId": "SVB-RESOLUTION",
+        "status": "stated_terms",
+        "detail": "美联储网站 Copyright/trademark 政策覆盖默认公开的机构文本，另有第三方素材和标识例外。",
+        "evidenceUrl": "https://www.federalreserve.gov/disclaimer.htm",
+        "distribution": "link_and_paraphrase"
+      },
+      {
+        "sourceId": "S29",
+        "status": "copyright_notice",
+        "detail": "档案 Rights 明示 © 1983 The University of Chicago，权利人仅明确允许机构仓储公开。原文注明保留权利。",
+        "evidenceUrl": "https://knowledge.uchicago.edu/records/3sa4m-hvw53#rights",
+        "distribution": "link_and_paraphrase"
+      }
+    ],
+    "learningOutcomes": [
+      {
+        "id": "svb_run.1",
+        "version": 1,
+        "concept_ids": [
+          "C05"
+        ],
+        "performance": "用账表分别计算权益、现金和待付",
+        "evidence_requirement": "首次无该题提示且达到该任务的规则判据",
+        "phase": "explain",
+        "task": "从申请及实付还原账表",
+        "transfer": "区分供应商账面权益和即日支付约束"
+      },
+      {
+        "id": "svb_run.2",
+        "version": 1,
+        "concept_ids": [
+          "C08"
+        ],
+        "performance": "用消息、阈值和请求定位一条可核对的传导链",
+        "evidence_requirement": "首次无该题提示且达到该任务的规则判据",
+        "phase": "observe",
+        "task": "排序消息与结算事件",
+        "transfer": "检验重复消息能否提供额外证据"
+      },
+      {
+        "id": "svb_run.3",
+        "version": 1,
+        "concept_ids": [
+          "C16"
+        ],
+        "performance": "给现金组合对照列出处理、共同条件与结论边界",
+        "evidence_requirement": "首次无该题提示且达到该任务的规则判据",
+        "phase": "compare",
+        "task": "辨认证券换现金与增资的差异",
+        "transfer": "说明同时改变消息网络与资产组合时的归因边界"
+      }
+    ],
+    "metrics": [
+      {
+        "id": "cash",
+        "label": "银行现金",
+        "unit": "资金单位",
+        "definition": "该观察时点模型记录的银行现金。",
+        "undefinedReason": "该时点无适用观测值。"
+      },
+      {
+        "id": "requested",
+        "label": "累计申请",
+        "unit": "资金单位",
+        "definition": "该观察时点模型记录的累计申请。",
+        "undefinedReason": "该时点无适用观测值。"
+      },
+      {
+        "id": "paid",
+        "label": "累计实付",
+        "unit": "资金单位",
+        "definition": "该观察时点模型记录的累计实付。",
+        "undefinedReason": "该时点无适用观测值。"
+      },
+      {
+        "id": "queued",
+        "label": "等待支付",
+        "unit": "资金单位",
+        "definition": "累计申请减累计实付。",
+        "undefinedReason": "该时点缺少申请或实付记录。"
+      },
+      {
+        "id": "equity",
+        "label": "银行净资产",
+        "unit": "资金单位",
+        "definition": "现金加证券市值与贷款，减存款负债和借款。",
+        "undefinedReason": "该时点缺少账表记录。"
+      },
+      {
+        "id": "sale_loss",
+        "label": "累计折价损失",
+        "unit": "资金单位",
+        "definition": "该观察时点模型记录的累计折价损失。",
+        "undefinedReason": "该时点无适用观测值。"
+      },
+      {
+        "id": "price",
+        "label": "证券标价",
+        "unit": "资金单位/证券单位",
+        "definition": "该观察时点模型记录的证券标价。",
+        "undefinedReason": "该时点无适用观测值。"
+      },
+      {
+        "id": "deposits",
+        "label": "未偿存款",
+        "unit": "资金单位",
+        "definition": "该观察时点模型记录的未偿存款。",
+        "undefinedReason": "该时点无适用观测值。"
+      },
+      {
+        "id": "borrowing",
+        "label": "支持借款",
+        "unit": "资金单位",
+        "definition": "该观察时点模型记录的支持借款。",
+        "undefinedReason": "该时点无适用观测值。"
+      },
+      {
+        "id": "loans",
+        "label": "贷款资产",
+        "unit": "资金单位",
+        "definition": "该观察时点模型记录的贷款资产。",
+        "undefinedReason": "该时点无适用观测值。"
+      },
+      {
+        "id": "units",
+        "label": "持有证券",
+        "unit": "证券单位",
+        "definition": "该观察时点模型记录的持有证券。",
+        "undefinedReason": "该时点无适用观测值。"
+      },
+      {
+        "id": "sold",
+        "label": "累计出售证券",
+        "unit": "证券单位",
+        "definition": "该观察时点模型记录的累计出售证券。",
+        "undefinedReason": "该时点无适用观测值。"
+      },
+      {
+        "id": "marketValue",
+        "label": "持有证券市值",
+        "unit": "资金单位",
+        "definition": "该观察时点模型记录的持有证券市值。",
+        "undefinedReason": "该时点无适用观测值。"
+      },
+      {
+        "id": "marketCash",
+        "label": "证券对手现金",
+        "unit": "资金单位",
+        "definition": "该观察时点模型记录的证券对手现金。",
+        "undefinedReason": "该时点无适用观测值。"
+      },
+      {
+        "id": "supportCash",
+        "label": "支持机构现金",
+        "unit": "资金单位",
+        "definition": "该观察时点模型记录的支持机构现金。",
+        "undefinedReason": "该时点无适用观测值。"
+      }
+    ],
+    "browserMetricRoles": {
+      "observation": "queued",
+      "comparison": "queued",
+      "statistic": "final"
+    },
+    "archivedMetricRoles": {
+      "observation": "queued",
+      "comparison": "queued",
+      "statistic": "final"
+    },
+    "clock": {
+      "id": "round",
+      "label": "清结算轮次"
+    }
+  },
+  {
+    "schemaVersion": 1,
+    "caseId": "information_cascade",
+    "caseVersion": "1.0.0",
+    "browserContentVersion": "browser-classroom/1",
+    "learningContentVersion": "1.0.0",
+    "title": "信息级联",
+    "identity": "academic_experiment",
+    "identityLabel": "学术实验",
+    "background": "Anderson 与 Holt 让实验参与者按顺序预测隐藏的容器，并观察私人抽样如何通过公开选择传递。本课用贝叶斯规则生成实验轨迹，每个行动都保留了当时可见的证据。",
+    "historicalFacts": [],
+    "sourceReferences": [
+      {
+        "id": "S07",
+        "title": "Information Cascades in the Laboratory",
+        "url": "https://econweb.ucsd.edu/~jandreoni/Econ264/papers/Holt%20Anderson%20AER%201997.pdf",
+        "locator": "作者稿正文第 2–3 页（错误级联）、第 4–7 页 §I、第 7–8 页 §II Procedures",
+        "support": "参与者私下抽取信号，依次公开判断，可能出现与真实状态不一致的信息级联。",
+        "limits": "课程信号、公开选择及核验事件是教学模型生成的轨迹；未取得受试者原始逐条数据。"
+      },
+      {
+        "id": "BHW92",
+        "title": "A Theory of Fads, Fashion, Custom, and Cultural Change as Informational Cascades",
+        "url": "https://doi.org/10.1086/261849",
+        "locator": "期刊印刷第 992 页摘要；第 1005–1006 页 §III.A.2，Result 3",
+        "support": "理论界定信息级联，并在给定二元模型条件下说明公共信号可能打破级联。",
+        "limits": "教材的核验时点与信号精度来自课程参数。"
+      }
+    ],
+    "modelAssumptions": [
+      "公开后验由可见行动的似然更新，私人抽样和终场答案有独立揭示边界。"
+    ],
+    "syntheticPopulation": {
+      "description": "课内参与者的箱子、信号和行动由合成开局及规则生成。",
+      "count": null,
+      "kind": "synthetic"
+    },
+    "dataProvenance": {
+      "resultKind": "teaching_simulation",
+      "originalSourceData": [
+        {
+          "sourceId": "S07",
+          "acquisition": "not_acquired",
+          "version": null,
+          "license_status": "unconfirmed",
+          "distribution": "not_included"
+        },
+        {
+          "sourceId": "BHW92",
+          "acquisition": "not_applicable",
+          "version": null,
+          "license_status": "not_applicable",
+          "distribution": "not_included"
+        }
+      ]
+    },
+    "rights": [
+      {
+        "sourceId": "S07",
+        "status": "stated_terms",
+        "detail": "存档稿未见独立开放授权。AEA 版权政策列出有条件的教学或个人复用，课件仅提供引用与转述。",
+        "evidenceUrl": "https://www.aeaweb.org/journals/copyright",
+        "distribution": "link_and_paraphrase"
+      },
+      {
+        "sourceId": "BHW92",
+        "status": "copyright_notice",
+        "detail": "出版社版本注明 © 1992 The University of Chicago；未核到开放再分发授权。",
+        "evidenceUrl": "https://www.journals.uchicago.edu/doi/pdf/10.1086/261849",
+        "distribution": "link_and_paraphrase"
+      }
+    ],
+    "learningOutcomes": [
+      {
+        "id": "information_cascade.1",
+        "version": 1,
+        "concept_ids": [
+          "C08"
+        ],
+        "performance": "用私信号似然比更新公共赔率",
+        "evidence_requirement": "首次无该题提示且达到该任务的规则判据",
+        "phase": "observe",
+        "task": "从 1/4 乘以 2 求后验",
+        "transfer": "同源新闻的重复转述"
+      },
+      {
+        "id": "information_cascade.2",
+        "version": 1,
+        "concept_ids": [
+          "C17"
+        ],
+        "performance": "根据两个可能信号下的行动判断公开动作的信息量",
+        "evidence_requirement": "首次无该题提示且达到该任务的规则判据",
+        "phase": "explain",
+        "task": "两个信号均选 B 时计算公共后验",
+        "transfer": "匿名评价的策略性同选"
+      },
+      {
+        "id": "information_cascade.3",
+        "version": 1,
+        "concept_ids": [
+          "C16"
+        ],
+        "performance": "固定信号和次序比较隐藏行动与公共核验",
+        "evidence_requirement": "首次无该题提示且达到该任务的规则判据",
+        "phase": "compare",
+        "task": "辨认共同信息与其他处理",
+        "transfer": "讨论不同核验质量"
+      }
+    ],
+    "metrics": [
+      {
+        "id": "public_a_pct",
+        "label": "A 箱公共后验",
+        "unit": "%",
+        "definition": "用已公开可见的行动与核验信息更新的 A 箱概率。",
+        "undefinedReason": "该时点公共后验未记录。"
+      },
+      {
+        "id": "cascade_decisions",
+        "label": "级联决策累计",
+        "unit": "人",
+        "definition": "累计行动不随两种私信号变化的级联决定人数。",
+        "undefinedReason": "该时点缺少决定记录。"
+      },
+      {
+        "id": "cascade_start",
+        "label": "首个级联行动",
+        "unit": "位次",
+        "definition": "该观察时点模型记录的首个级联行动。",
+        "undefinedReason": "该时点无适用观测值。"
+      },
+      {
+        "id": "revealing_decisions",
+        "label": "改变公共后验的行动",
+        "unit": "次",
+        "definition": "该观察时点模型记录的改变公共后验的行动。",
+        "undefinedReason": "该时点无适用观测值。"
+      },
+      {
+        "id": "correct_pct",
+        "label": "最终猜对比例",
+        "unit": "%",
+        "definition": "该观察时点模型记录的最终猜对比例。",
+        "undefinedReason": "该时点无适用观测值。"
+      }
+    ],
+    "browserMetricRoles": {
+      "observation": "public_a_pct",
+      "comparison": "cascade_decisions",
+      "statistic": "final"
+    },
+    "archivedMetricRoles": {
+      "observation": "public_a_pct",
+      "comparison": "cascade_decisions",
+      "statistic": "final"
+    },
+    "clock": {
+      "id": "turn",
+      "label": "决策序位"
+    }
+  },
+  {
+    "schemaVersion": 1,
+    "caseId": "public_goods",
+    "caseVersion": "1.0.0",
+    "browserContentVersion": "browser-classroom/1",
+    "learningContentVersion": "1.0.0",
+    "title": "公共品博弈",
+    "identity": "academic_experiment",
+    "identityLabel": "学术实验",
+    "background": "Fehr 与 Gächter 比较了有无成本性惩罚机会的实验处理。本课使用合成参与者和线性惩罚成本，检验贡献、惩罚和群体净收益如何相互影响。",
+    "historicalFacts": [],
+    "sourceReferences": [
+      {
+        "id": "S05",
+        "title": "Cooperation and Punishment in Public Goods Experiments",
+        "url": "https://www.aeaweb.org/articles?id=10.1257/aer.90.4.980",
+        "locator": "期刊印刷第 981–982 页 §I.A–C、表 1；第 984–985 页 §III.A",
+        "support": "实验设置有、无惩罚机会，记录个体花费资源惩罚和贡献反应。",
+        "limits": "课件的行为规则、处罚成本和结果数据独立构造，未取得受试者原始数据。"
+      }
+    ],
+    "modelAssumptions": [
+      "同时贡献后结算公共回报及惩罚资源成本。"
+    ],
+    "syntheticPopulation": {
+      "description": "使用合成参与者及公开资金池。",
+      "count": null,
+      "kind": "synthetic"
+    },
+    "dataProvenance": {
+      "resultKind": "teaching_simulation",
+      "originalSourceData": [
+        {
+          "sourceId": "S05",
+          "acquisition": "not_acquired",
+          "version": null,
+          "license_status": "unconfirmed",
+          "distribution": "not_included"
+        }
+      ]
+    },
+    "rights": [
+      {
+        "sourceId": "S05",
+        "status": "stated_terms",
+        "detail": "AEA 的版权政策只列有条件的署名课堂及个人用途等许可；公开归档再分发授权未获确认。",
+        "evidenceUrl": "https://www.aeaweb.org/journals/copyright",
+        "distribution": "link_and_paraphrase"
+      }
+    ],
+    "learningOutcomes": [
+      {
+        "id": "public_goods.1",
+        "version": 1,
+        "concept_ids": [
+          "C09"
+        ],
+        "performance": "计算边际个人收益与群体回报",
+        "evidence_requirement": "首次无该题提示且达到该任务的规则判据",
+        "phase": "explain",
+        "task": "给四人的投入计算回报及净收益",
+        "transfer": "比较共享厨房的个人与群体收益"
+      },
+      {
+        "id": "public_goods.2",
+        "version": 1,
+        "concept_ids": [
+          "C03"
+        ],
+        "performance": "对账施罚成本和受罚扣损，计算群体净收益",
+        "evidence_requirement": "首次无该题提示且达到该任务的规则判据",
+        "phase": "observe",
+        "task": "分解回报与惩罚",
+        "transfer": "区分维修支出与账户转移"
+      },
+      {
+        "id": "public_goods.3",
+        "version": 1,
+        "concept_ids": [
+          "C16"
+        ],
+        "performance": "比较相同初始条件下两项公共物品制度",
+        "evidence_requirement": "首次无该题提示且达到该任务的规则判据",
+        "phase": "compare",
+        "task": "指出并发处理限制",
+        "transfer": "讨论监督可观察性变化"
+      }
+    ],
+    "metrics": [
+      {
+        "id": "contributions",
+        "label": "本轮贡献",
+        "unit": "代币",
+        "definition": "该观察时点模型记录的本轮贡献。",
+        "undefinedReason": "该时点无适用观测值。"
+      },
+      {
+        "id": "total_contributions",
+        "label": "累计贡献",
+        "unit": "代币",
+        "definition": "该观察时点模型记录的累计贡献。",
+        "undefinedReason": "该时点无适用观测值。"
+      },
+      {
+        "id": "net_income",
+        "label": "累计群体净收益",
+        "unit": "代币",
+        "definition": "截至当前轮各参与者结算后的余额之和。",
+        "undefinedReason": "该时点缺少公共池结算账表。"
+      },
+      {
+        "id": "sanction_cost",
+        "label": "累计惩罚消耗",
+        "unit": "代币",
+        "definition": "该观察时点模型记录的累计惩罚消耗。",
+        "undefinedReason": "该时点无适用观测值。"
+      }
+    ],
+    "browserMetricRoles": {
+      "observation": "net_income",
+      "comparison": "net_income",
+      "statistic": "final"
+    },
+    "archivedMetricRoles": {
+      "observation": "net_income",
+      "comparison": "net_income",
+      "statistic": "final"
+    },
+    "clock": {
+      "id": "round",
+      "label": "结算轮次"
+    }
+  },
+  {
+    "schemaVersion": 1,
+    "caseId": "commons_governance",
+    "caseVersion": "1.0.0",
+    "browserContentVersion": "browser-classroom/1",
+    "learningContentVersion": "1.0.0",
+    "title": "公地治理",
+    "identity": "theoretical_model",
+    "identityLabel": "理论模型",
+    "background": "Ostrom 的研究考察使用者怎样组织公共资源治理。这里的水域、使用者与制度参数均为教学设定。",
+    "historicalFacts": [],
+    "sourceReferences": [
+      {
+        "id": "S06",
+        "title": "Beyond Markets and States: Polycentric Governance of Complex Economic Systems",
+        "url": "https://www.aeaweb.org/articles?id=10.1257/aer.100.3.641",
+        "locator": "期刊印刷第 654–655 页 §V.A，第 655–656 页 §V.B；对应 PDF 浏览页 14–16",
+        "support": "综述公共资源的实验室与田野实验，并讨论沟通、惩罚和自设规则。",
+        "limits": "本课水域、再生曲线和监测成本独立建模，未取得所综述研究的原始数据。"
+      }
+    ],
+    "modelAssumptions": [
+      "每期依次申请、分配、取用与自然再生。"
+    ],
+    "syntheticPopulation": {
+      "description": "水域及使用者是教学设定。",
+      "count": null,
+      "kind": "synthetic"
+    },
+    "dataProvenance": {
+      "resultKind": "teaching_simulation",
+      "originalSourceData": [
+        {
+          "sourceId": "S06",
+          "acquisition": "not_acquired",
+          "version": null,
+          "license_status": "unconfirmed",
+          "distribution": "not_included"
+        }
+      ]
+    },
+    "rights": [
+      {
+        "sourceId": "S06",
+        "status": "stated_terms",
+        "detail": "AEA 权利政策规定有条件的署名课堂或个人使用，开放全文再分发许可未获确认。",
+        "evidenceUrl": "https://www.aeaweb.org/journals/copyright",
+        "distribution": "link_and_paraphrase"
+      }
+    ],
+    "learningOutcomes": [
+      {
+        "id": "commons_governance.1",
+        "version": 1,
+        "concept_ids": [
+          "C10"
+        ],
+        "performance": "按取用后存量计算再生和期末资源",
+        "evidence_requirement": "首次无该题提示且达到该任务的规则判据",
+        "phase": "explain",
+        "task": "从 S100、H20 和指定再生函数求 S′",
+        "transfer": "辨认地下水模型的季节条件"
+      },
+      {
+        "id": "commons_governance.2",
+        "version": 1,
+        "concept_ids": [
+          "C03"
+        ],
+        "performance": "核对罚款、检查费用与管护预算",
+        "evidence_requirement": "首次无该题提示且达到该任务的规则判据",
+        "phase": "observe",
+        "task": "计算管护账户和净资源损耗",
+        "transfer": "水渠检查支出与缴费转移"
+      },
+      {
+        "id": "commons_governance.3",
+        "version": 1,
+        "concept_ids": [
+          "C16"
+        ],
+        "performance": "比较配额和监督对取用与资源再生的作用",
+        "evidence_requirement": "首次无该题提示且达到该任务的规则判据",
+        "phase": "compare",
+        "task": "识别共同初态与具体处理",
+        "transfer": "考虑降雨与取用权共同变化"
+      }
+    ],
+    "metrics": [
+      {
+        "id": "stock",
+        "label": "资源存量",
+        "unit": "单位",
+        "definition": "该阶段水域实际记录的存量，期末值取最后一次再生后的记录。",
+        "undefinedReason": "该时点缺少存量记录。"
+      },
+      {
+        "id": "harvest",
+        "label": "本期取用",
+        "unit": "单位",
+        "definition": "该观察时点模型记录的本期取用。",
+        "undefinedReason": "该时点无适用观测值。"
+      },
+      {
+        "id": "growth",
+        "label": "本期再生",
+        "unit": "单位",
+        "definition": "该观察时点模型记录的本期再生。",
+        "undefinedReason": "该时点无适用观测值。"
+      },
+      {
+        "id": "income",
+        "label": "累计群体净收益",
+        "unit": "代币",
+        "definition": "该观察时点模型记录的累计群体净收益。",
+        "undefinedReason": "该时点无适用观测值。"
+      },
+      {
+        "id": "monitoring_cost",
+        "label": "累计监测成本",
+        "unit": "代币",
+        "definition": "该观察时点模型记录的累计监测成本。",
+        "undefinedReason": "该时点无适用观测值。"
+      }
+    ],
+    "browserMetricRoles": {
+      "observation": "stock",
+      "comparison": "stock",
+      "statistic": "final"
+    },
+    "archivedMetricRoles": {
+      "observation": "stock",
+      "comparison": "stock",
+      "statistic": "final"
+    },
+    "clock": {
+      "id": "period",
+      "label": "再生期"
+    }
+  },
+  {
+    "schemaVersion": 1,
+    "caseId": "lemons_market",
+    "caseVersion": "1.0.0",
+    "browserContentVersion": "browser-classroom/1",
+    "learningContentVersion": "1.0.0",
+    "title": "柠檬市场",
+    "identity": "theoretical_model",
+    "identityLabel": "经典理论模型",
+    "background": "Akerlof 在 1970 年用二手车说明，买卖双方掌握不同信息时，买方按平均质量出价，可能让好商品逐步退出。本课使用合成商品，逐轮展示退出如何改变下一次报价。",
+    "historicalFacts": [],
+    "sourceReferences": [
+      {
+        "id": "S08",
+        "title": "The Market for “Lemons”: Quality Uncertainty and the Market Mechanism",
+        "url": "https://doi.org/10.2307/1879431",
+        "locator": "期刊印刷第 489–491 页 §II.A–B；第 499–500 页 §IV",
+        "support": "以二手车解释买家按混合质量报价、优质商品退出与市场缩小；另讨论应对制度。",
+        "limits": "课堂卖家质量抽样、退出数量和认证费为教学设定。"
+      }
+    ],
+    "modelAssumptions": [
+      "混合池报价读取愿售集合，核验可形成独立报价。"
+    ],
+    "syntheticPopulation": {
+      "description": "货品、质量和保留价由教学模型生成。",
+      "count": null,
+      "kind": "synthetic"
+    },
+    "dataProvenance": {
+      "resultKind": "teaching_simulation",
+      "originalSourceData": [
+        {
+          "sourceId": "S08",
+          "acquisition": "not_applicable",
+          "version": null,
+          "license_status": "not_applicable",
+          "distribution": "not_included"
+        }
+      ]
+    },
+    "rights": [
+      {
+        "sourceId": "S08",
+        "status": "stated_terms",
+        "detail": "扫描件扉页注明 JSTOR 使用条件，进一步使用需联络出版方。未获开放再分发授权。",
+        "evidenceUrl": "https://about.jstor.org/terms/",
+        "distribution": "link_and_paraphrase"
+      }
+    ],
+    "learningOutcomes": [
+      {
+        "id": "lemons_market.1",
+        "version": 1,
+        "concept_ids": [
+          "C11"
+        ],
+        "performance": "由出价推导愿售池构成与下一轮出价",
+        "evidence_requirement": "首次无该题提示且达到该任务的规则判据",
+        "phase": "explain",
+        "task": "沿质量 1 至 5 的愿售池递推",
+        "transfer": "评估二手设备认证可信度"
+      },
+      {
+        "id": "lemons_market.2",
+        "version": 1,
+        "concept_ids": [
+          "C17"
+        ],
+        "performance": "区分愿售、退出与签约证据",
+        "evidence_requirement": "首次无该题提示且达到该任务的规则判据",
+        "phase": "observe",
+        "task": "逐事件确认成交数量",
+        "transfer": "区分挂牌和最终成交"
+      },
+      {
+        "id": "lemons_market.3",
+        "version": 1,
+        "concept_ids": [
+          "C03"
+        ],
+        "performance": "将认证资源成本计入交易净收益",
+        "evidence_requirement": "首次无该题提示且达到该任务的规则判据",
+        "phase": "compare",
+        "task": "计算低质和高质成交的净收益",
+        "transfer": "比较保修成本与质量披露"
+      }
+    ],
+    "metrics": [
+      {
+        "id": "quoted_pool_price",
+        "label": "混合池暂定报价",
+        "unit": "代币",
+        "definition": "当前候选混合池质量均值乘本课报价系数。",
+        "undefinedReason": "混合报价池为空。"
+      },
+      {
+        "id": "willing_quality",
+        "label": "愿售平均质量",
+        "unit": "质量级",
+        "definition": "该观察时点模型记录的愿售平均质量。",
+        "undefinedReason": "该时点无适用观测值。"
+      },
+      {
+        "id": "willing_supply",
+        "label": "愿售商品",
+        "unit": "件",
+        "definition": "该观察时点模型记录的愿售商品。",
+        "undefinedReason": "该时点无适用观测值。"
+      },
+      {
+        "id": "traded",
+        "label": "已交割商品",
+        "unit": "件",
+        "definition": "实际交割的商品总件数，暂定报价不计成交。",
+        "undefinedReason": "该时点缺少市场记录。"
+      },
+      {
+        "id": "certification_cost",
+        "label": "认证成本",
+        "unit": "代币",
+        "definition": "该观察时点模型记录的认证成本。",
+        "undefinedReason": "该时点无适用观测值。"
+      },
+      {
+        "id": "net_surplus",
+        "label": "成交净剩余",
+        "unit": "代币",
+        "definition": "该观察时点模型记录的成交净剩余。",
+        "undefinedReason": "该时点无适用观测值。"
+      }
+    ],
+    "browserMetricRoles": {
+      "observation": "quoted_pool_price",
+      "comparison": "traded",
+      "statistic": "final"
+    },
+    "archivedMetricRoles": {
+      "observation": "quoted_pool_price",
+      "comparison": "traded",
+      "statistic": "final"
+    },
+    "clock": {
+      "id": "iteration",
+      "label": "报价轮次"
+    }
+  },
+  {
+    "schemaVersion": 1,
+    "caseId": "school_matching",
+    "caseVersion": "1.0.0",
+    "browserContentVersion": "browser-classroom/1",
+    "learningContentVersion": "1.0.0",
+    "title": "学校匹配",
+    "identity": "institutional_case",
+    "identityLabel": "制度案例",
+    "background": "2005 年 7 月，波士顿学校委员会决定以延迟接受替换旧的公校匹配机制。本课使用合成学生、优先序和席位，在同一组数据上观察两种机制怎样处理满额学校。",
+    "historicalFacts": [
+      {
+        "text": "2005 年波士顿学校委员会决定更换公校匹配机制。",
+        "sourceIds": [
+          "S09"
+        ]
+      }
+    ],
+    "sourceReferences": [
+      {
+        "id": "S09",
+        "title": "Changing the Boston School Choice Mechanism",
+        "url": "https://www.nber.org/papers/w11965",
+        "locator": "工作论文印刷第 1–2 页 §1、第 3 页起 §2、第 8 页 §3、第 10–11 页 §4.1、第 23–25 页 §7.1–7.2",
+        "support": "2005 年波士顿改革、原机制、学生提出的延迟接受及透明度和公平考虑；§4 说明研究的学区数据。",
+        "limits": "作者获取的学生申请和分配微观数据未取得；教学偏好、优先序和名额由本地创建。"
+      },
+      {
+        "id": "GS62",
+        "title": "College Admissions and the Stability of Marriage",
+        "url": "https://doi.org/10.1080/00029890.1962.11989827",
+        "locator": "期刊印刷第 10–11 页 §2，第 13–14 页 §4，第 14 页 §5",
+        "support": "定义不稳定性；在固定名额和排序下解释暂留、拒绝、终止和申请方最优的稳定分配。",
+        "limits": "论文的偏好和优先级假设用于说明机制；课内演示没有引用真实学生数据。"
+      }
+    ],
+    "modelAssumptions": [
+      "学校按优先序处理申请，制度不同会改变是否允许替换暂留席位。"
+    ],
+    "syntheticPopulation": {
+      "description": "学生、偏好、优先序和席位均为合成。",
+      "count": null,
+      "kind": "synthetic"
+    },
+    "dataProvenance": {
+      "resultKind": "teaching_simulation",
+      "originalSourceData": [
+        {
+          "sourceId": "S09",
+          "acquisition": "not_acquired",
+          "version": null,
+          "license_status": "unconfirmed",
+          "distribution": "not_included"
+        },
+        {
+          "sourceId": "GS62",
+          "acquisition": "not_applicable",
+          "version": null,
+          "license_status": "not_applicable",
+          "distribution": "not_included"
+        }
+      ]
+    },
+    "rights": [
+      {
+        "sourceId": "S09",
+        "status": "stated_terms",
+        "detail": "原件封面注明 © 2006 作者、保留所有权利；符合完整归属和版权声明时可简短摘引。全文与学区微观数据的再分发未获授权。",
+        "evidenceUrl": "https://www.nber.org/system/files/working_papers/w11965/w11965.pdf",
+        "distribution": "link_and_paraphrase"
+      },
+      {
+        "sourceId": "GS62",
+        "status": "stated_terms",
+        "detail": "出版扫描含 JSTOR 使用说明；未核到开放再分发授权。",
+        "evidenceUrl": "https://about.jstor.org/terms/",
+        "distribution": "link_and_paraphrase"
+      }
+    ],
+    "learningOutcomes": [
+      {
+        "id": "school_matching.1",
+        "version": 1,
+        "concept_ids": [
+          "C12"
+        ],
+        "performance": "给定优先序和容量手推暂留与拒绝",
+        "evidence_requirement": "首次无该题提示且达到该任务的规则判据",
+        "phase": "explain",
+        "task": "计算小市场两轮 DA",
+        "transfer": "扩展到实习岗位"
+      },
+      {
+        "id": "school_matching.2",
+        "version": 1,
+        "concept_ids": [
+          "C17"
+        ],
+        "performance": "构造一组相对真偏好的阻挡对",
+        "evidence_requirement": "首次无该题提示且达到该任务的规则判据",
+        "phase": "observe",
+        "task": "检查接受意愿和替代当前席位的资格",
+        "transfer": "说明稳定与首选入学的区别"
+      },
+      {
+        "id": "school_matching.3",
+        "version": 1,
+        "concept_ids": [
+          "C16"
+        ],
+        "performance": "区分增加名额和改变分配机制的比较",
+        "evidence_requirement": "首次无该题提示且达到该任务的规则判据",
+        "phase": "compare",
+        "task": "分别列出初始和政策处理",
+        "transfer": "辨认夫妻联报的额外约束"
+      }
+    ],
+    "metrics": [
+      {
+        "id": "applications",
+        "label": "累计申请",
+        "unit": "份",
+        "definition": "该观察时点模型记录的累计申请。",
+        "undefinedReason": "该时点无适用观测值。"
+      },
+      {
+        "id": "rejections",
+        "label": "累计拒绝",
+        "unit": "份",
+        "definition": "截至该轮所有学校累计发出的拒绝份数。",
+        "undefinedReason": "该时点缺少申请批次。"
+      },
+      {
+        "id": "first_true_choice",
+        "label": "获真实第一志愿",
+        "unit": "人",
+        "definition": "最终分到真实第一志愿的学生数。",
+        "undefinedReason": "最终分配尚未结算。"
+      },
+      {
+        "id": "student_true_rank",
+        "label": "S01 获得的真实志愿位次",
+        "unit": "位",
+        "definition": "该观察时点模型记录的S01 获得的真实志愿位次。",
+        "undefinedReason": "该时点无适用观测值。"
+      },
+      {
+        "id": "submitted_blocking_pairs",
+        "label": "按提交志愿的阻挡对",
+        "unit": "对",
+        "definition": "该观察时点模型记录的按提交志愿的阻挡对。",
+        "undefinedReason": "该时点无适用观测值。"
+      },
+      {
+        "id": "true_blocking_pairs",
+        "label": "按真实偏好的阻挡对",
+        "unit": "对",
+        "definition": "该观察时点模型记录的按真实偏好的阻挡对。",
+        "undefinedReason": "该时点无适用观测值。"
+      }
+    ],
+    "browserMetricRoles": {
+      "observation": "rejections",
+      "comparison": "first_true_choice",
+      "statistic": "final"
+    },
+    "archivedMetricRoles": {
+      "observation": "rejections",
+      "comparison": "first_true_choice",
+      "statistic": "final"
+    },
+    "clock": {
+      "id": "round",
+      "label": "申请轮次"
+    }
+  },
+  {
+    "schemaVersion": 1,
+    "caseId": "beer_game",
+    "caseVersion": "1.0.0",
+    "browserContentVersion": "browser-classroom/1",
+    "learningContentVersion": "1.0.0",
+    "title": "啤酒游戏",
+    "identity": "laboratory_experiment",
+    "identityLabel": "实验研究",
+    "background": "Sterman 用库存分销实验研究多环节反馈、延迟与订货波动。本课使用同一条四环节结构和一组教学参数。",
+    "historicalFacts": [],
+    "sourceReferences": [
+      {
+        "id": "S12",
+        "title": "Modeling Managerial Behavior: Misperceptions of Feedback in a Dynamic Decision Making Experiment",
+        "url": "https://pubsonline.informs.org/doi/10.1287/mnsc.35.3.321",
+        "locator": "期刊印刷第 326–328 页 §3（图 2 在第 327 页）；第 328–331 页 §4（表 3 第 329 页，图 4 第 330 页）",
+        "support": "生产分销游戏的四环节和延迟，以及实验中的订货波动、放大与相位滞后。",
+        "limits": "没有取得参与者决策原始序列。原研究结果章节注明保留的 11 场来自 48 场；课程库存和订单按独立规则生成。"
+      },
+      {
+        "id": "S13",
+        "title": "The Beer Distribution Game",
+        "url": "https://web.mit.edu/jsterman/www/SDG/beergame.html",
+        "locator": "Playing the Game、Typical Results: Boom and Bust",
+        "support": "角色、订货、配送和学习用途的作者说明。",
+        "limits": "使用自编本地模拟和叙述，未直接使用 MIT 教材或附图。"
+      }
+    ],
+    "modelAssumptions": [
+      "库存随到货与实际发货变动，订单具备信息与运输时滞。"
+    ],
+    "syntheticPopulation": {
+      "description": "四个合成供应链环节由局部信息下单。",
+      "count": 4,
+      "kind": "synthetic"
+    },
+    "dataProvenance": {
+      "resultKind": "teaching_simulation",
+      "originalSourceData": [
+        {
+          "sourceId": "S12",
+          "acquisition": "not_acquired",
+          "version": null,
+          "license_status": "unconfirmed",
+          "distribution": "not_included"
+        },
+        {
+          "sourceId": "S13",
+          "acquisition": "not_applicable",
+          "version": null,
+          "license_status": "not_applicable",
+          "distribution": "not_included"
+        }
+      ]
+    },
+    "rights": [
+      {
+        "sourceId": "S12",
+        "status": "copyright_notice",
+        "detail": "出版记录注明 © 1989 INFORMS；出版方有权限申请流程，未核到开放再分发条款。",
+        "evidenceUrl": "https://pubsonline.informs.org/authorportal/rights-permissions",
+        "distribution": "link_and_paraphrase"
+      },
+      {
+        "sourceId": "S13",
+        "status": "unconfirmed",
+        "detail": "原页未核到资产级开放许可；MIT 域名与公开访问状态不能确定复用权限。",
+        "evidenceUrl": "https://web.mit.edu/jsterman/www/SDG/beergame.html",
+        "distribution": "link_and_paraphrase"
+      }
+    ],
+    "learningOutcomes": [
+      {
+        "id": "beer_game.1",
+        "version": 1,
+        "concept_ids": [
+          "C04"
+        ],
+        "performance": "区分订单、实物在途、到货与积压",
+        "evidence_requirement": "首次无该题提示且达到该任务的规则判据",
+        "phase": "observe",
+        "task": "分解已订未到和实物在途",
+        "transfer": "零售到货与付款时差"
+      },
+      {
+        "id": "beer_game.2",
+        "version": 1,
+        "concept_ids": [
+          "C13"
+        ],
+        "performance": "由在库、已订未到和积压计算库存位置",
+        "evidence_requirement": "首次无该题提示且达到该任务的规则判据",
+        "phase": "explain",
+        "task": "计算 7＋11−4 并解释补单口径",
+        "transfer": "辨认未发货对补货的影响"
+      },
+      {
+        "id": "beer_game.3",
+        "version": 1,
+        "concept_ids": [
+          "C16"
+        ],
+        "performance": "在同一需求轨迹下辨认延迟或共享信息处理",
+        "evidence_requirement": "首次无该题提示且达到该任务的规则判据",
+        "phase": "compare",
+        "task": "说明方差分母为零的结果",
+        "transfer": "区分需求和产能冲击"
+      }
+    ],
+    "metrics": [
+      {
+        "id": "retail_stock",
+        "label": "零售期末库存",
+        "unit": "件",
+        "definition": "该观察时点模型记录的零售期末库存。",
+        "undefinedReason": "该时点无适用观测值。"
+      },
+      {
+        "id": "retail_backlog",
+        "label": "零售期末积压",
+        "unit": "件",
+        "definition": "该观察时点模型记录的零售期末积压。",
+        "undefinedReason": "该时点无适用观测值。"
+      },
+      {
+        "id": "factory_order",
+        "label": "工厂本周实际投产",
+        "unit": "件/周",
+        "definition": "工厂在该周发出的订货量。",
+        "undefinedReason": "该时点无工厂周订单。"
+      },
+      {
+        "id": "in_transit",
+        "label": "期末实物在途",
+        "unit": "件",
+        "definition": "该观察时点模型记录的期末实物在途。",
+        "undefinedReason": "该时点无适用观测值。"
+      },
+      {
+        "id": "total_cost",
+        "label": "全链累计成本",
+        "unit": "代币",
+        "definition": "该观察时点模型记录的全链累计成本。",
+        "undefinedReason": "该时点无适用观测值。"
+      },
+      {
+        "id": "factory_variance_ratio",
+        "label": "工厂投产与终端需求方差比",
+        "unit": "倍",
+        "definition": "工厂订单方差与终端需求方差之比。",
+        "undefinedReason": "终端需求方差为零或该时点尚无可比较方差。"
+      }
+    ],
+    "browserMetricRoles": {
+      "observation": "factory_order",
+      "comparison": "factory_variance_ratio",
+      "statistic": "final"
+    },
+    "archivedMetricRoles": {
+      "observation": "factory_order",
+      "comparison": "factory_variance_ratio",
+      "statistic": "final"
+    },
+    "clock": {
+      "id": "week",
+      "label": "周"
+    }
+  },
+  {
+    "schemaVersion": 1,
+    "caseId": "carbon_market",
+    "caseVersion": "1.0.0",
+    "browserContentVersion": "browser-classroom/1",
+    "learningContentVersion": "1.0.0",
+    "title": "碳配额市场",
+    "identity": "institutional_case",
+    "identityLabel": "制度案例",
+    "background": "欧盟碳排放交易体系于 2005 年启动，受管控单位须按核定排放量缴回配额。本课抽取总量、交易和缴回机制，企业、成本、价格和配额均由教学模型生成。",
+    "historicalFacts": [
+      {
+        "text": "欧盟碳排放交易体系于 2005 年启动。",
+        "sourceIds": [
+          "S14"
+        ]
+      }
+    ],
+    "sourceReferences": [
+      {
+        "id": "S14",
+        "title": "About the EU ETS",
+        "url": "https://climate.ec.europa.eu/areas-action/carbon-markets/about-eu-ets_en",
+        "locator": "What is the EU ETS?、How does the EU ETS work?",
+        "support": "核对 2005 年启动、总量、每份配额对应一吨二氧化碳当量、配额交易与年度缴回。",
+        "limits": "课件是单期小模型，未引入 EU ETS 企业配额数据、价格数据或排放数据。"
+      },
+      {
+        "id": "S14-CN",
+        "title": "生态环境部有关负责人就 2021、2022 年度全国碳市场发电行业配额方案答记者问",
+        "url": "https://www.mee.gov.cn/ywdt/zbft/202303/t20230316_1019719.shtml",
+        "locator": "答问第一问第一点；官方方案 PDF 印刷第 3 页 §三、第 4 页 §四",
+        "support": "该履约期以强度基准和实际供电、供热量分配；实际活动量进入配额核算。",
+        "limits": "其适用范围为指定年度及行业。课件固定总量模拟不复刻该方案。"
+      }
+    ],
+    "modelAssumptions": [
+      "履约需按实际排放缴回配额，交易规则影响其持有者。"
+    ],
+    "syntheticPopulation": {
+      "description": "企业、减排成本与配额来自教学模型。",
+      "count": null,
+      "kind": "synthetic"
+    },
+    "dataProvenance": {
+      "resultKind": "teaching_simulation",
+      "originalSourceData": [
+        {
+          "sourceId": "S14",
+          "acquisition": "not_acquired",
+          "version": null,
+          "license_status": "unconfirmed",
+          "distribution": "not_included"
+        },
+        {
+          "sourceId": "S14-CN",
+          "acquisition": "not_acquired",
+          "version": null,
+          "license_status": "unconfirmed",
+          "distribution": "not_included"
+        }
+      ]
+    },
+    "rights": [
+      {
+        "sourceId": "S14",
+        "status": "stated_terms",
+        "detail": "欧委会 Legal notice 的 Copyright notice 默认为欧委会所有内容适用 CC BY 4.0（另有标注、第三方、标志等例外），要求署名及说明改动。",
+        "evidenceUrl": "https://commission.europa.eu/legal-notice_en#copyright-notice",
+        "distribution": "link_and_paraphrase"
+      },
+      {
+        "sourceId": "S14-CN",
+        "status": "stated_terms",
+        "detail": "部网站声明禁止商业性原版原式转载及歪曲。未核到该页或其配额数据的开放授权。",
+        "evidenceUrl": "https://www.mee.gov.cn/home/wzsm/",
+        "distribution": "link_and_paraphrase"
+      }
+    ],
+    "learningOutcomes": [
+      {
+        "id": "carbon_market.1",
+        "version": 1,
+        "concept_ids": [
+          "C15"
+        ],
+        "performance": "按递增边际成本分配固定减排量",
+        "evidence_requirement": "首次无该题提示且达到该任务的规则判据",
+        "phase": "explain",
+        "task": "比较两厂前三吨减排的边际成本",
+        "transfer": "比较固定总量与强度分配"
+      },
+      {
+        "id": "carbon_market.2",
+        "version": 1,
+        "concept_ids": [
+          "C04"
+        ],
+        "performance": "对账配额发行、交易和缴回",
+        "evidence_requirement": "首次无该题提示且达到该任务的规则判据",
+        "phase": "observe",
+        "task": "沿配额账本追踪一吨许可证",
+        "transfer": "辨认库存配额和当年发放"
+      },
+      {
+        "id": "carbon_market.3",
+        "version": 1,
+        "concept_ids": [
+          "C03"
+        ],
+        "performance": "区分减排资源成本与配额净支付",
+        "evidence_requirement": "首次无该题提示且达到该任务的规则判据",
+        "phase": "compare",
+        "task": "给固定总量修改免费分配",
+        "transfer": "比较资源投入与拍卖收入"
+      }
+    ],
+    "metrics": [
+      {
+        "id": "cap",
+        "label": "已发行配额",
+        "unit": "张",
+        "definition": "该观察时点模型记录的已发行配额。",
+        "undefinedReason": "该时点无适用观测值。"
+      },
+      {
+        "id": "planned_emissions",
+        "label": "计划排放",
+        "unit": "吨 CO₂e",
+        "definition": "各企业按当期减排方案报出的计划排放总量。",
+        "undefinedReason": "减排方案尚无合计。"
+      },
+      {
+        "id": "abatement_cost",
+        "label": "方案减排总成本",
+        "unit": "代币",
+        "definition": "各企业减排资源成本的合计，配额支付另有记录。",
+        "undefinedReason": "该时点尚无成本合计。"
+      },
+      {
+        "id": "price",
+        "label": "清算价格",
+        "unit": "代币/张",
+        "definition": "该观察时点模型记录的清算价格。",
+        "undefinedReason": "该时点无适用观测值。"
+      },
+      {
+        "id": "permits_moved",
+        "label": "转移配额",
+        "unit": "张",
+        "definition": "该观察时点模型记录的转移配额。",
+        "undefinedReason": "该时点无适用观测值。"
+      },
+      {
+        "id": "surrendered",
+        "label": "已缴回配额",
+        "unit": "张",
+        "definition": "该观察时点模型记录的已缴回配额。",
+        "undefinedReason": "该时点无适用观测值。"
+      }
+    ],
+    "browserMetricRoles": {
+      "observation": "planned_emissions",
+      "comparison": "abatement_cost",
+      "statistic": "final"
+    },
+    "archivedMetricRoles": {
+      "observation": "planned_emissions",
+      "comparison": "abatement_cost",
+      "statistic": "final"
+    },
+    "clock": {
+      "id": "phase",
+      "label": "阶段"
+    }
+  },
+  {
+    "schemaVersion": 1,
+    "caseId": "flash_crash",
+    "caseVersion": "1.0.0",
+    "browserContentVersion": "browser-classroom/1",
+    "learningContentVersion": "1.0.0",
+    "title": "闪电崩盘",
+    "identity": "historical_event",
+    "identityLabel": "历史事件",
+    "background": "2010 年 5 月 6 日，美国期货与证券市场出现快速下跌和回升。CFTC 与 SEC 联合报告分析了大额期货卖出、参与者库存和流动性的相互作用。课内使用单资产、40 个合成账户和 200 个模型步，逐笔记录来自教学撮合。",
+    "historicalFacts": [
+      {
+        "text": "2010 年 5 月 6 日，美国期货及证券市场出现急跌和回升。",
+        "sourceIds": [
+          "S10"
+        ]
+      }
+    ],
+    "sourceReferences": [
+      {
+        "id": "S10",
+        "title": "Findings Regarding the Market Events of May 6, 2010",
+        "url": "https://www.sec.gov/about/reports-publications/newsstudies2010marketevents-reportpdf",
+        "locator": "报告印刷第 1–3 页 Executive Summary / What Happened?；第 11–17 页 §I.3–I.5；第 11 页注 15 及第 80 页 §IV 提供市场数据来源",
+        "support": "复盘 E-mini 卖出程序、变薄的市场深度、自动化交易与跨市场传播。",
+        "limits": "模拟中的单一资产、订单流、股数、价格和时点为独立设定，未取得官方报告底层市场数据。"
+      }
+    ],
+    "modelAssumptions": [
+      "库存约束可触发撤单，只有真实模型撮合更新成交价。"
+    ],
+    "syntheticPopulation": {
+      "description": "40 个合成账户与单一教学资产。",
+      "count": 40,
+      "kind": "synthetic"
+    },
+    "dataProvenance": {
+      "resultKind": "teaching_simulation",
+      "originalSourceData": [
+        {
+          "sourceId": "S10",
+          "acquisition": "not_acquired",
+          "version": null,
+          "license_status": "unconfirmed",
+          "distribution": "not_included"
+        }
+      ]
+    },
+    "rights": [
+      {
+        "sourceId": "S10",
+        "status": "stated_terms",
+        "detail": "美国联邦工作人员创作的报告正文按美国法 17 USC §§101、105 记录；图中交易所数据及第三方素材权利另计。",
+        "evidenceUrl": "https://www.govinfo.gov/content/pkg/USCODE-2024-title17/html/USCODE-2024-title17-chap1-sec105.htm",
+        "distribution": "link_and_paraphrase"
+      }
+    ],
+    "learningOutcomes": [
+      {
+        "id": "flash_crash.1",
+        "version": 1,
+        "concept_ids": [
+          "C14"
+        ],
+        "performance": "按成交、撤单和新增挂单核对深度",
+        "evidence_requirement": "首次无该题提示且达到该任务的规则判据",
+        "phase": "explain",
+        "task": "从深度 20 扣 3 成交及 5 撤单",
+        "transfer": "区分跨市场成交时钟"
+      },
+      {
+        "id": "flash_crash.2",
+        "version": 1,
+        "concept_ids": [
+          "C17"
+        ],
+        "performance": "用成交和撤单的独立事件解释价差变化",
+        "evidence_requirement": "首次无该题提示且达到该任务的规则判据",
+        "phase": "observe",
+        "task": "检查最后价格的成交出处",
+        "transfer": "用真实路由核对外部交易"
+      },
+      {
+        "id": "flash_crash.3",
+        "version": 1,
+        "concept_ids": [
+          "C16"
+        ],
+        "performance": "在相同卖出计划下对齐深度与暂停规则",
+        "evidence_requirement": "首次无该题提示且达到该任务的规则判据",
+        "phase": "compare",
+        "task": "指出暂停之后仍有未执行计划",
+        "transfer": "辨认跨场所反事实条件"
+      }
+    ],
+    "metrics": [
+      {
+        "id": "last_price",
+        "label": "最近成交价",
+        "unit": "美元/股",
+        "definition": "该观察时点模型记录的最近成交价。",
+        "undefinedReason": "该时点无适用观测值。"
+      },
+      {
+        "id": "low_price",
+        "label": "最低成交价",
+        "unit": "美元/股",
+        "definition": "该观察时点模型记录的最低成交价。",
+        "undefinedReason": "该时点无适用观测值。"
+      },
+      {
+        "id": "high_price",
+        "label": "最高成交价",
+        "unit": "美元/股",
+        "definition": "该观察时点模型记录的最高成交价。",
+        "undefinedReason": "该时点无适用观测值。"
+      },
+      {
+        "id": "volume",
+        "label": "累计成交",
+        "unit": "股",
+        "definition": "该观察时点模型记录的累计成交。",
+        "undefinedReason": "该时点无适用观测值。"
+      },
+      {
+        "id": "bid_depth",
+        "label": "买方挂单深度",
+        "unit": "股",
+        "definition": "模型时点仍在订单簿上的买方股数。",
+        "undefinedReason": "该时点缺少买盘快照。"
+      },
+      {
+        "id": "ask_depth",
+        "label": "卖方挂单深度",
+        "unit": "股",
+        "definition": "该观察时点模型记录的卖方挂单深度。",
+        "undefinedReason": "该时点无适用观测值。"
+      },
+      {
+        "id": "spread",
+        "label": "买卖价差",
+        "unit": "美元/股",
+        "definition": "该观察时点模型记录的买卖价差。",
+        "undefinedReason": "该时点无适用观测值。"
+      },
+      {
+        "id": "program_filled",
+        "label": "计划累计成交",
+        "unit": "股",
+        "definition": "累计实际执行的程序性卖出股数。",
+        "undefinedReason": "该时点缺少程序订单执行记录。"
+      },
+      {
+        "id": "program_queued",
+        "label": "等待执行计划",
+        "unit": "股",
+        "definition": "该观察时点模型记录的等待执行计划。",
+        "undefinedReason": "该时点无适用观测值。"
+      }
+    ],
+    "browserMetricRoles": {
+      "observation": "bid_depth",
+      "comparison": "program_filled",
+      "statistic": "final"
+    },
+    "archivedMetricRoles": {
+      "observation": "bid_depth",
+      "comparison": "program_filled",
+      "statistic": "final"
+    },
+    "clock": {
+      "id": "time",
+      "label": "模型步"
+    }
+  },
+  {
+    "schemaVersion": 1,
+    "caseId": "gamestop",
+    "caseVersion": "1.0.0",
+    "browserContentVersion": "browser-classroom/1",
+    "learningContentVersion": "1.0.0",
+    "title": "GameStop 交易热潮",
+    "identity": "historical_event",
+    "identityLabel": "历史事件",
+    "background": "SEC 工作人员报告记录了 2021 年 1 月 GameStop 的交易热潮。特定时段的空头回补可能助推急涨，整体买量中回补仅占一部分。课内使用 20 个合成账户和 10 轮教学撮合。",
+    "historicalFacts": [
+      {
+        "text": "SEC 工作人员报告记录了 2021 年 1 月的 GameStop 交易热潮。",
+        "sourceIds": [
+          "S11"
+        ]
+      }
+    ],
+    "sourceReferences": [
+      {
+        "id": "S11",
+        "title": "Staff Report on Equity and Options Market Structure Conditions in Early 2021",
+        "url": "https://www.sec.gov/files/staff-report-equity-options-market-struction-conditions-early-2021.pdf",
+        "locator": "报告印刷第 17–22 页 §3.2；第 24–26 页 §3.4；图 6 及注 78 在第 28 页",
+        "support": "报告区分阶段性回补和更长时期的买量，回补量占比有限；普通买入者的动机无法从该报告确认。",
+        "limits": "相关图表使用 NYSE TAQ、Compustat、CRSP 和 CAT。未取得这些底层数据或再分发权，课件的空头账户和交易均由模型生成。"
+      }
+    ],
+    "modelAssumptions": [
+      "消息、账本约束与借券义务影响订单，价格由实际教学成交更新。"
+    ],
+    "syntheticPopulation": {
+      "description": "20 个合成账户与单一教学资产。",
+      "count": 20,
+      "kind": "synthetic"
+    },
+    "dataProvenance": {
+      "resultKind": "teaching_simulation",
+      "originalSourceData": [
+        {
+          "sourceId": "S11",
+          "acquisition": "not_acquired",
+          "version": null,
+          "license_status": "unconfirmed",
+          "distribution": "not_included"
+        }
+      ]
+    },
+    "rights": [
+      {
+        "sourceId": "S11",
+        "status": "stated_terms",
+        "detail": "美国联邦工作人员创作的报告正文按美国法 17 USC §§101、105 记录；底层交易和持仓数据另有权利。",
+        "evidenceUrl": "https://www.govinfo.gov/content/pkg/USCODE-2024-title17/html/USCODE-2024-title17-chap1-sec105.htm",
+        "distribution": "link_and_paraphrase"
+      }
+    ],
+    "learningOutcomes": [
+      {
+        "id": "gamestop.1",
+        "version": 1,
+        "concept_ids": [
+          "C08"
+        ],
+        "performance": "区分话题触达、买入意愿和公开成交",
+        "evidence_requirement": "首次无该题提示且达到该任务的规则判据",
+        "phase": "observe",
+        "task": "按消息与订单身份核对时序",
+        "transfer": "辨认消费转化与曝光"
+      },
+      {
+        "id": "gamestop.2",
+        "version": 1,
+        "concept_ids": [
+          "C04"
+        ],
+        "performance": "沿借入、回补成交和归还计算欠券",
+        "evidence_requirement": "首次无该题提示且达到该任务的规则判据",
+        "phase": "explain",
+        "task": "从借 10、买 4、还 3 核对余额",
+        "transfer": "区分购入和交付"
+      },
+      {
+        "id": "gamestop.3",
+        "version": 1,
+        "concept_ids": [
+          "C16"
+        ],
+        "performance": "在共同公开消息下区分借券和深度处理",
+        "evidence_requirement": "首次无该题提示且达到该任务的规则判据",
+        "phase": "compare",
+        "task": "核对借券供给与卖方深度改变",
+        "transfer": "说明股价证据与交易动机的边界"
+      }
+    ],
+    "metrics": [
+      {
+        "id": "last_price",
+        "label": "最近成交价",
+        "unit": "美元/股",
+        "definition": "截至该时点最近一次模型成交的每股价格。",
+        "undefinedReason": "该时点尚无模型成交价。"
+      },
+      {
+        "id": "low_price",
+        "label": "最低成交价",
+        "unit": "美元/股",
+        "definition": "该观察时点模型记录的最低成交价。",
+        "undefinedReason": "该时点无适用观测值。"
+      },
+      {
+        "id": "high_price",
+        "label": "最高成交价",
+        "unit": "美元/股",
+        "definition": "该观察时点模型记录的最高成交价。",
+        "undefinedReason": "该时点无适用观测值。"
+      },
+      {
+        "id": "volume",
+        "label": "累计成交",
+        "unit": "股",
+        "definition": "该观察时点模型记录的累计成交。",
+        "undefinedReason": "该时点无适用观测值。"
+      },
+      {
+        "id": "bid_depth",
+        "label": "买方挂单深度",
+        "unit": "股",
+        "definition": "该观察时点模型记录的买方挂单深度。",
+        "undefinedReason": "该时点无适用观测值。"
+      },
+      {
+        "id": "ask_depth",
+        "label": "卖方挂单深度",
+        "unit": "股",
+        "definition": "该观察时点模型记录的卖方挂单深度。",
+        "undefinedReason": "该时点无适用观测值。"
+      },
+      {
+        "id": "spread",
+        "label": "买卖价差",
+        "unit": "美元/股",
+        "definition": "该观察时点模型记录的买卖价差。",
+        "undefinedReason": "该时点无适用观测值。"
+      },
+      {
+        "id": "short_interest",
+        "label": "待交还股票",
+        "unit": "股",
+        "definition": "该观察时点模型记录的待交还股票。",
+        "undefinedReason": "该时点无适用观测值。"
+      },
+      {
+        "id": "forced_cover",
+        "label": "强制回补成交",
+        "unit": "股",
+        "definition": "按回补义务实际完成的累计买入股数。",
+        "undefinedReason": "该时点缺少账户记录。"
+      },
+      {
+        "id": "discretionary_buys",
+        "label": "主动买入成交",
+        "unit": "股",
+        "definition": "该观察时点模型记录的主动买入成交。",
+        "undefinedReason": "该时点无适用观测值。"
+      },
+      {
+        "id": "social_buys",
+        "label": "关注驱动买入成交",
+        "unit": "股",
+        "definition": "该观察时点模型记录的关注驱动买入成交。",
+        "undefinedReason": "该时点无适用观测值。"
+      },
+      {
+        "id": "reach",
+        "label": "话题累计触达",
+        "unit": "人",
+        "definition": "该观察时点模型记录的话题累计触达。",
+        "undefinedReason": "该时点无适用观测值。"
+      }
+    ],
+    "browserMetricRoles": {
+      "observation": "last_price",
+      "comparison": "forced_cover",
+      "statistic": "final"
+    },
+    "archivedMetricRoles": {
+      "observation": "last_price",
+      "comparison": "forced_cover",
+      "statistic": "final"
+    },
+    "clock": {
+      "id": "time",
+      "label": "模型轮次"
+    }
+  }
+]

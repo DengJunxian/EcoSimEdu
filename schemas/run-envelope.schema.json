@@ -1,0 +1,250 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$defs": {
+    "Clock": {
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "title": "Id",
+          "type": "string"
+        },
+        "label": {
+          "title": "Label",
+          "type": "string"
+        }
+      },
+      "required": [
+        "id",
+        "label"
+      ],
+      "title": "Clock",
+      "type": "object"
+    },
+    "MetricDefinition": {
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "title": "Id",
+          "type": "string"
+        },
+        "label": {
+          "title": "Label",
+          "type": "string"
+        },
+        "unit": {
+          "title": "Unit",
+          "type": "string"
+        },
+        "definition": {
+          "title": "Definition",
+          "type": "string"
+        },
+        "undefinedReason": {
+          "title": "Undefinedreason",
+          "type": "string"
+        }
+      },
+      "required": [
+        "id",
+        "label",
+        "unit",
+        "definition",
+        "undefinedReason"
+      ],
+      "title": "MetricDefinition",
+      "type": "object"
+    },
+    "MetricRoles": {
+      "additionalProperties": false,
+      "properties": {
+        "observation": {
+          "title": "Observation",
+          "type": "string"
+        },
+        "comparison": {
+          "title": "Comparison",
+          "type": "string"
+        },
+        "statistic": {
+          "enum": [
+            "final",
+            "peak"
+          ],
+          "title": "Statistic",
+          "type": "string"
+        }
+      },
+      "required": [
+        "observation",
+        "comparison",
+        "statistic"
+      ],
+      "title": "MetricRoles",
+      "type": "object"
+    },
+    "ResultDigest": {
+      "additionalProperties": false,
+      "properties": {
+        "algorithm": {
+          "const": "sha256",
+          "default": "sha256",
+          "title": "Algorithm",
+          "type": "string"
+        },
+        "scope": {
+          "enum": [
+            "browser-evidence/v1",
+            "stored-result/v1"
+          ],
+          "title": "Scope",
+          "type": "string"
+        },
+        "value": {
+          "pattern": "^[a-f0-9]{64}$",
+          "title": "Value",
+          "type": "string"
+        }
+      },
+      "required": [
+        "scope",
+        "value"
+      ],
+      "title": "ResultDigest",
+      "type": "object"
+    },
+    "Versions": {
+      "additionalProperties": false,
+      "properties": {
+        "case": {
+          "title": "Case",
+          "type": "string"
+        },
+        "engine": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Engine"
+        },
+        "content": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Content"
+        }
+      },
+      "required": [
+        "case",
+        "engine",
+        "content"
+      ],
+      "title": "Versions",
+      "type": "object"
+    }
+  },
+  "additionalProperties": false,
+  "properties": {
+    "schemaVersion": {
+      "const": 1,
+      "default": 1,
+      "title": "Schemaversion",
+      "type": "integer"
+    },
+    "runId": {
+      "title": "Runid",
+      "type": "string"
+    },
+    "caseId": {
+      "title": "Caseid",
+      "type": "string"
+    },
+    "versions": {
+      "$ref": "#/$defs/Versions"
+    },
+    "inputs": {
+      "additionalProperties": true,
+      "title": "Inputs",
+      "type": "object"
+    },
+    "seed": {
+      "title": "Seed",
+      "type": "integer"
+    },
+    "origin": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "title": "Origin"
+    },
+    "status": {
+      "title": "Status",
+      "type": "string"
+    },
+    "resultDigest": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/ResultDigest"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "metrics": {
+      "items": {
+        "$ref": "#/$defs/MetricDefinition"
+      },
+      "title": "Metrics",
+      "type": "array"
+    },
+    "metricRoles": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/MetricRoles"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "clock": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/Clock"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    }
+  },
+  "required": [
+    "runId",
+    "caseId",
+    "versions",
+    "inputs",
+    "seed",
+    "origin",
+    "status",
+    "resultDigest",
+    "metrics",
+    "metricRoles",
+    "clock"
+  ],
+  "title": "RunEnvelope",
+  "type": "object"
+}

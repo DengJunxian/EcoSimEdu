@@ -1,5 +1,6 @@
 import course from "../../cases/svb_run/case.json" with { type: "json" };
 import opening from "./data/svb-opening.json" with { type: "json" };
+import { casePackage } from "./domain-contracts.ts";
 import type { Actor, Frame, Lesson, LessonEvent, Run } from "./lesson.ts";
 
 const { rules, player_id: playerId } = course;
@@ -164,11 +165,14 @@ export function simulateSvb({ seed, choices, policy }: Parameters<Lesson["run"]>
   return { id: `svb/browser-v1/${seed}/${choices[0]}/${policy}`, seed, frames };
 }
 
+const published = casePackage(course.case_id);
+
 export const svbLesson: Lesson = {
+  casePackage: published, metricRoles: published.browserMetricRoles,
   title: "银行有资产，工资款为什么还没到账？",
   populationTitle: "教学银行的储户",
   source: {
-    kind: "documented_case",
+    kind: published.identity,
     note: "根据硅谷银行事件设计。储户、金额和轮次来自教学模型。",
     references: course.sources.slice(0, 2),
   },
@@ -203,7 +207,7 @@ export const svbLesson: Lesson = {
     paid: { label: "已到账且无待付", color: "#78cdc2" },
   },
   policy: { label: "冲击前改持现金的证券价值", min: 0, max: buffer, step: buffer, baseline: 0,
-    unit: "资金单位", measure: "final",
+    unit: "资金单位",
     describe: `将价值 ${buffer} 的证券换成现金。两组初始资产总额和权益相同。政策组可立即动用的现金更多，承受重估的证券更少。比较第 ${rules.steps} 轮末的待付金额。` },
   seed: opening.seed,
   run: simulateSvb,

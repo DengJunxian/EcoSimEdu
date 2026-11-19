@@ -11,9 +11,10 @@ from playwright.sync_api import expect, sync_playwright
 
 BASE = (sys.argv[1] if len(sys.argv) > 1 else "http://127.0.0.1:8776/explore").rstrip("/")
 ENGINE = sys.argv[2] if len(sys.argv) > 2 else "chromium"
-OUTPUT = Path("output/playwright/progressive-continue")
-OPTIONS = dict(viewport={"width": 390, "height": 844}, timezone_id="Asia/Shanghai", accept_downloads=True,
-               reduced_motion="reduce")
+COMPACT = len(sys.argv) > 3 and sys.argv[3] == "320"
+OUTPUT = Path("output/playwright/progressive-continue") / ("320x568" if COMPACT else "")
+OPTIONS = dict(viewport={"width": 320, "height": 568} if COMPACT else {"width": 390, "height": 844},
+               timezone_id="Asia/Shanghai", accept_downloads=True, reduced_motion="reduce", has_touch=COMPACT)
 ACTUAL_ID = "double-auction/browser-v1/1962/base/96/0"
 
 
@@ -58,7 +59,7 @@ def quote_today(page):
     hit(page, "观察群体变化")
     hit(page, "播放")
     pause = ui(page, "region", "当前成交证据与下一步")
-    expect(pause.get_by_text("结算价 96 代币来自在簿订单 O001。")).to_be_in_viewport()
+    expect(pause.get_by_text("结算价 96 代币来自在簿订单 O001。")).to_be_in_viewport(ratio=1)
     expect(ui(pause, "button", "查看 O003 原报价")).to_be_in_viewport()
     expect(ui(pause, "button", "下一步 · 查看后续报价")).to_be_in_viewport(ratio=1)
     expect(ui(page, "button", "暂停")).to_be_disabled()
@@ -70,6 +71,7 @@ def continue_tomorrow(page):
     page.goto(BASE + "/")
     expect(ui(page, "heading", "继续上次学习")).to_be_visible()
     expect(page.get_by_text("双向拍卖 · 宏微观双屏联动")).to_be_visible()
+    expect(ui(page, "link", "继续上次学习")).to_be_in_viewport(ratio=1)
     ui(page, "link", "继续上次学习").press("Enter")
     heading(page, "宏微观双屏联动")
     pause = ui(page, "region", "当前成交证据与下一步")
@@ -84,7 +86,11 @@ def continue_tomorrow(page):
     hit(pause, "回到已观察到的成交")
     page.screenshot(path=str(OUTPUT / f"{ENGINE}-tomorrow-resumed.png"))
 
-    hit(pause, "下一步 · 查看后续报价")
+    next_quote = ui(pause, "button", "下一步 · 查看后续报价")
+    if COMPACT:
+        next_quote.tap()
+    else:
+        next_quote.press("Enter")
     expect(ui(pause, "button", "试一项政策")).to_be_in_viewport()
     hit(pause, "试一项政策")
     page.get_by_role("slider").press("End")

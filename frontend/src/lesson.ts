@@ -1,10 +1,12 @@
+import type { ActorId, CasePackage, EventId, MetricRoles, RunId } from "./domain-contracts.ts";
+
 export type Stage = 1 | 2 | 3 | 4;
 export type Trend = "down" | "same" | "up";
 
 type PriorSignal = { metricId: string; tick: number; value: number };
 
 export type Actor = {
-  id: string;
+  id: ActorId;
   name: string;
   marker: string;
   state: string;
@@ -23,7 +25,7 @@ export type Metric = {
 };
 
 export type LessonEvent = {
-  id: string;
+  id: EventId;
   actorId?: string;
   counterpartyId?: string;
   focusMetrics?: readonly string[];
@@ -47,7 +49,7 @@ export type Frame = {
 };
 
 export type Run = {
-  id: string;
+  id: RunId;
   seed: number;
   frames: readonly Frame[];
 };
@@ -68,20 +70,22 @@ export type Lesson = {
   role: { title: string; perspective: string; facts: readonly { label: string; value: string }[];
     timeline: readonly { label: string; highlighted?: boolean }[] };
   populationTitle: string;
-  source: { kind: "illustrative" | "documented_case"; note: string;
+  source: { kind: "illustrative" | CasePackage["identity"]; note: string;
     references?: readonly { title: string; url: string }[] };
+  casePackage?: CasePackage;
+  metricRoles: MetricRoles;
   decisions: readonly Decision[];
   metrics: readonly [Metric, ...Metric[]];
   states: Readonly<Record<string, { label: string; color: string }>>;
   bridge?: { minTick: number; metrics: readonly string[]; rule: string;
-    chartMetric?: string; prompt?: string; closeLabel?: string; comparisonAxis?: string; };
+    prompt?: string; closeLabel?: string; comparisonAxis?: string; };
   tickUnit?: "event";
   priceMetric?: string;
   rangeLookup?: boolean;
   originalId?: string;
   explanationPrompt?: string;
   policy: { label: string; min: number; max: number; baseline: number; unit: string;
-    step?: number; describe?: string; labels?: Readonly<Record<number, string>>; measure?: "final"; project?: (run: Run) => readonly Frame[]; };
+    step?: number; describe?: string; labels?: Readonly<Record<number, string>>; project?: (run: Run) => readonly Frame[]; };
   seed: number;
   run: (input: { seed: number; choices: readonly string[]; policy: number }) => Run;
 };
@@ -126,8 +130,18 @@ export function nextStageReady(lesson: Lesson, session: Session): boolean {
   return session.revealed >= Math.min(needed, session.run.frames.length - 1);
 }
 
+function declaredMetric(lesson: Lesson, id: string): Metric {
+  const metric = lesson.metrics.find(entry => entry.id === id);
+  if (!metric) throw new Error(`Missing declared metric ${id}`);
+  return metric;
+}
+
 export function chartMetric(lesson: Lesson): Metric {
-  return lesson.metrics.find(metric => metric.id === lesson.bridge?.chartMetric) ?? lesson.metrics[0];
+  return declaredMetric(lesson, lesson.metricRoles.observation);
+}
+
+export function comparisonMetric(lesson: Lesson): Metric {
+  return declaredMetric(lesson, lesson.metricRoles.comparison);
 }
 
 export function frameLabel(unit: Lesson["tickUnit"], tick: number): string {
@@ -224,13 +238,16 @@ export function peak(run: Run, metricId: string): number | null {
 }
 
 export function outcome(lesson: Lesson, run: Run): number | null {
-  const id = lesson.metrics[0].id;
-  return lesson.policy.measure === "final" ? run.frames.at(-1)?.metrics[id] ?? null : peak(run, id);
+  const id = comparisonMetric(lesson).id;
+  return lesson.metricRoles.statistic === "final" ? run.frames.at(-1)?.metrics[id] ?? null : peak(run, id);
 }
 
 export function outcomeLabel(lesson: Lesson): string {
-  return `${lesson.policy.measure === "final" ? "期末" : "峰值"}${lesson.metrics[0].label}`;
+  return `${lesson.metricRoles.statistic === "final" ? "期末" : "峰值"}${comparisonMetric(lesson).label}`;
 }
 
 export const displayNumber = (value: number | null | undefined) =>
   typeof value === "number" ? Number(value.toFixed(4)) : "未定义";
+
+export const displayObservation = (value: number | null | undefined) =>
+  value === undefined ? "缺少记录" : displayNumber(value);

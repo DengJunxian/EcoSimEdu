@@ -1,6 +1,6 @@
-import { useState, type FormEvent } from "react";
+import { useEffect, useState, type FormEvent } from "react";
 import { courseById } from "./curriculum.ts";
-import { displayNumber, frameLabel, type Lesson } from "./lesson.ts";
+import { displayObservation, frameLabel, type Lesson } from "./lesson.ts";
 import { allNotes, exportProgressArchive, notesLink, readNote, restoreProgressArchive, sourceLink, sourceRun, trendLabel } from "./learning-store.ts";
 import type { AuctionRun } from "./auction.ts";
 import { seedEvidence } from "./run-evidence.ts";
@@ -100,8 +100,8 @@ export function StudentNotes({ id }: { id: string | null }) {
             <dt>现实假设</dt><dd>{note.hypothesis}</dd>
           </dl> : <p><a href={notesLink(note.id)}>打开已保存的解释</a></p>}
           <div className="note-links">
-            <a href={sourceLink(note, "baseline")}>查看基线原事件 {note.baselineEvent}</a>
-            <a href={sourceLink(note, "comparison")}>查看政策组原事件 {note.comparisonEvent}</a>
+            <a href={sourceLink(note, "baseline")}>查看基线原事件 {note.evidence?.baseline?.eventId ?? note.baselineEvent}</a>
+            <a href={sourceLink(note, "comparison")}>查看政策组原事件 {note.evidence?.comparison?.eventId ?? note.comparisonEvent}</a>
           </div>
         </li>
       ))}</ol>
@@ -112,32 +112,54 @@ export function StudentNotes({ id }: { id: string | null }) {
 export function SavedSource({ lesson, id, side, caseId, market }: {
   lesson: Lesson; id: string; side: "baseline" | "comparison"; caseId: string; market?: "no-overlap";
 }) {
-  const [source] = useState(() => {
-    try {
-      const note = readNote(localStorage, id);
-      return note?.course.caseId === caseId && note.course.market === market ? sourceRun(lesson, note, side) : undefined;
-    } catch { return undefined; }
-  });
+  const [source, setSource] = useState<Awaited<ReturnType<typeof sourceRun>> | null>(null);
+  useEffect(() => {
+    let current = true;
+    async function restore() {
+      try {
+        const note = readNote(localStorage, id);
+        const result = note?.course.caseId === caseId && note.course.market === market
+          ? await sourceRun(lesson, note, side) : undefined;
+        if (current) setSource(result);
+      } catch {
+        if (current) setSource(undefined);
+      }
+    }
+    void restore();
+    return () => { current = false; };
+  }, [lesson, id, side, caseId, market]);
+
+  if (source === null) return <main className="shell lesson-shell student-notes" id="main" tabIndex={-1}>
+    <p role="status">正在核对原运行与事件…</p>
+  </main>;
   if (!source) return <main className="shell lesson-shell student-notes" id="main" tabIndex={-1}>
-    <h1>暂时无法核对原事件</h1>
-    <p>当前浏览器缺少对应解释，或者课堂版本与保存时不同。</p>
+    <h1>原证据不可验证</h1>
+    <p>此浏览器缺少对应解释，或当前运行的版本、事件或结果摘要与原记录不匹配。</p>
     <a href={notesLink(id)}>返回已保存的解释</a>
   </main>;
-  const { run, tick } = source;
+  const { run, tick, event } = source;
   const frame = run.frames[tick];
   const evidence = seedEvidence(run, tick);
   const auction = "quotes" in run ? run as AuctionRun : undefined;
   const trade = auction?.frames[tick].record;
+  const selected = caseId === "svb_run" && event ? frame.events.find(item => item.id === event.eventId) : undefined;
   const orders = [trade?.buy_order_id, trade?.sell_order_id].flatMap(id => id && auction?.quotes[id] ? [auction.quotes[id]] : []);
   return <>
     <StudentHeader caseId={caseId}/>
     <main className="shell lesson-shell student-notes" id="main" tabIndex={-1}>
       <a href={notesLink(id)}>返回已保存的解释</a>
-      <h1>{side === "baseline" ? "基线" : "政策组"}原事件 · {frameLabel(lesson.tickUnit, tick)}</h1>
+      <h1>{side === "baseline" ? "基线" : "政策组"}{event ? "原事件" : "原轮次"} · {
+        selected ? `${frameLabel(lesson.tickUnit, tick)} · ${selected.id}` : frameLabel(lesson.tickUnit, tick)}</h1>
       <p>{courseById[caseId]?.title} · 种子 {run.seed}</p>
       <p className="run-identity">运行编号 <code>{evidence.runId}</code></p>
+      <p>{source.verification === "legacy" ? "与基线版本的运行摘要一致" : "已核对保存的版本与运行摘要"}</p>
       <h2>原始记录</h2>
-      <p>{frame.events[0]?.text ?? evidence.event.summary}</p>
+      <p>{selected?.text ?? frame.events[0]?.text ?? evidence.event.summary}</p>
+      {!!event?.actorIds.length && <p>涉及主体 {event.actorIds.join("、")}</p>}
+      {!!event?.sourceEvents.length && <p>原来源事件 {event.sourceEvents.map(ref => ref.eventId).join("、")}</p>}
+      {!event && <p>旧笔记引用这一轮。轮内具体子事件没有保存在原引用中。</p>}
+      {selected && Object.entries(selected.deltas).map(([key, value]) => <p key={key}>本事件变化 · {
+        lesson.casePackage?.metrics.find(metric => metric.id === key)?.label ?? key} {displayObservation(value)}</p>)}
       {orders.length > 0 && <ul>
         {orders.map(order => <li key={order.order_id}>{order.order_id} · {order.actor_id} 报 {order.price} 代币
           {order.order_id === trade?.maker_order_id && " · 在簿定价"}</li>)}
@@ -148,11 +170,11 @@ export function SavedSource({ lesson, id, side, caseId, market }: {
       </details>}
       {frame.equations && <ul>{frame.equations.map(equation => <li key={equation}>{equation}</li>)}</ul>}
       <table className="source-metrics">
-        <caption>原事件前后数值</caption>
+        <caption>{caseId === "svb_run" ? "该轮开始与结束的数值" : "原事件前后数值"}</caption>
         <thead><tr><th scope="col">指标</th><th scope="col">之前</th><th scope="col">之后</th></tr></thead>
         <tbody>{lesson.metrics.map(metric => <tr key={metric.id}>
           <th scope="row">{metric.label}{metric.unit ? `（${metric.unit}）` : ""}</th>
-          <td>{displayNumber(evidence.before?.[metric.id])}</td><td>{displayNumber(evidence.after[metric.id])}</td>
+          <td>{displayObservation(evidence.before?.[metric.id])}</td><td>{displayObservation(evidence.after[metric.id])}</td>
         </tr>)}</tbody>
       </table>
     </main>

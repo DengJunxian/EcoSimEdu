@@ -67,6 +67,7 @@ function simulate({ seed, choices, policy }: Parameters<Lesson["run"]>[0]): Run 
 }
 
 export const toolLibrary: Lesson = {
+  metricRoles: { observation: metric, comparison: metric, statistic: "peak" },
   title: "一把工具，要等多久？",
   populationTitle: "工具站的邻居",
   role: { title: "小林 · 社区居民",

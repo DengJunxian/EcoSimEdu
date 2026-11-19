@@ -56,7 +56,7 @@ test("a completed comparison survives reopening and stale run IDs fail safely", 
   assert.equal(resumeProgress(disk, auction, lesson), undefined);
 });
 
-test("existing v1 explanations open both original Schelling source events without a rewrite", () => {
+test("existing v1 explanations open both original Schelling source events without a rewrite", async () => {
   const disk = storage();
   const lesson = schellingLesson;
   const choices = ["move", "prediction-0"];
@@ -70,12 +70,12 @@ test("existing v1 explanations open both original Schelling source events withou
   disk.setItem("civitas/schelling_segregation/lesson-v2", "old learner record");
   const [note] = allNotes(disk);
   assert.equal(note.course.caseId, "schelling_segregation");
-  assert.equal(sourceRun(lesson, note, "baseline").run.id, left.id);
-  assert.equal(sourceRun(lesson, note, "comparison").tick, 2);
+  assert.equal((await sourceRun(lesson, note, "baseline")).run.id, left.id);
+  assert.equal((await sourceRun(lesson, note, "comparison")).tick, 2);
   assert.match(sourceLink(note, "comparison"), /lesson=schelling_segregation/);
   assert.equal(disk.getItem(key), old);
   assert.equal(disk.getItem("civitas/schelling_segregation/lesson-v2"), "old learner record");
-  assert.equal(sourceRun(lesson, { ...note, comparisonEvent: 10000 }, "comparison"), undefined);
+  assert.equal(await sourceRun(lesson, { ...note, comparisonEvent: 10000 }, "comparison"), undefined);
 });
 
 test("a four-stage backup preserves the original keys and skips conflicting records", () => {

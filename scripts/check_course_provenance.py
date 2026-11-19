@@ -71,6 +71,13 @@ def inventory():
              "项目手工定义的动作及规则参数", "python -m scripts.check_boundaries")
     register("cases/learning-outcomes.json", "authored_learning_design", "1", CATALOG, "每门课三项目标",
              "项目编写的目标、任务与迁移映射", "python -m scripts.check_learning_packages")
+    register("cases/case-packages-v1.json", "derived_teaching_metadata", "1", CATALOG, "每门发布课一份领域契约",
+             "从案例身份、来源登记、学习包和显式指标定义生成",
+             "python -m scripts.generate_case_packages --check")
+    register("frontend/src/data/legacy-fingerprints.json", "computed_rule_receipt", "8fc8971", CATALOG,
+             "每个原浏览器运行 ID 一个证据摘要",
+             "在固定提交的原浏览器内核中运行支持的开局动作及处理，只保存摘要",
+             "node frontend/tests/generate_legacy_fingerprints.mjs <8fc8971 checkout>")
     register("content/concepts.json", "authored_learning_design", "1", CATALOG, "每项独立概念及其先修",
              "课内概念、误解定义与跨课连接", "python -m scripts.check_learning_packages")
     for case_id in CATALOG:

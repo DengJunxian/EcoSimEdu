@@ -100,6 +100,33 @@ def walk(page):
     expect(result.locator("canvas")).to_have_count(2)
     assert page.evaluate("document.documentElement.scrollWidth === innerWidth")
 
+    form = page.get_by_role("region", name="用两次运行解释机制")
+    payment_ids = []
+    for label in ("无干预证据", "政策组证据"):
+        select = form.get_by_label(label)
+        payment = select.locator("option").filter(has_text="D01 到账 19").first
+        value = payment.get_attribute("value")
+        assert value.startswith("1/")
+        payment_ids.append(value)
+        select.select_option(value)
+    for name, text in {
+        "rule": "实际支付才会扣减现金。",
+        "calculation": "D01 的实付令现金减少 19。",
+        "difference": "现金再配置改变了期末待付。",
+        "hypothesis": "现实提款顺序须独立核对。",
+    }.items():
+        form.locator(f"[name={name}]").fill(text)
+    form.get_by_role("button", name="保存解释").press("Enter")
+    expect(form.get_by_role("status")).to_contain_text(f"已引用基线事件 {payment_ids[0]}")
+    form.get_by_role("link", name="在实验笔记打开已保存的解释").press("Enter")
+    for name, value in zip(("基线", "政策组"), payment_ids, strict=True):
+        page.get_by_role("link", name=f"查看{name}原事件 {value}").press("Enter")
+        expect(heading).to_have_text(f"{name}原事件 · 第 1 轮 · {value}")
+        expect(page.get_by_text("涉及主体 D01", exact=True)).to_be_visible()
+        expect(page.get_by_text("本事件变化 · 银行现金 -19", exact=True)).to_be_visible()
+        expect(page.get_by_role("table", name="该轮开始与结束的数值")).to_be_visible()
+        page.get_by_role("link", name="返回已保存的解释").press("Enter")
+
 
 with sync_playwright() as playwright:
     browser = getattr(playwright, engine).launch(**({"channel": "chrome"} if engine == "chromium" else {}))

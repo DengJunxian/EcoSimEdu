@@ -18,7 +18,7 @@ CORE = [
 ]
 SCRIPTS = ["audit_orca", "audit_student_accessibility", "benchmark_student_lab", "case_seed_matrix", "check_boundaries",
            "check_course_provenance", "check_lesson_catalog", "check_learning_packages", "generate_auction_presets",
-           "lab_backup", "package_student_lab", "validate_live_lab"]
+           "generate_case_packages", "lab_backup", "package_student_lab", "validate_live_lab"]
 KEY_PATTERN = re.compile(
     rb"sk-proj-[A-Za-z0-9_-]{40,}|sk-[0-9a-f]{32}\b|gh[pousr]_[A-Za-z0-9]{25,}|"
     rb"AKIA[A-Z0-9]{16}|-----BEGIN (?:RSA |EC |OPENSSH )?PRIVATE KEY-----"
