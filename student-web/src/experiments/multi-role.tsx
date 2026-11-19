@@ -7,9 +7,9 @@ import "../learning/flagship.css";
 import "./parameter-lab.css";
 
 type Capability = { cases: Record<string, number>; available: boolean; wall_seconds: number;
-  providers: { provider: string; model: string; currency: string; max_run_cost: number }[] };
+  providers: { provider: string; model: string; currency: string; max_run_cost: number; model_session_id?: string }[] };
 type Attempt = { decision_id: string; attempt: number; currency: string; cost_micros: number | null;
-  reason: string | null; actual_model?: string;
+  reason: string | null; actual_model?: string; pricing_basis?: string;
   usage?: { input_tokens: number; output_tokens: number; cached_input_tokens: number } | null };
 type Decision = { decision_id: string; actor_id: string; step: number; source: string;
   action: string; rule_default: string; event_seq: number };
@@ -88,7 +88,8 @@ export function MultiRolePage() {
     try {
       const request_id = crypto.randomUUID();
       const result = await api<Status>(prefix, { request_id, case_id: selected, seed: course.seed,
-        action: action || course.action.default, mode, budget_micros: mode === "live" ? budgetMicros : undefined });
+        action: action || course.action.default, mode, budget_micros: mode === "live" ? budgetMicros : undefined,
+        model_session_id: mode === "live" ? provider?.model_session_id : undefined });
       setRun(result);
       history.replaceState({}, "", `?run=${result.run_id}`);
       setRun(await api<Status>(`${prefix}/${result.run_id}/start`, {}));
@@ -175,7 +176,8 @@ export function MultiRolePage() {
       {run.attempts.length > 0 && <details><summary>供应商用量与费用回执</summary><ul>
         {run.attempts.map(attempt => <li key={`${attempt.decision_id}/${attempt.attempt}`}>
           {attempt.decision_id} · {attempt.actual_model ?? "模型未确认"} · {
-            attempt.cost_micros === null ? "费用未知" : `${attempt.cost_micros / 1_000_000} ${attempt.currency}`}
+            attempt.cost_micros === null ? "费用未知" :
+              `按${attempt.pricing_basis === "user_configured_ceiling" ? "设定费率" : "公布费率"}估算 ${attempt.cost_micros / 1_000_000} ${attempt.currency}`}
           {attempt.usage && ` · 输入 ${attempt.usage.input_tokens}、输出 ${attempt.usage.output_tokens}、缓存 ${attempt.usage.cached_input_tokens} tokens`}
           {attempt.reason && ` · ${reasons[attempt.reason] ?? attempt.reason}`}
         </li>)}</ul></details>}

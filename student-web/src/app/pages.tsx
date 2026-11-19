@@ -13,6 +13,7 @@ import { BoundaryLink } from "../boundary";
 import { readAuctionStudy } from "../cases/auction/auction-study";
 import { AuctionNotes } from "../cases/auction/auction-notes";
 import { Mechanism, QuoteDiagram } from "./mechanisms";
+import { LocalModelSettings } from "./local-model";
 import type { Outcome } from "../learning/education-types";
 
 const HomeLearningActions = lazy(() => import("../learning/review-page").then(module => ({ default: module.HomeLearningActions })));
@@ -103,6 +104,7 @@ export function HomePage() {
       </div>
       <QuoteDiagram/>
     </section>
+    <LocalModelSettings/>
     {resume && <section className="app-resume">
       <div><h2>继续学习</h2><p>{resume.title} · {resume.scene}</p></div>
       <a className="app-button" href={resume.href}>回到课堂</a>

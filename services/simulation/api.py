@@ -7,6 +7,7 @@ import logging
 import os
 import sqlite3
 from contextlib import closing
+from decimal import Decimal
 from functools import lru_cache
 from hashlib import sha256
 from pathlib import Path
@@ -15,11 +16,11 @@ from typing import Literal
 from uuid import UUID
 
 from fastapi import FastAPI, HTTPException, Query, Request
-from fastapi.responses import FileResponse
+from fastapi.responses import FileResponse, JSONResponse
 from fastapi.staticfiles import StaticFiles
-from pydantic import model_validator, BaseModel, ConfigDict, Field, StrictInt
+from pydantic import model_validator, BaseModel, ConfigDict, Field, StrictInt, ValidationError
 
-from . import live, live_l2
+from . import live, live_client, live_l2
 from .auction import BOUNDARIES, CASE, ENGINE_VERSION, ROOT, SCENARIOS, canonical_json, digest, run_auction
 from .auction_view import project_auction
 from .emergence import cascade as cascade_trace
@@ -53,6 +54,7 @@ class RunRequest(BaseModel):
     bid: int | None = Field(default=None, strict=True, ge=1, le=CASE["player_value"])
     action: str | None = Field(default=None, strict=True, min_length=1, max_length=48)
     parent_run_id: UUID | None = None
+    model_session_id: UUID | None = None
 
 
 class RunRequestV2(RunRequest):
@@ -77,6 +79,16 @@ class MultiRoleRequest(BaseModel):
     seed: int = Field(strict=True, ge=0, le=2**32 - 1)
     mode: Literal["live", "rule"]
     budget_micros: int | None = Field(default=None, strict=True, ge=1, le=100_000_000)
+    model_session_id: UUID | None = None
+
+
+class LocalModelRequest(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+    provider: str | None = Field(default=None, max_length=24)
+    api_key: str = Field(default="", max_length=1024)
+    workspace: str = Field(default="", max_length=64)
+    input_rate: Decimal | None = Field(default=None, ge=0, le=1000, decimal_places=6)
+    output_rate: Decimal | None = Field(default=None, ge=0, le=1000, decimal_places=6)
 
 
 class TutorLearningContext(BaseModel):
@@ -294,6 +306,40 @@ def require_loopback(request: Request):
         raise HTTPException(403, "LIVE_LOCAL_ONLY")
 
 
+@app.get("/api/local-model")
+def local_model_status(request: Request):
+    require_loopback(request)
+    return JSONResponse(live_client.local_status(), headers={"Cache-Control": "no-store"})
+
+
+@app.post("/api/local-model")
+async def local_model_update(request: Request):
+    require_loopback(request)
+    if (not request.headers.get("origin") or request.headers.get("sec-fetch-site") == "cross-site"
+            or request.headers.get("content-type", "").partition(";")[0].strip() != "application/json"):
+        raise HTTPException(403, "LIVE_LOCAL_ONLY")
+    body = bytearray()
+    async for chunk in request.stream():
+        if len(body) + len(chunk) > 4096:
+            raise HTTPException(413, "INVALID_LOCAL_MODEL")
+        body.extend(chunk)
+    try:
+        payload = LocalModelRequest.model_validate_json(body)
+        if payload.provider is None and payload.model_fields_set:
+            raise ValueError("clear requires an empty object")
+        live_client.configure_local(payload.provider, payload.api_key.strip(), payload.workspace.strip(),
+                                    payload.input_rate, payload.output_rate)
+    except (ValidationError, ValueError):
+        raise HTTPException(422, "INVALID_LOCAL_MODEL") from None
+    return local_model_status(request)
+
+
+def require_model_session(providers, session_id):
+    expected = providers[0].session_id if providers else None
+    if expected != (str(session_id) if session_id is not None else None):
+        raise HTTPException(409, "MODEL_CONFIGURATION_CHANGED")
+
+
 def multi_role_action(name, *args, **kwargs):
     try:
         return getattr(live_l2.LiveLab(connect), name)(*args, **kwargs)
@@ -312,9 +358,14 @@ def multi_role_create(payload: MultiRoleRequest, request: Request):
     case = get_case(payload.case_id)
     if payload.case_id not in live_l2.PLANNED or payload.action not in {x["id"] for x in case["action"]["options"]}:
         raise HTTPException(422, "INVALID_ACTION")
-    if payload.mode == "live" and not live_l2.capabilities()["available"]:
-        raise HTTPException(503, "LIVE_NOT_CONFIGURED")
-    data = payload.model_dump(exclude={"request_id"})
+    if payload.mode == "live":
+        providers = live_l2.admitted_providers()
+        require_model_session(providers, payload.model_session_id)
+        if not providers:
+            raise HTTPException(503, "LIVE_NOT_CONFIGURED")
+    data = payload.model_dump(mode="json", exclude={"request_id", "model_session_id"})
+    if payload.mode == "live" and payload.model_session_id:
+        data["model_session_id"] = str(payload.model_session_id)
     return multi_role_action("create", str(payload.request_id), data)
 
 
@@ -391,7 +442,9 @@ def create(request: RunRequest | RunRequestV2, http: Request):
         raise HTTPException(422, "INVALID_ACTION")
     if request.provider_kind == "live":
         require_loopback(http)
-        if request.case_id not in live.LIVE_CASES or not live.configured():
+        providers = live.configured()
+        require_model_session(providers, request.model_session_id)
+        if request.case_id not in live.LIVE_CASES or not providers:
             raise HTTPException(503, "LIVE_NOT_CONFIGURED")
         if request.scenario_id != "baseline" or request.parent_run_id:
             raise HTTPException(422, "LIVE_BASELINE_ONLY")
@@ -410,7 +463,9 @@ def create(request: RunRequest | RunRequestV2, http: Request):
             raise HTTPException(422, "PRESET_NOT_AVAILABLE")
         replay(request)
     key = str(request.request_id)
-    payload = request.model_dump(mode="json", exclude={"request_id", "action" if is_auction else "bid"})
+    payload = request.model_dump(mode="json", exclude={"request_id", "model_session_id", "action" if is_auction else "bid"})
+    if request.provider_kind == "live" and request.model_session_id:
+        payload["model_session_id"] = str(request.model_session_id)
     if versioned:
         payload["effective_parameters"] = parameters
         payload["seed_plan"] = parameter_specs.seed_plan(request.case_id, request.seed)
@@ -466,7 +521,9 @@ def start_live(key, http):
             return run
         if run["execution_status"] != "created":
             raise HTTPException(409, "RUN_ALREADY_TERMINAL")
-        if not live.configured():
+        providers = live.configured()
+        require_model_session(providers, run.get("model_session_id"))
+        if not providers:
             raise HTTPException(503, "LIVE_NOT_CONFIGURED")
         live_l2.setup(conn)
         live_l2.recover(conn)
@@ -477,7 +534,7 @@ def start_live(key, http):
         conn.execute("UPDATE runs SET status='running' WHERE id=?", (str(key),))
         conn.execute("INSERT INTO live_jobs(run_id,started) VALUES(?,?)", (str(key), time()))
     lesson = get_case(run["case_id"])
-    session = live.DecisionSession(connect, key, lesson)
+    session = live.DecisionSession(connect, key, lesson, providers=providers)
     result = None
     try:
         result = session.attach(simulate(lesson, run["scenario_id"], run["seed"], run["action"], decide=session))

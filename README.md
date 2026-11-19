@@ -187,4 +187,4 @@ python -m streamlit run app.py --server.port 8501
 
 ## 学生实验室
 
-十二门基础课的安装、启动和验证见 [学生实验室](STUDENT_LAB.md)。
+十二门四阶课堂、续学和原事件回查见[渐进课堂](frontend/README.md)。原学生实验室的安装、启动和验证见[学生实验室](STUDENT_LAB.md)。

@@ -111,6 +111,16 @@
 .app-quote-halo { fill: var(--green); stroke: #adc5a9; }
 .app-quote-fill { fill: var(--app-accent); }
 
+.app-local-model { border-top: 1px solid var(--line); padding-block: 12px; }
+.app-local-model summary { cursor: pointer; font-weight: 700; min-height: 32px; }
+.app-local-model p { max-width: 68ch; }
+.app-local-model p:empty { margin: 0; }
+.app-local-model form { max-width: 620px; }
+.app-local-model form .app-actions { margin-top: 12px; }
+.app-local-model-fields { display: grid; gap: 12px; grid-template-columns: repeat(auto-fit, minmax(min(100%, 228px), 1fr)); }
+.app-local-model label { display: grid; gap: 5px; }
+.app-local-model input, .app-local-model select { width: 100%; min-width: 0; min-height: 40px; }
+
 .app-resume {
   display: flex;
   align-items: center;

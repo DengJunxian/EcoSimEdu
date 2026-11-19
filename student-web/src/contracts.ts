@@ -87,6 +87,8 @@ const messages: Record<string, string> = {
   EVIDENCE_TICK_NOT_AVAILABLE: "该运行没有这一事件。",
   SNAPSHOT_NOT_AVAILABLE: "该运行没有这一观察时刻。",
   EVENT_NOT_AVAILABLE: "该运行没有这一事件序号。",
+  INVALID_LOCAL_MODEL: "请检查密钥、工作空间 ID 和费率后重试。",
+  MODEL_CONFIGURATION_CHANGED: "模型配置已更新。请刷新页面，确认供应商后创建新实验。",
   RUN_FAILED: "实验计算失败。可用原参数重新运行。",
   RUN_ALREADY_TERMINAL: "这次运行已结束。可用原参数重新运行。",
 };

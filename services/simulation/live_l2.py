@@ -43,14 +43,15 @@ def setup(conn):
 
 
 def admitted_providers():
-    if os.environ.get("CIVITAS_L2_ENABLED") != "1":
-        return ()
+    flag = os.environ.get("CIVITAS_L2_ENABLED")
     return tuple(provider for provider in live_client.configured()
-                 if server_budget(provider.currency) >= provider.reserve_micros)
+                 if (flag == "1" or (flag is None and provider.session_id))
+                 and server_budget(provider) >= provider.reserve_micros)
 
 
-def server_budget(currency):
-    raw = os.environ.get(f"CIVITAS_L2_MAX_{currency}_MICROS", "")
+def server_budget(provider):
+    currency = provider.currency
+    raw = os.environ.get(f"CIVITAS_L2_MAX_{currency}_MICROS", "2000000" if provider.session_id else "")
     try:
         amount = int(raw)
     except ValueError:
@@ -59,7 +60,7 @@ def server_budget(currency):
 
 
 def capabilities():
-    providers = [provider.public() | {"max_run_cost": server_budget(provider.currency) / 1_000_000}
+    providers = [provider.public() | {"max_run_cost": server_budget(provider) / 1_000_000}
                  for provider in admitted_providers()]
     return {"cases": PLANNED, "providers": providers, "available": bool(providers),
             "wall_seconds": MAX_SECONDS, "recovery": "process_local", "rule_reference": True}
@@ -181,17 +182,17 @@ class Worker:
                 ).fetchone()
                 spent = conn.execute("SELECT coalesce(sum(coalesce(consumed,reservation)),0) FROM live_l2_attempts "
                                      "WHERE run_id=? AND currency=?", (self.key, provider.currency)).fetchone()[0]
-                limit = server_budget(provider.currency)
+                limit = server_budget(provider)
                 if self.request.get("budget_micros") is not None:
                     limit = min(limit, self.request["budget_micros"])
                 if (count >= MAX_ATTEMPTS or used_input + bound > MAX_INPUT
-                        or used_output + live_client.MAX_OUTPUT > MAX_OUTPUT
+                        or used_output + provider.max_output > MAX_OUTPUT
                         or spent + provider.reserve_micros > limit
                         or all_cost + provider.reserve_micros > live.CEILING[provider.currency]):
                     raise Halt("budget_limit")
                 conn.execute("INSERT INTO live_l2_attempts VALUES(?,?,?,?,?,?,?,NULL,NULL)",
                              (self.key, identifier, attempt, provider.currency, provider.reserve_micros,
-                              bound, live_client.MAX_OUTPUT))
+                              bound, provider.max_output))
             try:
                 report = self.transport(provider, packet, allowed, repair=attempt > 1)
             except Exception:
@@ -207,13 +208,15 @@ class Worker:
             receipt = {name: report.get(name) for name in
                        ("actual_model", "request_id", "response_id", "response_sha256", "usage", "http_status")}
             receipt.update(reason=reason, provider=provider.name, requested_model=provider.model)
+            if provider.session_id:
+                receipt.update(pricing_basis=provider.pricing_basis, pricing_date=provider.public()["pricing_date"])
             with closing(self.connect()) as conn, conn:
                 conn.execute("UPDATE live_l2_attempts SET consumed=?,receipt=? WHERE run_id=? AND decision_id=? AND attempt=?",
                              (consumed, canonical_json(receipt), self.key, identifier, attempt))
             if consumed is None:
                 raise Halt("unknown_usage")
             if consumed > provider.reserve_micros or (usage and
-                    (usage["input_tokens"] > bound or usage["output_tokens"] > live_client.MAX_OUTPUT)):
+                    (usage["input_tokens"] > bound or usage["output_tokens"] > provider.max_output)):
                 raise Halt("usage_bound_exceeded")
             result["reason"] = reason
             if reason is None:
@@ -338,8 +341,13 @@ class LiveLab:
             recover(conn)
             request, phase, *_ = row(conn, key)
             if phase == "created":
-                if providers is None and not capabilities()["available"]:
-                    raise LiveProblem("LIVE_NOT_CONFIGURED", 503)
+                if providers is None:
+                    providers = admitted_providers()
+                    expected = providers[0].session_id if providers else None
+                    if expected != json.loads(request).get("model_session_id"):
+                        raise LiveProblem("MODEL_CONFIGURATION_CHANGED")
+                    if not providers:
+                        raise LiveProblem("LIVE_NOT_CONFIGURED", 503)
                 if (conn.execute("SELECT 1 FROM live_l2_runs WHERE status IN "
                                  "('running','pause_requested','paused','cancel_requested')").fetchone() or
                     conn.execute("SELECT 1 FROM runs WHERE status IN ('running','cancel_requested') LIMIT 1").fetchone()):
