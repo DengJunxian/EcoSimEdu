@@ -11,7 +11,7 @@ if not exist "frontend\dist\index.html" goto missing
 if not exist "student-web\dist\index.html" goto missing
 if not defined UVICORN_PORT set "UVICORN_PORT=8776"
 echo Open /explore/ on the loopback address reported below.
-uv run --no-project --python 3.12 --with-requirements requirements-edu.lock python -m uvicorn services.simulation.api:app --host 127.0.0.1 --no-proxy-headers
+uv run --no-project --python 3.12 --with-requirements requirements-edu.lock python -X utf8 -m uvicorn services.simulation.api:app --host 127.0.0.1 --no-proxy-headers
 set "launch_code=%ERRORLEVEL%"
 if not "%launch_code%"=="0" pause
 exit /b %launch_code%

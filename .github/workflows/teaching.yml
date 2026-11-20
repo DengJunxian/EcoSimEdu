@@ -10,6 +10,9 @@ on:
 permissions:
   contents: read
 
+env:
+  PYTHONUTF8: "1"
+
 jobs:
   candidate:
     runs-on: ubuntu-24.04
@@ -45,7 +48,7 @@ jobs:
         run: |
           python -m scripts.package_student_lab --output "$RUNNER_TEMP/local.tar.gz"
           python -m scripts.check_course_provenance --archive "$RUNNER_TEMP/local.tar.gz"
-          tar -xzf "$RUNNER_TEMP/local.tar.gz" -C "$RUNNER_TEMP"
+          python -m tarfile -e "$RUNNER_TEMP/local.tar.gz" "$RUNNER_TEMP"
           cd "$RUNNER_TEMP"/EcoSimEdu_*_Local
           python -m scripts.package_student_lab --verify
           python -m pytest -q tests/contracts tests/mechanisms
@@ -86,7 +89,7 @@ jobs:
         shell: bash
         run: |
           python -m scripts.package_student_lab --output "$RUNNER_TEMP/local.tar.gz"
-          tar -xzf "$RUNNER_TEMP/local.tar.gz" -C "$RUNNER_TEMP"
+          python -m tarfile -e "$RUNNER_TEMP/local.tar.gz" "$RUNNER_TEMP"
           cd "$RUNNER_TEMP"/EcoSimEdu_*_Local
           python -m scripts.package_student_lab --verify
           python -m scripts.check_student_launcher

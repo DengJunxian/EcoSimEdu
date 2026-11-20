@@ -13,4 +13,4 @@ fi
 export UVICORN_PORT
 printf '课堂地址 http://127.0.0.1:%s/explore/\n' "$UVICORN_PORT"
 exec uv run --no-project --python 3.12 --with-requirements requirements-edu.lock \
-  python -m uvicorn services.simulation.api:app --host 127.0.0.1 --no-proxy-headers
+  python -X utf8 -m uvicorn services.simulation.api:app --host 127.0.0.1 --no-proxy-headers
