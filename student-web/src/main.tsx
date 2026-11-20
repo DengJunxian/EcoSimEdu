@@ -23,6 +23,7 @@ import { AppHeader } from "./app/shell";
 import { auctionStudyKey } from "./cases/auction/auction-study";
 import { CasePage, CasesPage, HomePage, NotesPage, PathsPage } from "./app/pages";
 import "./style.css";
+import { studentBrand } from "../../content/student-navigation";
 
 const scenarios = lesson.scenarios as (typeof lesson.scenarios[number] & { id: ScenarioId })[];
 const scenarioName = (id: ScenarioId) => id === "boundary" ? boundaries[lesson.case_id]!.label : scenarios.find(s => s.id === id)!.label;
@@ -623,7 +624,7 @@ const legacyView = linkedRun ? (linkedEvent !== null ? "运行事件" : "实验�
   : boundaryPage ? "边界实验" : modelPage ? "模型实验" : null;
 document.title = (path === "/" && hasLegacyQuery
   ? [modelPage ? null : activeCourse?.title ?? "课程不可用", legacyView, "Civitas Economica"]
-  : [pageTitle, "EcoSimEdu", "Civitas Economica"]).filter(Boolean).join(" · ");
+  : pageTitle ? [pageTitle, studentBrand, "Civitas Economica"] : [studentBrand, "学生实验室"]).filter(Boolean).join(" · ");
 createRoot(document.getElementById("root")!).render(
   <StrictMode><Suspense fallback={<p className="container" role="status">正在打开课堂…</p>}><Page/></Suspense></StrictMode>,
 );

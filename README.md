@@ -1,30 +1,38 @@
 # EcoSimEdu
 
-EcoSimEdu 是一套面向经济学入门教学的互动实验室。学生可以先做预测，再运行仿真，逐事件观察机制如何产生结果，最后用证据比较反事实并写实验笔记。
+EcoSimEdu V2 是面向经济学入门学生的本地互动教学平台。十二门四阶课堂覆盖个体决策、群体观察、反事实和证据解释。完成解释后，可做独立应用、迁移和次日复习。双向拍卖、硅谷银行挤兑和居住隔离提供逐事件的微观与宏观追踪。
 
-- 十二门本地基础课，均含独立边界实验、事件回放和 JSON 导出。
-- 四门可选模型实验，支持服务端 GPT‑6 Luna API 接入、同条件规则对照和费用回执。
-- 无需 API 密钥即可运行基础课。高级实验使用本机服务进程中的供应商凭证。
+公共品、公地治理、碳配额、啤酒游戏、GameStop 和闪电崩盘可在四阶课堂查看各自的账本或市场面板，从领域证据回查原事件，并在政策实验中读取两组运行的收尾账目。
 
-Emergence Studio 从首页「从微观到宏观」进入十二课机制索引。Schelling 支持按区间回查真实搬迁，跨课练习可引用银行兑付和订单簿事件，学生与教师可用 JSON 往返作答与复核。实现与实机旁白验证见 [Emergence Studio 进度](docs/emergence/progress.md)。
+[打开 GitHub Pages 公开演示](https://dengjunxian.github.io/EcoSimEdu/)。十二门课的规则运行、续学、笔记与复习在浏览器内完成。原实验室、教师工作台和模型实验通过下方的本机版使用。
+
+浏览器规则课堂只依赖本地文件与 HTTP 服务。原实验室仍提供十二课的七阶入口、边界实验、原运行回放和 JSON 导出。四门原实验室课程可选择模型实验，支持同条件规则对照。高级模型由本机服务管理凭证、可用性和预算，基础课程可独立运行。
+
+教师从「教师工作台」选择案例和演示时长，导出预设，在隔离课堂控制播放，按需揭示示范解。学生解释作品可按文件核对两条来源。SVB 与闪电崩盘的双来源迁移和教师复核支持专用 JSON 往返。
+
+[V2 发布说明](docs/v2/release/README.md) · [十二课验收](docs/v2/release/courses.md) · [备份与迁移](docs/v2/release/migration.md) · [性能与无障碍](docs/v2/release/quality.md)
 
 ## 本机启动
 
-需要 Python 3.12、uv 和 Node.js 22.12 或更高版本。
+需要 Python 3.12、uv 和 Node.js 22.18 或更高版本。
 
 ```sh
 uv venv --python 3.12 .venv
 uv pip sync --python .venv/bin/python requirements-edu.lock
 npm --prefix student-web ci
 npm --prefix student-web run build
+npm --prefix frontend ci
+npm --prefix frontend run build
 .venv/bin/python -m uvicorn services.simulation.api:app --host 127.0.0.1 --port 8776
 ```
 
-打开 [学生实验室](http://127.0.0.1:8776/)。详细操作、API 配置和验收见 [学生实验室指南](STUDENT_LAB.md)、[开发指南](docs/developer-guide.md)和 [实施状态](docs/progress.md)。[模型实调记录](docs/release/rc10-live-three-courses.md)列出逐课用量与结果。
+打开 [渐进课堂](http://127.0.0.1:8776/explore/) 或同一地址下的 [学生实验室](http://127.0.0.1:8776/)。也可打开[教师工作台](http://127.0.0.1:8776/teach)。详细操作、API 配置和验收见 [学生实验室指南](STUDENT_LAB.md)、[开发指南](docs/developer-guide.md)和 [实施状态](docs/progress.md)。[模型实调记录](docs/release/rc10-live-three-courses.md)列出逐课用量与结果。
 
 本仓库包含教学源代码、课程配置、合成样本和经过公开发布处理的验证回执。课堂运行由新安装的本地实例生成，历史数据库和旧事件缓存随各自的本机环境保留。公开回执保留指标、用量和哈希，供应商请求及响应标识已清除。旧 RC9 与 RC10 归档回执仍对应各自的原始本地归档。
 
 ## 原金融市场仿真平台
+
+以下为原 Streamlit 研究应用的运行说明。研究应用使用独立的依赖和启动入口。
 
 数治观澜是一个面向金融政策预评估与市场演化分析的多智能体仿真平台。项目将自然语言政策、新闻事件、历史行情、异质投资者行为、A 股交易规则和监管动作组织到同一条可复现链路中，用于观察政策冲击如何通过预期、情绪、流动性和订单流传导到市场结果。
 
@@ -164,7 +172,7 @@ python setup.py build_ext --inplace
 ## 数据与产物
 
 - `data/policy_templates.json` 提供政策模板。
-- `data/history_news_cache.jsonl`、`data/seed_events.jsonl` 和 `data/event_graph.graphml` 提供历史新闻、种子事件和事件图谱。
+- `data/seed_events.jsonl` 和 `data/event_graph.graphml` 提供种子事件和事件图谱。历史新闻缓存 `data/history_news_cache.jsonl` 由研究应用生成，随对应本地环境保存。
 - `demo_scenarios/` 提供税费调整、谣言冲击、监管稳定干预和历史案例等内置场景。
 - 运行过程中生成的报告、图表和缓存通常写入 `outputs/`、`tmp/`、`artifacts/` 或运行时配置指定目录，这些内容不作为源码提交。
 
@@ -187,4 +195,4 @@ python -m streamlit run app.py --server.port 8501
 
 ## 学生实验室
 
-十二门基础课的安装、启动和验证见 [学生实验室](STUDENT_LAB.md)。
+十二门四阶课堂、续学和原事件回查见[渐进课堂](frontend/README.md)。原学生实验室的安装、启动和验证见[学生实验室](STUDENT_LAB.md)。

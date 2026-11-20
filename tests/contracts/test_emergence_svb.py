@@ -12,6 +12,13 @@ def test_svb_cash_trace_and_source_message_have_real_ledger_origins(local_app):
     assert any(edge["kind"] == "accounting_identity" and "实付 32" in edge["label"] for edge in payments["edges"])
     assert {node["value"] for node in payments["nodes"] if node["metric_id"] == "cash"} == {100, 68}
     events = run["result"]["events"]
+    paid = next(row for row in events[4]["payments"] if row["person"] == "D01")
+    origin = next(event for event in events[:4] if any(
+        row["request_id"] == paid["request_id"] for row in event.get("requests", [])))
+    receipt = next(node for node in payments["nodes"] if node["id"] == paid["request_id"])
+    assert [ref["seq"] for ref in receipt["source_refs"]] == [origin["seq"], 4]
+    role = call(local_app, route + "?seq=4&as_of_seq=4&perspective=role")
+    assert all(node["kind"] == "actor_state" and node["actor_id"] == "D01" for node in role["nodes"])
     current = next(event for event in events if event["event_type"] == "messages")
     message = current["messages"][0]
     tick = current["seq"]

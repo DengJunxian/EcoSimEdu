@@ -7,6 +7,7 @@ import logging
 import os
 import sqlite3
 from contextlib import closing
+from decimal import Decimal
 from functools import lru_cache
 from hashlib import sha256
 from pathlib import Path
@@ -15,11 +16,11 @@ from typing import Literal
 from uuid import UUID
 
 from fastapi import FastAPI, HTTPException, Query, Request
-from fastapi.responses import FileResponse
+from fastapi.responses import FileResponse, HTMLResponse, JSONResponse, RedirectResponse
 from fastapi.staticfiles import StaticFiles
-from pydantic import model_validator, BaseModel, ConfigDict, Field, StrictInt
+from pydantic import model_validator, BaseModel, ConfigDict, Field, StrictInt, ValidationError
 
-from . import live, live_l2
+from . import domain, live, live_client, live_l2
 from .auction import BOUNDARIES, CASE, ENGINE_VERSION, ROOT, SCENARIOS, canonical_json, digest, run_auction
 from .auction_view import project_auction
 from .emergence import cascade as cascade_trace
@@ -31,12 +32,13 @@ from .emergence.schemas import EmergenceTrace, Perspective, source_ref
 from .flagship_view import CLASSROOMS, project_flagship
 from .lesson_scenes import ENGINE_VERSIONS, load_lesson_scenes
 from .lessons import CATALOG, briefing, load_case, simulate
-from .projection import metric_registry, paired_projection, sampled_metric
+from .projection import CLOCKS, metric_registry, paired_projection, sampled_metric
 from . import parameter_specs
 from .tutor import answer_tutor
 
 PRESETS = ROOT / "cases/double_auction/presets.json.gz"
 BUILD = ROOT / "student-web/dist"
+EXPLORE_BUILD = ROOT / "frontend/dist"
 VERSION = "1.1.0-rc.4"
 EVENT_CACHE_BYTES = 24 * 1024 * 1024
 CANONICAL_RESULT_PREFIX = b'{"format":"canonical-result/1",'
@@ -53,6 +55,7 @@ class RunRequest(BaseModel):
     bid: int | None = Field(default=None, strict=True, ge=1, le=CASE["player_value"])
     action: str | None = Field(default=None, strict=True, min_length=1, max_length=48)
     parent_run_id: UUID | None = None
+    model_session_id: UUID | None = None
 
 
 class RunRequestV2(RunRequest):
@@ -77,6 +80,16 @@ class MultiRoleRequest(BaseModel):
     seed: int = Field(strict=True, ge=0, le=2**32 - 1)
     mode: Literal["live", "rule"]
     budget_micros: int | None = Field(default=None, strict=True, ge=1, le=100_000_000)
+    model_session_id: UUID | None = None
+
+
+class LocalModelRequest(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+    provider: str | None = Field(default=None, max_length=24)
+    api_key: str = Field(default="", max_length=1024)
+    workspace: str = Field(default="", max_length=64)
+    input_rate: Decimal | None = Field(default=None, ge=0, le=1000, decimal_places=6)
+    output_rate: Decimal | None = Field(default=None, ge=0, le=1000, decimal_places=6)
 
 
 class TutorLearningContext(BaseModel):
@@ -200,6 +213,12 @@ def get_case(case_id):
         raise HTTPException(422, "CASE_NOT_AVAILABLE") from error
 
 
+@app.get("/api/cases/{case_id}/package", response_model=domain.CasePackage)
+def published_case_package(case_id: str):
+    get_case(case_id)
+    return domain.case_packages()[case_id]
+
+
 @app.get("/api/cases/{case_id}/briefing")
 def case_briefing(case_id: str):
     definition = get_case(case_id)
@@ -294,6 +313,40 @@ def require_loopback(request: Request):
         raise HTTPException(403, "LIVE_LOCAL_ONLY")
 
 
+@app.get("/api/local-model")
+def local_model_status(request: Request):
+    require_loopback(request)
+    return JSONResponse(live_client.local_status(), headers={"Cache-Control": "no-store"})
+
+
+@app.post("/api/local-model")
+async def local_model_update(request: Request):
+    require_loopback(request)
+    if (not request.headers.get("origin") or request.headers.get("sec-fetch-site") == "cross-site"
+            or request.headers.get("content-type", "").partition(";")[0].strip() != "application/json"):
+        raise HTTPException(403, "LIVE_LOCAL_ONLY")
+    body = bytearray()
+    async for chunk in request.stream():
+        if len(body) + len(chunk) > 4096:
+            raise HTTPException(413, "INVALID_LOCAL_MODEL")
+        body.extend(chunk)
+    try:
+        payload = LocalModelRequest.model_validate_json(body)
+        if payload.provider is None and payload.model_fields_set:
+            raise ValueError("clear requires an empty object")
+        live_client.configure_local(payload.provider, payload.api_key.strip(), payload.workspace.strip(),
+                                    payload.input_rate, payload.output_rate)
+    except (ValidationError, ValueError):
+        raise HTTPException(422, "INVALID_LOCAL_MODEL") from None
+    return local_model_status(request)
+
+
+def require_model_session(providers, session_id):
+    expected = providers[0].session_id if providers else None
+    if expected != (str(session_id) if session_id is not None else None):
+        raise HTTPException(409, "MODEL_CONFIGURATION_CHANGED")
+
+
 def multi_role_action(name, *args, **kwargs):
     try:
         return getattr(live_l2.LiveLab(connect), name)(*args, **kwargs)
@@ -312,9 +365,14 @@ def multi_role_create(payload: MultiRoleRequest, request: Request):
     case = get_case(payload.case_id)
     if payload.case_id not in live_l2.PLANNED or payload.action not in {x["id"] for x in case["action"]["options"]}:
         raise HTTPException(422, "INVALID_ACTION")
-    if payload.mode == "live" and not live_l2.capabilities()["available"]:
-        raise HTTPException(503, "LIVE_NOT_CONFIGURED")
-    data = payload.model_dump(exclude={"request_id"})
+    if payload.mode == "live":
+        providers = live_l2.admitted_providers()
+        require_model_session(providers, payload.model_session_id)
+        if not providers:
+            raise HTTPException(503, "LIVE_NOT_CONFIGURED")
+    data = payload.model_dump(mode="json", exclude={"request_id", "model_session_id"})
+    if payload.mode == "live" and payload.model_session_id:
+        data["model_session_id"] = str(payload.model_session_id)
     return multi_role_action("create", str(payload.request_id), data)
 
 
@@ -391,7 +449,9 @@ def create(request: RunRequest | RunRequestV2, http: Request):
         raise HTTPException(422, "INVALID_ACTION")
     if request.provider_kind == "live":
         require_loopback(http)
-        if request.case_id not in live.LIVE_CASES or not live.configured():
+        providers = live.configured()
+        require_model_session(providers, request.model_session_id)
+        if request.case_id not in live.LIVE_CASES or not providers:
             raise HTTPException(503, "LIVE_NOT_CONFIGURED")
         if request.scenario_id != "baseline" or request.parent_run_id:
             raise HTTPException(422, "LIVE_BASELINE_ONLY")
@@ -410,7 +470,9 @@ def create(request: RunRequest | RunRequestV2, http: Request):
             raise HTTPException(422, "PRESET_NOT_AVAILABLE")
         replay(request)
     key = str(request.request_id)
-    payload = request.model_dump(mode="json", exclude={"request_id", "action" if is_auction else "bid"})
+    payload = request.model_dump(mode="json", exclude={"request_id", "model_session_id", "action" if is_auction else "bid"})
+    if request.provider_kind == "live" and request.model_session_id:
+        payload["model_session_id"] = str(request.model_session_id)
     if versioned:
         payload["effective_parameters"] = parameters
         payload["seed_plan"] = parameter_specs.seed_plan(request.case_id, request.seed)
@@ -466,7 +528,9 @@ def start_live(key, http):
             return run
         if run["execution_status"] != "created":
             raise HTTPException(409, "RUN_ALREADY_TERMINAL")
-        if not live.configured():
+        providers = live.configured()
+        require_model_session(providers, run.get("model_session_id"))
+        if not providers:
             raise HTTPException(503, "LIVE_NOT_CONFIGURED")
         live_l2.setup(conn)
         live_l2.recover(conn)
@@ -477,7 +541,7 @@ def start_live(key, http):
         conn.execute("UPDATE runs SET status='running' WHERE id=?", (str(key),))
         conn.execute("INSERT INTO live_jobs(run_id,started) VALUES(?,?)", (str(key), time()))
     lesson = get_case(run["case_id"])
-    session = live.DecisionSession(connect, key, lesson)
+    session = live.DecisionSession(connect, key, lesson, providers=providers)
     result = None
     try:
         result = session.attach(simulate(lesson, run["scenario_id"], run["seed"], run["action"], decide=session))
@@ -883,12 +947,73 @@ def rule_reference(key: UUID):
     }
 
 
+def normalized_run(run, case_version=None, engine_version=None):
+    if not run.get("result") or not run.get("case_version"):
+        raise HTTPException(409, "RUN_ENVELOPE_NOT_AVAILABLE")
+    if ((case_version is not None and case_version != run["case_version"]) or
+            (engine_version is not None and engine_version != run["result"].get("engine_version"))):
+        raise HTTPException(409, "RUN_VERSION_MISMATCH")
+    case_id = run["case_id"]
+    known = {ENGINE_VERSIONS[case_id], parameter_specs.EXTENDED_ENGINES.get(case_id)} - {None}
+    return domain.archived_envelope(run, get_case(case_id), CLOCKS.get(case_id), known)
+
+
+@app.get("/api/runs/{key}/envelope", response_model=domain.RunEnvelope)
+def run_envelope(key: UUID, case_version: str | None = None, engine_version: str | None = None):
+    return normalized_run(get_run(key), case_version, engine_version)
+
+
+@app.get("/api/runs/{key}/archive/evidence/{seq}", response_model=domain.Evidence)
+def archived_event_evidence(key: UUID, seq: int, scope: Literal["archive"]):
+    run = get_run(key)
+    envelope = normalized_run(run)
+    result = run["result"]
+    events = result["events"]
+    if run["execution_status"] not in {"completed", "cancelled"} or not 0 <= seq < len(events) or events[seq]["seq"] != seq:
+        raise HTTPException(404, "EVENT_NOT_AVAILABLE")
+    record = events[seq]
+    tick = record["tick"]
+    frames = result["snapshots"]
+    frame_tick = tick if 0 <= tick < len(frames) and frames[tick]["tick"] == tick else None
+    return domain.archived_evidence(envelope, record, frame_tick, events)
+
+
 @app.get("/api/runs/{key}/export")
 def export(key: UUID):
     return get_run(key)
 
 
+@app.get("/explore", include_in_schema=False)
+def explore_redirect(request: Request):
+    query = request.url.query
+    return RedirectResponse("/explore/" + ("?" + query if query else ""))
+
+
+EXPLORE_AVAILABLE = (EXPLORE_BUILD / "index.html").is_file()
+if EXPLORE_AVAILABLE:
+    app.mount("/explore", StaticFiles(directory=EXPLORE_BUILD, html=True), name="explore")
+else:
+    @app.get("/explore/", include_in_schema=False)
+    def explore_unavailable():
+        return HTMLResponse(
+            '<html lang="zh-CN"><meta charset="utf-8"><title>EcoSimEdu · 渐进课堂</title>'
+            '<main><h1>渐进课堂尚未构建</h1>'
+            '<p>请在本机运行 <code>npm --prefix frontend run build</code> 后重启教学服务。</p>'
+            '<a href="/">返回学生实验室</a></main></html>', status_code=503,
+        )
+
+
 if BUILD.is_dir():
+    @app.get("/", include_in_schema=False)
+    def student_home(request: Request):
+        params = request.query_params
+        has_legacy_link = any(key in params for key in ("case", "run", "event", "tick", "boundary", "model_case"))
+        if EXPLORE_AVAILABLE and not has_legacy_link and (
+            params.get("view") == "notes" or ("view" not in params and "lesson" in params)
+        ):
+            return explore_redirect(request)
+        return student_page()
+
     @app.get("/cases", include_in_schema=False)
     @app.get("/experiments/multi-role", include_in_schema=False)
     @app.get("/compare", include_in_schema=False)

@@ -560,6 +560,51 @@
         "explanation": "实付对应银行现金和存款负债的变化。供应链实际交货减少库存并履行实物订单，各有独立的计量单位。",
         "misconception_code": "liquidity_is_equity"
       }
+    },
+    {
+      "id": "svb-v2-harbor-bank",
+      "version": 1,
+      "variant_id": "svb-v2-harbor-bank",
+      "family_id": "svb_run.1",
+      "outcome_ids": [
+        "svb_run.1"
+      ],
+      "kind": "single_choice",
+      "prompt": "假想的青湾银行今天可用现金 10，持有证券市值 32、贷款 50，负有存款 72 和借款 10。今日新申请 18，此前没有待付。今日无法出售或再融资。按已给定的账表与结算规则，哪项解释成立？所有金额均为教学资金单位。",
+      "context": {
+        "kind": "authored_model_exercise"
+      },
+      "assessment_role": "transfer",
+      "response_schema": {
+        "options": [
+          {
+            "id": "positive-equity-queue",
+            "label": "净资产为正，今日最多能支付 10，至少留下 8 待付。"
+          },
+          {
+            "id": "insolvent",
+            "label": "现金只有 10，低于申请 18，所以净资产一定为负。"
+          },
+          {
+            "id": "all-paid",
+            "label": "现金和证券市值合计超过 18，因此今天的申请会全部到账。"
+          },
+          {
+            "id": "borrowing-equity",
+            "label": "只要明天借入 8，净资产就会立即增加 8。"
+          }
+        ]
+      },
+      "evaluator": {
+        "id": "choice_v1",
+        "version": 1,
+        "answer": "positive-equity-queue"
+      },
+      "feedback": {
+        "hint": "分别核对到期可用现金与资产减负债。",
+        "explanation": "初始净资产 = 10 + 32 + 50 − 72 − 10 = 10。今天可用现金只有 10，若全额用于兑付，则支付 10、待付 8；支付使现金与存款同减，净资产仍为 10。借款增加现金也增加负债。换一家银行时，需要另行核对能否在到期前融资或变现。",
+        "misconception_code": "liquidity_is_equity"
+      }
     }
   ],
   "activities": [
@@ -744,6 +789,20 @@
       "content_ref": "em-svb-run-notebook",
       "assessment_item_ids": [
         "em-svb-run-notebook"
+      ],
+      "completion_rule": "submit_or_skip",
+      "next_activity_id": "svb-v2-harbor-bank"
+    },
+    {
+      "id": "svb-v2-harbor-bank",
+      "phase": "notebook",
+      "kind": "assessment",
+      "outcome_ids": [
+        "svb_run.1"
+      ],
+      "content_ref": "svb-v2-harbor-bank",
+      "assessment_item_ids": [
+        "svb-v2-harbor-bank"
       ],
       "completion_rule": "submit_or_skip",
       "next_activity_id": null

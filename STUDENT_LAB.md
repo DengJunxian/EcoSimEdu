@@ -10,7 +10,7 @@
 .venv/bin/python -m uvicorn services.simulation.api:app --host 127.0.0.1 --port 8776
 ```
 
-用浏览器打开 [学习首页](http://127.0.0.1:8776/)。可直接进入[新版双向拍卖](http://127.0.0.1:8776/learn/double_auction)、[SVB 挤兑](http://127.0.0.1:8776/learn/svb_run)或[居住隔离](http://127.0.0.1:8776/learn/schelling_segregation)，在[案例库](http://127.0.0.1:8776/cases)选择其他课程，在[实验笔记](http://127.0.0.1:8776/notes)查看新旧记录、导出或恢复新版 JSON。原版双向拍卖仍可通过[旧课堂入口](http://127.0.0.1:8776/?case=double_auction)打开。
+用浏览器打开 [学习首页](http://127.0.0.1:8776/)或同源的[渐进课堂](http://127.0.0.1:8776/explore/)。可直接进入[新版双向拍卖](http://127.0.0.1:8776/learn/double_auction)、[SVB 挤兑](http://127.0.0.1:8776/learn/svb_run)或[居住隔离](http://127.0.0.1:8776/learn/schelling_segregation)，在[案例库](http://127.0.0.1:8776/cases)选择其他课程，在[实验笔记](http://127.0.0.1:8776/notes)查看新旧记录、导出或恢复新版 JSON。原版双向拍卖仍可通过[旧课堂入口](http://127.0.0.1:8776/?case=double_auction)打开。
 
 升级后如已有服务在运行，请用原服务的环境配置、端口和数据库路径重启。浏览器按来源存储课堂草稿，同一主机名和端口才能读到原有本地进度。
 
@@ -23,14 +23,26 @@ uv venv --python 3.12 .venv
 uv pip sync --python .venv/bin/python requirements-edu.lock
 ```
 
-从源码检出或修改学生端后，使用 Node 22.12+（本次使用 Node 26）重新构建。
+从源码检出或修改学生端后，使用 Node 22.18+ 重新构建两套前端。
 
 ```sh
 npm --prefix student-web ci
 npm --prefix student-web run build
+npm --prefix frontend ci
+npm --prefix frontend run build
 ```
 
 安装并构建之后，学习仅需浏览器和本地 Python 服务。服务使用 `.civitas-edu/runs.sqlite3` 保存运行，可用 `CIVITAS_EDU_DB` 指定其他路径。浏览器本地保存学习笔记。跨浏览器恢复需要原始笔记 JSON 和原数据库。可在笔记页和实验工作台分别导出学习记录和完整运行。工作台的事件链接可在同一服务恢复观测时点。对照页的同步观察点以课程的期次、轮次或阶段为准。
+
+## 换地址后恢复已有学习
+
+在既有学习地址启动统一版，原浏览器档案会继续使用该地址的原站点存储。四阶与原课堂的记录格式各自保留。换主机名、协议、端口或浏览器档案时，按记录类型显式携带备份。
+
+1. 从原四阶静态地址的「实验笔记」导出四阶学习备份，在统一版的 `/explore/?view=notes` 导入。[旧独立静态地址的导出步骤](frontend/README.md#启动与验证)
+2. 从旧服务的 `/notes` 导出「作答记录」及各课「原始记录」。到统一版的 `/notes` 恢复 IndexedDB 作答及七阶笔记。更早的原通用课堂笔记从 `/?case=案例ID` 恢复。目标已有同一课堂的有效通用草稿时，先备份或使用另一浏览器档案。
+3. 笔记引用的运行由原 SQLite 保存。新服务继续使用原数据库，或用已有备份工具复制到一个新的数据库文件。恢复笔记前先核对运行链接。两个运行库都已有记录时，分别保留并用对应服务打开。[数据库备份与恢复](docs/developer-guide.md#备份恢复与校验)
+
+备份和导入均由用户发起，原站点的浏览器记录保留在原档案。已安装的单前端旧包可继续打开原实验室。构建两套前端并重启本地服务后，`/explore/` 才提供渐进课堂。
 
 ## 参数对照
 

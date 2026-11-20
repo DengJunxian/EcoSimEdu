@@ -31,12 +31,13 @@ def capabilities():
 
 
 class DecisionSession:
-    def __init__(self, connect, run_id, case, *, transport=None, pause=sleep):
+    def __init__(self, connect, run_id, case, *, providers=None, transport=None, pause=sleep):
         self.connect = connect
         self.run_id = str(run_id)
         self.case = case
         self.transport = transport or send
         self.pause = pause
+        self.providers = providers
         self.decisions = []
 
     def cancelled(self):
@@ -76,7 +77,7 @@ class DecisionSession:
                     "observation_hash": digest(packet), "attempts": [], "action": default, "source": "rule_fallback",
                     "reason": "missing_key"}
         self.decisions.append(decision)
-        providers = configured()
+        providers = configured() if self.providers is None else self.providers
         index = 0
         for attempt in range(MAX_ATTEMPTS):
             if index >= len(providers):
@@ -96,10 +97,13 @@ class DecisionSession:
                 reason = "action_out_of_bounds"
             if reason is None and not report["actual_model"]:
                 reason = "invalid_provider_response"
-            if self.cancelled():
-                reason = "cancelled"
             usage = report["usage"]
             consumed = cost_micros(provider, usage)
+            if provider.session_id and consumed is not None and (
+                    consumed > provider.reserve_micros or usage["output_tokens"] > provider.max_output):
+                reason = "usage_bound_exceeded"
+            if self.cancelled():
+                reason = "cancelled"
             if reason in {"observation_too_large", "missing_key"}:
                 consumed = 0
             with closing(self.connect()) as conn, conn:
@@ -109,7 +113,7 @@ class DecisionSession:
                 "request_id": report["request_id"], "response_id": report["response_id"], "usage": usage,
                 "started_at": started_at, "response_sha256": report.get("response_sha256"),
                 "cost": None if consumed is None else consumed / 1_000_000, "currency": provider.currency,
-                "pricing_basis": "published_peak_ceiling" if provider.name == "deepseek" else "published_standard",
+                "pricing_basis": provider.pricing_basis,
                 "pricing_date": provider.public()["pricing_date"], "reason": reason,
                 "provider_http_status": report.get("http_status"),
                 "prompt_hash": digest({"protocol": "lesson-action/1", "observation": packet, "allowed": allowed,

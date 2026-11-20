@@ -18,7 +18,7 @@ CORE = [
 ]
 SCRIPTS = ["audit_orca", "audit_student_accessibility", "benchmark_student_lab", "case_seed_matrix", "check_boundaries",
            "check_course_provenance", "check_lesson_catalog", "check_learning_packages", "generate_auction_presets",
-           "lab_backup", "package_student_lab", "validate_live_lab"]
+           "generate_case_packages", "lab_backup", "package_student_lab", "validate_live_lab"]
 KEY_PATTERN = re.compile(
     rb"sk-proj-[A-Za-z0-9_-]{40,}|sk-[0-9a-f]{32}\b|gh[pousr]_[A-Za-z0-9]{25,}|"
     rb"AKIA[A-Z0-9]{16}|-----BEGIN (?:RSA |EC |OPENSSH )?PRIVATE KEY-----"
@@ -31,15 +31,20 @@ def payload():
     paths.update(ROOT / name for name in ("PRODUCT.md", "STUDENT_LAB.md", "requirements-edu.lock",
                                           "requirements-edu-dev.lock", "docs/release/check_feedback.py"))
     for prefix, extensions in {
-        "cases": {".json", ".md", ".gz"}, "content": {".json"}, "docs": {".md", ".json", ".txt"},
+        "cases": {".json", ".md", ".gz"}, "content": {".json", ".ts", ".tsx", ".css"}, "docs": {".md", ".json", ".txt"},
         "schemas": {".json"}, "services/simulation": {".py"}, "tests": {".py", ".json"},
         "student-web/src": {".tsx", ".ts", ".css"}, "student-web/dist": {".html", ".js", ".css"},
+        "frontend/src": {".tsx", ".ts", ".css", ".json"}, "frontend/dist": {".html", ".js", ".css"},
+        "frontend/tests": {".mjs", ".py"},
     }.items():
         paths.update(path for path in (ROOT / prefix).rglob("*")
                      if path.is_file() and path.suffix in extensions and not path.name.startswith("."))
     paths.update(ROOT / "student-web" / name for name in ("build.js", "index.html", "package.json", "package-lock.json", "tsconfig.json"))
-    if ROOT / "student-web/dist/index.html" not in paths:
-        raise SystemExit("Build the student assets first.")
+    paths.update(ROOT / "frontend" / name for name in ("vite.config.ts", "index.html", "package.json",
+                                                        "package-lock.json", "tsconfig.json", "README.md", "MIGRATION.md"))
+    for app in ("student-web", "frontend"):
+        if ROOT / app / "dist/index.html" not in paths:
+            raise SystemExit(f"Build {app} assets first.")
     return sorted(paths)
 
 
@@ -63,7 +68,7 @@ def pack(output):
             raise SystemExit(f"Credential-shaped content found in {name}")
         entries[name] = {"bytes": len(data), "sha256": checksum(data)}
         contents[name] = data
-    source = {name: record for name, record in entries.items() if not name.startswith("student-web/dist/")}
+    source = {name: record for name, record in entries.items() if not name.startswith(("student-web/dist/", "frontend/dist/"))}
     manifest = {
         "release_version": VERSION,
         "upstream_head": check_output(["git", "rev-parse", "HEAD"], cwd=ROOT, text=True).strip(),

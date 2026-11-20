@@ -1,14 +1,16 @@
+import type { BrowserPanelProps, BrowserPanelView } from "../../../../content/domain-panel";
 import { useState } from "react";
 import { FeedbackExplanation } from "../../emergence/feedback-explanation";
 import { LedgerEvidence } from "../../emergence/trace-view";
 import { showValue } from "../../lesson-view";
 import type { DomainPanelProps, FlagshipView } from "../../learning/flagship-types";
 import type { Scalar } from "../../lesson-types";
+import { QualityBreakdown, SchoolSeats } from "../../../../content/information-ui";
 import "./panels.css";
 
 type RunEvent = FlagshipView["events"][number];
-const earlier = (view: FlagshipView) => view.events.slice(0, view.tick + 1);
-const current = (view: FlagshipView) => view.events[view.tick];
+const earlier = (view: BrowserPanelView) => view.events.slice(0, view.tick + 1);
+const current = (view: BrowserPanelView) => view.events[view.tick];
 const value = (item: Scalar | undefined) => typeof item === "number" ? showValue(item) : (item ?? "—").toString();
 
 function Facts({ rows }: { rows: [string, Scalar | undefined][] }) {
@@ -62,12 +64,7 @@ export function LemonsPanel({ stage, action, view, comparison, pinned, pin, seek
     <div className="allocation-split">
       <section>
         <h3>开盘挂牌分布</h3>
-        <ul className="lemon-quality">
-          {Object.entries(distribution).map(([quality, count]) => <li key={quality} aria-label={`质量 ${quality}，${count} 件`}>
-            <span>质量 {quality}</span><meter min={0} max={Math.max(...Object.values(distribution), 1)} value={count}
-              aria-label={`质量 ${quality} 的挂牌数量`}/><strong>{count}</strong>
-          </li>)}
-        </ul>
+        <QualityBreakdown distribution={distribution}/>
         <Facts rows={[[ "当前混合报价（代币）", currentPrice ?? "暂无" ],
           [ "当前愿售（件）", view.frame.metrics.willing_supply ], [ "实际交割（件）", view.frame.metrics.traded ]]}/>
       </section>
@@ -164,16 +161,11 @@ export function MatchingPanel({ stage, action, briefing, view, comparison, pinne
 
   return <section className="allocation-panel" aria-label="志愿与席位">
     <h2>志愿与席位</h2>
-    <div className="matching-seats" role="group" aria-label="三所学校席位">
-      {seats.map(school => {
-        const state = view.frame.entities[school];
-        const held = String(state["席位名单"] || "").split("、").filter(Boolean);
-        return <button type="button" key={school} aria-pressed={school === openSchool}
-          onClick={() => setOpenSchool(school)}>
-          <strong>{school} 校</strong><span>{seatStatus} {held.length} / {String(state["容量"])}</span>
-        </button>;
-      })}
-    </div>
+    <SchoolSeats active={openSchool} select={setOpenSchool} schools={seats.map(id => {
+      const state = view.frame.entities[id];
+      const held = String(state["席位名单"] || "").split("、").filter(Boolean);
+      return { id, status: seatStatus, used: held.length, capacity: String(state["容量"]) };
+    })}/>
     <p><strong>{openSchool} 校席位</strong> · {view.frame.entities[openSchool]["席位名单"] || "当前无占位"}</p>
     <details><summary>{openSchool} 校优先顺序</summary>
       <p>{String(view.frame.entities[openSchool]["学校优先序"]).replaceAll(" > ", " → ")}</p>
@@ -242,8 +234,9 @@ function variance(values: number[]) {
   return values.reduce((total, item) => total + (item - average) ** 2, 0) / values.length;
 }
 
-export function BeerPanel(props: DomainPanelProps) {
+export function BeerPanel(props: DomainPanelProps | BrowserPanelProps) {
   const { stage, action, view, comparison, pinned, pin, seek, cite } = props;
+  const legacy = "briefing" in props ? props : undefined;
   if (!view) {
     if (stage !== "intro" && stage !== "predict" && stage !== "bid") return null;
     return <section className="allocation-panel" aria-label="四级供应链的开局">
@@ -272,7 +265,7 @@ export function BeerPanel(props: DomainPanelProps) {
   const arrivals = ((active.arrivals ?? []) as Batch[]).filter(row => row.receiver === role);
   const dispatches = ((active.dispatches ?? []) as Batch[]).filter(row => row.sender === role || (role === "工厂" && row.sender === "生产"));
   const physical = batches.filter(row => row.receiver === role).reduce((total, batch) => total + batch.amount, 0);
-  const inPipeline = Number(state["全部已订未到"]);
+  const inPipeline = Number(state["全部已订未到"] ?? state["已订未到"]);
   const quantity = (row: Batch) => `${row.amount} 件，计划第 ${row.due} 周到货`;
   const source = (batch: Batch) => batch.origin_seq === undefined ?
     <span>开局已发出的批次</span> :
@@ -284,7 +277,11 @@ export function BeerPanel(props: DomainPanelProps) {
   const demandVariance = variance(weeks.map(event => (event.demand_received as Record<string, number>)?.["零售商"]));
   const shipped = role === "零售商" ? Number(active.delivered) - Number(visibleEvents.at(-2)?.delivered) :
     dispatches.filter(batch => batch.sender === role).reduce((total, batch) => total + batch.amount, 0);
-  const stock = Number(prior?.["期末库存"]), arrivalsTotal = Number(state["本周到货"]);
+  const priorStock = prior?.["期末库存"] ?? prior?.["期初库存"];
+  const stock = Number(priorStock), arrivalsTotal = Number(state["本周到货"]);
+  const inventory = state["期末库存"] ?? state["期初库存"];
+  const position = state["库存位置"] ?? (typeof inventory === "number" && typeof state["期末积压"] === "number"
+    ? inventory + inPipeline - state["期末积压"] : undefined);
   const verified = !!prior && stock + arrivalsTotal - shipped === state["期末库存"];
 
   return <section className="allocation-panel" aria-label="订单与实物在途">
@@ -293,15 +290,15 @@ export function BeerPanel(props: DomainPanelProps) {
     <ol className="beer-chain">{chain.map(name => {
       const item = view.frame.entities[name];
       return <li key={name}><button type="button" aria-pressed={name === role} onClick={() => pin(name)}>
-        <strong>{name}</strong><span>库存 {value(item["期末库存"])} · 积压 {value(item["期末积压"])}</span>
+        <strong>{name}</strong><span>库存 {value(item["期末库存"] ?? item["期初库存"])} · 积压 {value(item["期末积压"])}</span>
       </button></li>;
     })}</ol>
     <div className="allocation-split">
       <section aria-label={`${role} 的周账本`}>
         <h3>{role} · {week ? `第 ${week} 周` : "开局"}</h3>
-        <Facts rows={[[ "周初库存", prior?.["期末库存"] ], [ "实际到货", state["本周到货"] ], [ "本周需求", state["本周需求"] ],
+        <Facts rows={[[ "周初库存", priorStock ], [ "实际到货", state["本周到货"] ], [ "本周需求", state["本周需求"] ?? state["本周实际需求"] ],
           [ "周末库存", state["期末库存"] ], [ "周末积压", state["期末积压"] ], [ "本周下单", state["本周下单"] ]]}/>
-        <p>库存位置 {value(state["库存位置"])} ＝ 库存 {value(state["期末库存"])} ＋ 已订未到 {inPipeline}
+        <p>库存位置 {value(position)} ＝ 库存 {value(inventory)} ＋ 已订未到 {inPipeline}
           − 积压 {value(state["期末积压"])}。</p>
         <p>其中实物在途 {physical} 件，已订待发 {inPipeline - physical} 件。</p>
         {verified && <p><strong>算术恒等式</strong> · 期末库存 {stock}（期初）＋ {arrivalsTotal}（到货）
@@ -316,7 +313,7 @@ export function BeerPanel(props: DomainPanelProps) {
         {dispatches.length > 0 && <details><summary>本周发出的批次</summary>
           <ul>{dispatches.map((batch, index) => <li key={index}>{batch.sender} 到 {batch.receiver}，{quantity(batch)}。</li>)}</ul>
         </details>}
-        {active.event_type === "week_end" && <button onClick={() => cite(active.seq, role)}>引用这一周</button>}
+        {active.event_type === "week_end" && cite && <button onClick={() => cite(active.seq, role)}>引用这一周</button>}
       </section>
     </div>
     <div className="toolbar">
@@ -337,8 +334,8 @@ export function BeerPanel(props: DomainPanelProps) {
         </button></li>)}</ul>
       </details>}
     </details>
-    <LedgerEvidence view={view} metric="retail_stock" actor={role} seek={tick => seek(tick)} initialOpen={props.explore}/>
-    {stage === "explain" && <FeedbackExplanation {...props} view={view} eventType="week_end"
+    {legacy?.view && <LedgerEvidence view={legacy.view} metric="retail_stock" actor={role} seek={tick => seek(tick)} initialOpen={legacy.explore}/>}
+    {stage === "explain" && legacy?.view && <FeedbackExplanation {...legacy} view={legacy.view} eventType="week_end"
       prompt="用一个有周账本证据的环节说明：哪些订单尚未收到、实际发货怎样改变库存或积压、这种状态怎样反馈到后续订单？给出一份能检验另一种解释的对照。"/>}
   </section>;
 }

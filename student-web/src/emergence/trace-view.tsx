@@ -3,9 +3,10 @@ import { api } from "../contracts";
 import type { SourceRef } from "../learning/flagship-study";
 import type { FlagshipView } from "../learning/flagship-types";
 import { showValue } from "../lesson-view";
+import { missingEvidence, visibleTick, type ObservationPerspective } from "../../../content/microscope";
 import "./studio.css";
 
-export type Perspective = "system" | "role";
+export type Perspective = ObservationPerspective;
 type Node = {
   id: string; kind: string; label: string; value: number | null; unit: string | null;
   source_refs: SourceRef[];
@@ -32,7 +33,9 @@ export function useTrace(view: TraceFocus, metric: string, perspective: Perspect
     api<Trace>(path, undefined, abort.signal).then(trace => {
       if (abort.signal.aborted) return;
       if (trace.case_id !== caseId || trace.run_id !== runId || trace.result_hash !== hash || trace.as_of_seq !== tick ||
-          trace.focus.event_seq !== tick || trace.focus.metric_id !== metric || trace.perspective !== perspective) {
+          trace.focus.event_seq !== tick || trace.focus.metric_id !== metric || trace.perspective !== perspective ||
+          [...trace.nodes, ...trace.edges].some(item => item.source_refs.some(ref =>
+            ref.run_id !== runId || ref.result_hash !== hash || !visibleTick(ref.seq, tick)))) {
         throw new Error("事件证据与当前运行焦点不一致。");
       }
       setResponse({ path, trace });
@@ -86,7 +89,7 @@ export function TraceLenses({ trace, perspective, seek, only }: { trace?: Trace;
       <p>事件 {trace.focus.event_seq}{trace.focus.economic_time != null &&
         (trace.focus.economic_time === 0 ? " · 开局" : ` · 第 ${trace.focus.economic_time} ${
           ({ round: "轮", week: "周", turn: "位" } as Record<string, string>)[trace.focus.clock] ?? "观察点"}`)}</p>
-      {visible.length ? ledger(visible) : <p>这个时点没有该镜头可核对的记录。</p>}
+      {visible.length ? ledger(visible) : <p>{missingEvidence}</p>}
       {nodes.length > visible.length && <details><summary>查看其余 {nodes.length - visible.length} 条记录</summary>
         {ledger(nodes.slice(visible.length))}
       </details>}

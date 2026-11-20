@@ -1,6 +1,6 @@
 # 开发、配置与本地交付
 
-学生端 React 构建产物由同一个 FastAPI 服务提供。Python 3.12 运行依赖锁见 `requirements-edu.lock`，测试依赖锁见 `requirements-edu-dev.lock`。修改前端时用 `npm --prefix student-web ci` 和 `npm --prefix student-web run build`。默认 SQLite 文件为 `.civitas-edu/runs.sqlite3`，可用 `CIVITAS_EDU_DB` 设置绝对路径。服务监听 `127.0.0.1`。
+两套学生端 React 构建产物由同一个 FastAPI 服务提供，原实验室使用 `/`，渐进课堂使用 `/explore/`。Python 3.12 运行依赖锁见 `requirements-edu.lock`，测试依赖锁见 `requirements-edu-dev.lock`。使用两套锁文件分别运行 `npm --prefix student-web ci`、`npm --prefix frontend ci` 和对应的 `run build`，再启动服务。默认 SQLite 文件为 `.civitas-edu/runs.sqlite3`，可用 `CIVITAS_EDU_DB` 设置绝对路径。服务监听 `127.0.0.1`。
 
 ## 模型配置示例
 

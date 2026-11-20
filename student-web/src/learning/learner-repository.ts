@@ -10,6 +10,19 @@ const emptyExposure: Exposure = {
   max_hint_level: 0, answer_seen: false, exemplar_seen: false, prior_feedback_for_variant: false, exposure_unknown: false,
 };
 const unknownExposures = new Set<string>();
+const unknownExposurePrefix = "civitas/exposure-unknown/";
+
+export function unsavedExposureIds() {
+  const ids = new Set(unknownExposures);
+  try {
+    for (const key of Object.keys(localStorage)) {
+      if (key.startsWith(unknownExposurePrefix) && localStorage.getItem(key) === "true") {
+        ids.add(key.slice(unknownExposurePrefix.length));
+      }
+    }
+  } catch { /* In-memory flags still apply until the tab closes. */ }
+  return ids;
+}
 
 export function result<T>(request: IDBRequest<T>) {
   return new Promise<T>((resolve, reject) => {
@@ -69,9 +82,10 @@ export async function profileId(demo: boolean) {
   });
 }
 
-export function emptySession(pack: LearningPackage, profile: string): SessionState {
+export function emptySession(pack: LearningPackage, profile: string, demo = false): SessionState {
   return {
     id: JSON.stringify([profile, pack.case_id, pack.content_version]), schema_version: 1, local_profile_id: profile,
+    ...(demo ? { demo: true as const } : {}),
     case_id: pack.case_id, content_version: pack.content_version, accessible_activity_ids: [],
     activity_states: {}, phase_cursor: {}, return_stack: [],
   };
@@ -81,44 +95,46 @@ export async function readSession(base: SessionState) {
   return transact(["sessions", "attempts"], "readonly", async tx => {
     const saved = await result(tx.objectStore("sessions").get(base.id)) as SessionState | undefined;
     const attempts = await result(tx.objectStore("attempts").index("session").getAll(base.id)) as Attempt[];
-    return { session: saved ?? base, attempts: attempts.sort((a, b) => a.submitted_at.localeCompare(b.submitted_at)) };
+    return { session: { ...base, ...saved }, attempts: attempts.sort((a, b) => a.submitted_at.localeCompare(b.submitted_at)) };
   });
 }
 
 export async function changeSession(base: SessionState, change: (state: SessionState) => SessionState) {
   return transact(["sessions"], "readwrite", async tx => {
     const sessions = tx.objectStore("sessions");
-    const state = change(await result(sessions.get(base.id)) as SessionState ?? base);
+    const saved = await result(sessions.get(base.id)) as SessionState | undefined;
+    const state = change({ ...base, ...saved });
     await result(sessions.put(state));
     return state;
   });
 }
 
 function exposureKey(session: SessionState, item: Item) {
-  // Help in a demo still exposes the variant to the same browser.
-  return JSON.stringify([session.case_id, item.variant_id]);
+  // Keep the portable personal key and all previously recorded exposures.
+  return JSON.stringify(session.demo ? ["demo", session.local_profile_id, session.case_id, item.variant_id] :
+    [session.case_id, item.variant_id]);
 }
 
 export function markUnsavedExposure(session: SessionState, item: Item) {
   const id = exposureKey(session, item);
   unknownExposures.add(id);
-  try { localStorage.setItem("civitas/exposure-unknown/" + id, "true"); } catch { /* Storage may be unavailable. */ }
+  try { localStorage.setItem(unknownExposurePrefix + id, "true"); } catch { /* Storage may be unavailable. */ }
 }
 
 async function readExposure(store: IDBObjectStore, id: string): Promise<Exposure> {
   let unknown = unknownExposures.has(id);
-  try { unknown ||= localStorage.getItem("civitas/exposure-unknown/" + id) === "true"; } catch { unknown = true; }
+  try { unknown ||= localStorage.getItem(unknownExposurePrefix + id) === "true"; } catch { unknown = true; }
   const saved = await result(store.get(id)) as Exposure | undefined;
   return { ...emptyExposure, ...saved, exposure_unknown: unknown || !!saved?.exposure_unknown };
 }
 
-export async function expose(session: SessionState, item: Item, kind: "hint" | "answer" | "example") {
+export async function expose(session: SessionState, item: Item, kind: "hint" | "answer" | "example", hintLevel: 1 | 2 = 1) {
   const id = exposureKey(session, item);
   await transact(["exposures"], "readwrite", async tx => {
     const exposures = tx.objectStore("exposures");
     const current = await readExposure(exposures, id);
     await result(exposures.put({
-      ...current, id, max_hint_level: kind === "hint" ? Math.max(current.max_hint_level, 1) : current.max_hint_level,
+      ...current, id, max_hint_level: kind === "hint" ? Math.max(current.max_hint_level, hintLevel) : current.max_hint_level,
       answer_seen: current.answer_seen || kind === "answer", exemplar_seen: current.exemplar_seen || kind === "example",
       solution_seen_at: current.solution_seen_at ?? (kind === "hint" ? undefined : new Date().toISOString()),
     }));
@@ -127,7 +143,7 @@ export async function expose(session: SessionState, item: Item, kind: "hint" | "
 
 export async function submitAttempt(
   base: SessionState, activity: Activity, item: Item, response: Response, presentedOrder: string[], reviewId?: string,
-  sourceRefs: SourceRef[] = [], unknown = false,
+  sourceRefs: SourceRef[] = [], unknown = false, keepCurrent = false,
 ) {
   const id = exposureKey(base, item);
   return transact(["attempts", "exposures", "sessions", "reviews"], "readwrite", async tx => {
@@ -146,9 +162,10 @@ export async function submitAttempt(
         exposure.answer_seen || exposure.exemplar_seen || exposure.max_hint_level || exposure.exposure_unknown ? "assisted" : "independent",
     };
     const sessions = tx.objectStore("sessions");
-    const current = await result(sessions.get(base.id)) as SessionState ?? base;
+    const existing = await result(sessions.get(base.id)) as SessionState | undefined;
+    const current = { ...base, ...existing };
     const session: SessionState = { ...current,
-      ...(activity.kind === "review" || unknown ? {} : { current_activity_id: activity.id }),
+      ...(activity.kind === "review" || unknown || keepCurrent ? {} : { current_activity_id: activity.id }),
       accessible_activity_ids: Array.from(new Set([...current.accessible_activity_ids, activity.id])),
       activity_states: { ...current.activity_states, [activity.id]: "submitted" } };
     await result(tx.objectStore("attempts").add(attempt));

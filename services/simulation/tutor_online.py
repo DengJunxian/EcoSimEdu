@@ -14,7 +14,7 @@ ORDERS = {
 
 def provider():
     if os.environ.get("CIVITAS_TUTOR_ONLINE_ENABLED") == "1":
-        return next(iter(live_client.configured()), None)
+        return next(iter(live_client.configured_environment()), None)
     return None
 
 

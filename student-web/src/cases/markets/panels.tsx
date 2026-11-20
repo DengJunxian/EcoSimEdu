@@ -1,22 +1,24 @@
+import type { BrowserPanelProps, BrowserPanelView, DomainEvent } from "../../../../content/domain-panel";
 import { useId, useState } from "react";
-import type { DomainPanelProps, FlagshipView } from "../../learning/flagship-types";
+import type { DomainPanelProps } from "../../learning/flagship-types";
 import "./markets.css";
 
-type MarketEvent = FlagshipView["events"][number];
+type MarketEvent = DomainEvent;
 type Fact = string | number | boolean | null | undefined;
 
 const format = (value: Fact) => typeof value === "number" ? value.toLocaleString("zh-CN") : String(value ?? "—");
 const units = (value: Fact, unit: string) => value == null ? "—" : `${format(value)} ${unit}`;
 const cents = (value: unknown) => typeof value === "number" ? (value / 100).toFixed(2) : "—";
-const visibleEvents = (view: FlagshipView) => view.events.slice(0, view.tick + 1);
-const valueAt = (view: FlagshipView, metric: string) => view.frame.metrics[metric];
+const visibleEvents = (view: BrowserPanelView) => view.events.slice(0, view.tick + 1);
+const valueAt = (view: BrowserPanelView, metric: string) => view.frame.metrics[metric];
 const actions = {
   carbon_market: "调拨发生在发行阶段。你的选择改变 F01 和 F08 初始持有的分布，行业发行总量沿用本场上限。",
   flash_crash: "做市者在开局设置本场净增库存门槛。达到门槛后，启用库存撤单规则的情景会撤回余量。",
   gamestop: "学生首轮可下 2 股、每股 12 美元限价买单，或保留现金。是否成交由同一订单簿处理。",
 };
 
-function ActionPreview({ course, action }: DomainPanelProps) {
+function ActionPreview({ course, action }: BrowserPanelProps) {
+  if (!course) return null;
   return <section className="market-panel">
     <h2>本场行动</h2>
     <p>{actions[course.case_id as keyof typeof actions]}</p>
@@ -30,7 +32,7 @@ function Facts({ values }: { values: [string, Fact][] }) {
   </dl>;
 }
 
-function EventLinks({ events, entries, seek }: Pick<DomainPanelProps, "seek"> & {
+function EventLinks({ events, entries, seek }: Pick<BrowserPanelProps, "seek"> & {
   events: MarketEvent[]; entries: [string, string][];
 }) {
   const hits = entries.flatMap(([kind, label]) => {
@@ -44,7 +46,7 @@ function EventLinks({ events, entries, seek }: Pick<DomainPanelProps, "seek"> & 
 }
 
 function ArmFacts({ view, comparison, facts }: {
-  view: FlagshipView; comparison: FlagshipView; facts: (arm: FlagshipView) => [string, Fact][];
+  view: BrowserPanelView; comparison: BrowserPanelView; facts: (arm: BrowserPanelView) => [string, Fact][];
 }) {
   return <div className="market-arms">
     <div><h3>基准</h3><Facts values={facts(view)}/></div>
@@ -52,7 +54,7 @@ function ArmFacts({ view, comparison, facts }: {
   </div>;
 }
 
-export function CarbonPanel(props: DomainPanelProps) {
+export function CarbonPanel(props: DomainPanelProps | BrowserPanelProps) {
   const { view, comparison, pinned, pin, seek, cite, stage } = props;
   const [tonne, setTonne] = useState(1);
   const [permit, setPermit] = useState("");
@@ -71,9 +73,13 @@ export function CarbonPanel(props: DomainPanelProps) {
   const count = Number(entity["基准排放"]);
   const coefficient = Number(entity["成本系数"]);
   const selectedTonne = Math.min(count, tonne);
-  const firmFacts = (arm: FlagshipView): [string, Fact][] => {
+  const firmFacts = (arm: BrowserPanelView): [string, Fact][] => {
     const row = arm.frame.entities[actor];
-    return ["免费配额", "计划减排", "方案减排成本", "配额净支付", "方案净成本"].map(key => [key, row?.[key]]);
+    const cost = row?.["方案减排成本"], payment = row?.["配额净支付"];
+    const total = row?.["方案净成本"] ??
+      (typeof cost === "number" && typeof payment === "number" ? cost + payment : undefined);
+    return [...["免费配额", "计划减排", "方案减排成本", "配额净支付"].map(key => [key, row?.[key]] as [string, Fact]),
+      ["方案净成本", total]];
   };
   const permitIds = current && Array.isArray(current.permits) ? current.permits as string[] : [];
   const allocation = issue?.issue as Record<string, string[]> | undefined;
@@ -120,7 +126,8 @@ export function CarbonPanel(props: DomainPanelProps) {
                   {availablePermits.map(id => <option key={id}>{id}</option>)}
                 </select></div>
               <p>发行时登记给 {actor}。</p>
-              <button className="text-button" onClick={() => cite(issue!.seq, actor)}>引用原发行</button>
+              {cite ? <button className="text-button" onClick={() => cite(issue!.seq, actor)}>引用原发行</button> :
+                <button className="text-button" onClick={() => seek(issue!.tick)}>回查配额发行 · 事件 {issue!.seq}</button>}
               {permitLifecycle.length > 0 && <ul className="market-events">{permitLifecycle.map(event => <li key={event.seq}>
                 <button className="text-button" onClick={() => seek(event.tick)}>定位事件 {event.seq}</button> {event.summary}
               </li>)}</ul>}
@@ -131,7 +138,7 @@ export function CarbonPanel(props: DomainPanelProps) {
       <div className="market-entry">
         <h3>当前位置的登记记录</h3><p>{current?.summary}</p>
         {permitIds.length > 0 && <p className="market-id-list">涉及编号 {permitIds.join("、")}</p>}
-        {current && ["issuance", "phase_end", "transfer", "surrender"].includes(current.event_type) &&
+        {cite && current && ["issuance", "phase_end", "transfer", "surrender"].includes(current.event_type) &&
           <button onClick={() => cite(current.seq)}>引用这条登记</button>}
       </div>
       {related.length ? <details><summary>{actor} 的配额转移与缴回（{related.length}）</summary>
@@ -144,7 +151,7 @@ export function CarbonPanel(props: DomainPanelProps) {
   </section>;
 }
 
-function DepthLadder({ view }: { view: FlagshipView }) {
+function DepthLadder({ view }: { view: BrowserPanelView }) {
   const book = Object.entries(view.frame.entities["订单簿"] ?? {}).filter((entry): entry is [string, number] => typeof entry[1] === "number");
   const max = Math.max(1, ...book.map(([, amount]) => amount));
   return <div className="market-depth" role="group" aria-label="可见的买卖档位">
@@ -160,7 +167,7 @@ function DepthLadder({ view }: { view: FlagshipView }) {
 }
 
 function TraceOrder({ orderId, events, seek }: {
-  orderId: unknown; events: MarketEvent[]; seek: DomainPanelProps["seek"];
+  orderId: unknown; events: MarketEvent[]; seek: BrowserPanelProps["seek"];
 }) {
   const submitted = events.find(event => event.event_type === "order_submitted" && event.order_id === orderId);
   if (!submitted) return null;
@@ -170,7 +177,7 @@ function TraceOrder({ orderId, events, seek }: {
 }
 
 function MarketAccount({ view, events, pinned, pin }: {
-  view: FlagshipView; events: MarketEvent[]; pinned: string; pin: DomainPanelProps["pin"];
+  view: BrowserPanelView; events: MarketEvent[]; pinned: string; pin: DomainPanelProps["pin"];
 }) {
   const id = useId();
   const actors = [...new Set([...Object.keys(view.frame.entities).filter(actor => actor !== "订单簿"),
@@ -188,7 +195,7 @@ function MarketAccount({ view, events, pinned, pin }: {
   </div>;
 }
 
-export function FlashCrashPanel(props: DomainPanelProps) {
+export function FlashCrashPanel(props: DomainPanelProps | BrowserPanelProps) {
   const { view, comparison, pinned, pin, seek, cite, stage } = props;
   if (!view) return stage === "predict" || stage === "bid" ? <ActionPreview {...props}/> : null;
   const events = visibleEvents(view);
@@ -197,7 +204,7 @@ export function FlashCrashPanel(props: DomainPanelProps) {
   const pause = events.filter(event => ["pause", "resume"].includes(event.event_type)).at(-1);
   const inventory = events.filter(event => event.event_type === "inventory_limit").at(-1);
   const recentTrade = events.filter(event => event.event_type === "trade").at(-1);
-  const marketFacts = (arm: FlagshipView): [string, Fact][] => [
+  const marketFacts = (arm: BrowserPanelView): [string, Fact][] => [
     ["买方挂单深度", units(valueAt(arm, "bid_depth"), "股")],
     ["累计成交", units(valueAt(arm, "volume"), "股")],
     ["程序待执行", units(valueAt(arm, "program_queued"), "股")],
@@ -207,6 +214,7 @@ export function FlashCrashPanel(props: DomainPanelProps) {
     ["买方挂单", `${format(view.previous?.metrics.bid_depth)} → ${format(valueAt(view, "bid_depth"))} 股`],
     ["累计成交", `${format(view.previous?.metrics.volume)} → ${format(valueAt(view, "volume"))} 股`],
     ["计划等待执行", `${format(view.previous?.metrics.program_queued)} → ${format(valueAt(view, "program_queued"))} 股`],
+    ...(current?.event_type === "cancel" ? [["本笔撤单", units(current.quantity as Fact, "股")]] as [string, Fact][] : []),
   ];
 
   return <section className="market-panel" aria-label="库存冲击与深度阶梯">
@@ -224,7 +232,7 @@ export function FlashCrashPanel(props: DomainPanelProps) {
           <button className="text-button" onClick={() => seek(inventory.tick)}>定位库存事件</button></p>}
         {pause && <p className="market-pause"><strong>{pause.event_type === "pause" ? "卖出程序暂停" : "恢复撮合"}</strong>
           {" "}{pause.summary}</p>}
-        {current && ["release", "trade", "cancel", "inventory_limit", "pause", "resume", "unfilled"].includes(current.event_type) &&
+        {cite && current && ["release", "trade", "cancel", "inventory_limit", "pause", "resume", "unfilled"].includes(current.event_type) &&
           <button onClick={() => cite(current.seq)}>引用此市场事件</button>}
         {current && <div className="toolbar">
           {current.event_type === "trade" && <><TraceOrder orderId={current.buy_order_id} events={events} seek={seek}/>
@@ -235,8 +243,13 @@ export function FlashCrashPanel(props: DomainPanelProps) {
     </div>
     {comparison ? <div className="market-arms">
       {([view, comparison] as const).map((arm, index) => {
-        const state = visibleEvents(arm).filter(event => ["pause", "resume"].includes(event.event_type)).at(-1);
-        return <p key={arm.run_id}><strong>{index === 0 ? "基准" : "对照"}</strong> · {state?.summary ?? "当前未记录程序暂停。"}</p>;
+        const observed = visibleEvents(arm);
+        const state = observed.filter(event => ["pause", "resume"].includes(event.event_type)).at(-1);
+        const cancelled = observed.filter(event => event.event_type === "cancel")
+          .reduce((sum, event) => sum + Number(event.quantity), 0);
+        return <p key={arm.run_id}><strong>{index === 0 ? "基准" : "对照"}</strong> · {arm.origin === "browser_rule_engine" ?
+          `实际撤单 ${cancelled} 股，程序成交 ${format(valueAt(arm, "program_filled"))} 股。` :
+          state?.summary ?? "当前未记录程序暂停。"}</p>;
       })}
     </div> : <>
       <EventLinks events={events} entries={[["rest", "首张挂单"], ["release", "首次释放"], ["cancel", "首次撤单"], ["pause", "暂停"], ["resume", "恢复"]]} seek={seek}/>
@@ -246,7 +259,7 @@ export function FlashCrashPanel(props: DomainPanelProps) {
   </section>;
 }
 
-function summarizePurposes(events: MarketEvent[]) {
+function summarizePurposes(events: readonly MarketEvent[]) {
   const groups = new Map<string, { quantity: number, recent: MarketEvent }>();
   for (const event of events) {
     if (event.event_type !== "trade" || typeof event.quantity !== "number" || !event.purpose) continue;
@@ -255,7 +268,7 @@ function summarizePurposes(events: MarketEvent[]) {
   return groups;
 }
 
-export function GameStopPanel(props: DomainPanelProps) {
+export function GameStopPanel(props: DomainPanelProps | BrowserPanelProps) {
   const { view, comparison, pinned, pin, seek, cite, stage } = props;
   const [topic, setTopic] = useState("");
   const topicId = useId();
@@ -270,7 +283,7 @@ export function GameStopPanel(props: DomainPanelProps) {
   const loan = events.find(event => ["loan", "loan_blocked"].includes(event.event_type));
   const call = events.filter(event => event.event_type === "margin_call").at(-1);
   const returned = events.filter(event => event.event_type === "return");
-  const compareFacts = (arm: FlagshipView): [string, Fact][] => [
+  const compareFacts = (arm: BrowserPanelView): [string, Fact][] => [
     ["话题触达", units(valueAt(arm, "reach"), "人")], ["关注买入成交", units(valueAt(arm, "social_buys"), "股")],
     ["实际强制回补", units(valueAt(arm, "forced_cover"), "股")], ["待交还", units(valueAt(arm, "short_interest"), "股")],
   ];
@@ -315,7 +328,7 @@ export function GameStopPanel(props: DomainPanelProps) {
             ["实际借入", loan ? units(loan.quantity as Fact, "股") : "—"],
             ["累计归还", units(returned.reduce((sum, event) => sum + Number(event.quantity), 0), "股")],
             ["待交还", units(valueAt(view, "short_interest"), "股")],
-            ["借券账户现金（当帧）", units(borrower?.["现金（美元）"], "美元")],
+            ["借券账户现金（当帧）", units(borrower?.["现金（美元）"] ?? borrower?.["现金美元"], "美元")],
           ]}/>
           {loan && <button className="text-button" onClick={() => seek(loan.tick)}>定位借券记录 · 事件 {loan.seq}</button>}
           {call && <p>最近担保检查 · 以 {cents(call.mark_cents)} 美元估值 {format(call.debt as Fact)} 股，
@@ -326,7 +339,7 @@ export function GameStopPanel(props: DomainPanelProps) {
           <h3>当前事件</h3><p>{current?.summary}</p>
           {current?.event_type === "forward" && typeof current.origin_seq === "number" &&
             <button className="text-button" onClick={() => seek(current.origin_seq as number)}>回查原话题 · 事件 {current.origin_seq}</button>}
-          {current && ["message", "forward", "trade", "loan", "loan_blocked", "margin_call", "return"].includes(current.event_type) &&
+          {cite && current && ["message", "forward", "trade", "loan", "loan_blocked", "margin_call", "return"].includes(current.event_type) &&
             <button onClick={() => cite(current.seq)}>引用此模型事件</button>}
           <MarketAccount view={view} events={events} pinned={pinned} pin={pin}/>
         </div>

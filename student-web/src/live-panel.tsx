@@ -4,7 +4,7 @@ import { showValue } from "./lesson-view";
 
 export const liveCourses = ["svb_run", "information_cascade", "public_goods", "gamestop"];
 
-type Provider = { provider: string; model: string; currency: string; max_per_attempt: number };
+type Provider = { provider: string; model: string; currency: string; max_per_attempt: number; model_session_id?: string };
 export type LiveCapability = { available: boolean; cases: string[]; providers: Provider[];
   test_limits: Record<string, number>; attempts_per_run: number };
 type Attempt = {
@@ -18,7 +18,7 @@ export type LiveResult = {
   decisions: { actor_id: string; event_seq: number; action: string; source: string; changed_from_rule: boolean;
     reason: string | null; allowed: Record<string, string>; attempts: Attempt[] }[];
 };
-type Receipt = { run_id: string; case_id: string; action: string; execution_status: string; result?: { live?: LiveResult } };
+type Receipt = { run_id: string; case_id: string; action: string; execution_status: string; model_session_id?: string; result?: { live?: LiveResult } };
 type Reference = { case_id: string; run_id: string; action: string; seed: number;
   metrics: { id: string; label: string; unit: string; rule: number | null; advanced: number | null }[] };
 
@@ -28,7 +28,7 @@ const reasons: Record<string, string> = {
   network_error: "网络异常", provider_error: "供应商错误", action_out_of_bounds: "动作超出允许范围",
   invalid_model_output: "结构化动作无效", incomplete_or_refused: "响应不完整或拒绝",
   invalid_provider_response: "供应商响应格式异常", budget_limit: "预算不足", cancelled: "用户已取消",
-  missing_key: "服务端密钥未配置", observation_too_large: "观测超过请求上限",
+  usage_bound_exceeded: "供应商用量超过预留上界", missing_key: "密钥已清除或更新", observation_too_large: "观测超过请求上限",
 };
 
 export function LiveReceipt({ caseId, runId, result, cancelled = false }: {
@@ -48,7 +48,8 @@ export function LiveReceipt({ caseId, runId, result, cancelled = false }: {
           {attempt.reason ? ` · ${reasons[attempt.reason] ?? attempt.reason}` : ""}
           {attempt.usage ? ` · 输入 ${attempt.usage.input_tokens} / 输出 ${attempt.usage.output_tokens} tokens` : " · 用量未知"}
           {attempt.cost === null ? " · 计费未知" :
-            ` · ${attempt.pricing_basis === "published_peak_ceiling" ? "峰时价上估" : "公布费率估算"} ${attempt.currency} ${attempt.cost}`}
+            ` · ${attempt.pricing_basis === "user_configured_ceiling" ? "按设定费率估算" :
+              attempt.pricing_basis === "published_peak_ceiling" ? "峰时价上估" : "公布费率估算"} ${attempt.currency} ${attempt.cost}`}
         </li>)}</ul>}
     </div>)}
   </section>;
@@ -87,6 +88,7 @@ export function LivePanel({ caseId, seed, action, status, actionLabel }: {
   const key = `civitas/live/${caseId}`;
   const [capability, setCapability] = useState<LiveCapability>();
   const [pending, setPending] = useState(false);
+  const [approvedSession, setApprovedSession] = useState<string>();
   const [error, setError] = useState("");
   const [receipt, setReceipt] = useState<Receipt>();
   const [runId, setRunId] = useState(() => {
@@ -100,8 +102,9 @@ export function LivePanel({ caseId, seed, action, status, actionLabel }: {
   const cancelled = phase === "cancelled";
   const resetting = Boolean(runId && !receipt && !error);
   const canCancel = Boolean(runId && (phase === "created" || phase === "running"));
-  const resumeCreated = phase === "created" && receipt?.action === action;
   const connection = status ?? capability;
+  const modelSession = connection?.providers[0]?.model_session_id;
+  const resumeCreated = phase === "created" && receipt?.action === action && receipt.model_session_id === modelSession;
 
   useEffect(() => {
     if (status) return;
@@ -141,12 +144,13 @@ export function LivePanel({ caseId, seed, action, status, actionLabel }: {
   async function run() {
     setError("");
     setPending(true);
+    setApprovedSession(undefined);
     let id = resumeCreated && receipt ? receipt.run_id : "";
     try {
       if (!id) {
         id = crypto.randomUUID();
         const created = await api<Receipt>("/runs", { request_id: id, case_id: caseId, action, seed,
-          scenario_id: "baseline", provider_kind: "live" });
+          scenario_id: "baseline", provider_kind: "live", model_session_id: modelSession });
         try { localStorage.setItem(key, id); } catch { /* The current receipt remains visible. */ }
         setRunId(id);
         setReceipt(created);
@@ -168,10 +172,15 @@ export function LivePanel({ caseId, seed, action, status, actionLabel }: {
         单次实验预留不超过 {
           connection.providers.map(provider => `${provider.currency} ${Number((provider.max_per_attempt * connection.attempts_per_run).toFixed(6))}`).join(" / ")
         }。</p>
-      <button className={status ? "primary" : undefined} disabled={pending || inFlight || resetting} onClick={run}>
+      {modelSession && <p><label><input type="checkbox" checked={approvedSession === modelSession}
+        disabled={pending || inFlight} onChange={event => setApprovedSession(event.target.checked ? modelSession : undefined)}/>
+        同意本次调用供应商并承担费用</label></p>}
+      <button className={status ? "primary" : undefined}
+        disabled={pending || inFlight || resetting || (!!modelSession && approvedSession !== modelSession)} onClick={run}>
         {pending || inFlight ? "等待高级实验…" : resumeCreated ? "继续已创建的实验" : "运行高级实验"}
       </button>
-    </> : connection && <p>本机尚未启用模型服务。可继续使用基础实验和离线学习助手。</p>}
+    </> : connection && <p className="edu-status" data-tone="warning">本机尚未启用模型服务。
+      <a href="/#model-api">在首页配置模型 API</a>，或继续使用基础实验和离线学习助手。</p>}
     {canCancel && <button onClick={async () => {
       try { setReceipt(await api<Receipt>(`/runs/${runId}/cancel`, {})); }
       catch (problem) { setError(problem instanceof Error ? problem.message : "取消失败。"); }

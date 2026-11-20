@@ -424,6 +424,7 @@ export function AuctionLesson() {
         </>}
         <LearningActivities {...learning} phase={scene.id}/>
         <TutorPanel caseId="double_auction" runId={tutorView?.run_id} tick={tutorView?.tick} revealUntil={tutorView?.tick}
+          waitingForEvidence={(stage === 3 || stage === 4) && pending}
           scene={{ id: scene.id, actor: tutorView ? selectedActor || study.pinned : lesson.player_id,
             prediction: originalAnswer ?? prediction?.answer, evidence: study.evidence }}
           onSeek={tutorView ? seekEvidence : undefined}/>

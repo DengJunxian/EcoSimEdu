@@ -71,6 +71,26 @@ def inventory():
              "项目手工定义的动作及规则参数", "python -m scripts.check_boundaries")
     register("cases/learning-outcomes.json", "authored_learning_design", "1", CATALOG, "每门课三项目标",
              "项目编写的目标、任务与迁移映射", "python -m scripts.check_learning_packages")
+    register("cases/case-packages-v1.json", "derived_teaching_metadata", "1", CATALOG, "每门发布课一份领域契约",
+             "从案例身份、来源登记、学习包和显式指标定义生成",
+             "python -m scripts.generate_case_packages --check")
+    register("frontend/src/data/legacy-fingerprints.json", "computed_rule_receipt", "8fc8971", CATALOG,
+             "每个原浏览器运行 ID 一个证据摘要",
+             "在固定提交的原浏览器内核中运行支持的开局动作及处理，只保存摘要",
+             "node frontend/tests/generate_legacy_fingerprints.mjs <8fc8971 checkout>")
+    register("frontend/src/data/svb-opening.json", "teaching_input", "svb/1", ["svb_run"],
+             "固定种子的 60 名教学储户与集中、分散两种观察关系",
+             "从原 Python 内核提取合成开局与同种子打乱顺序。浏览器按相同邻接规则生成分散图",
+             "python -m frontend.tests.svb_parity")
+    register("frontend/src/data/paired-inputs.json", "teaching_input", "V2-08", [
+        case for case in CATALOG if case not in {"beer_game", "schelling_segregation"}
+    ], "每课额外两组规则开局和抽样输入",
+             "以 Python 原案例输入生成机制和连续备选种子提取开局及随机输入",
+             "python -m frontend.tests.generate_classroom_inputs --check")
+    register("frontend/src/data/paired-schelling.json", "teaching_input", "V2-08", ["schelling_segregation"],
+             "两组开局网格、访问序列与候选搜索输入",
+             "按原 Python 引擎和命名子流生成输入",
+             "python -m frontend.tests.generate_classroom_inputs --check")
     register("content/concepts.json", "authored_learning_design", "1", CATALOG, "每项独立概念及其先修",
              "课内概念、误解定义与跨课连接", "python -m scripts.check_learning_packages")
     for case_id in CATALOG:
@@ -193,7 +213,7 @@ def verify_archive(path, inventory_files):
         assert names == manifest["files"].keys() | {"RELEASE_MANIFEST.json"}
         data_files = {item["path"]: item["sha256"] for item in inventory_files}
         for name in sorted(names - {"RELEASE_MANIFEST.json"}):
-            assert Path(name).suffix in {".py", ".md", ".json", ".gz", ".txt", ".tsx", ".ts", ".css", ".html", ".js", ".lock"}
+            assert Path(name).suffix in {".py", ".md", ".json", ".gz", ".txt", ".tsx", ".ts", ".css", ".html", ".js", ".mjs", ".lock"}
             assert not name.startswith(".civitas-edu/") and (not name.endswith(".gz") or name in data_files)
             contents = archive.extractfile(prefix + name).read()
             manifest_entry = manifest["files"][name]
