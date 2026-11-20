@@ -4,6 +4,7 @@ import type { EventEnvelope } from "./domain-contracts.ts";
 import { sourceLink, type StudentNote } from "./learning-store.ts";
 import "./teaching.css";
 import { readTeaching, reflectionOptions, saveTeaching, type TeachingRecord } from "./teaching-records.ts";
+import { pagesDemo } from "./deployment.ts";
 
 function reflection<K extends TeachingRecord["kind"]>(note: StudentNote, kind: K) {
   try { return readTeaching(localStorage, note.course.caseId, note.id, kind); }
@@ -50,7 +51,7 @@ export function StudyReflection({ note, event }: { note: StudentNote; event?: Ev
     </label>
     {event && <button type="button" onClick={askCoach}>用原事件生成离线建议</button>}
     {verified && coach && <p>{coach.advice} <a href={sourceLink(note, "baseline")}>核对建议的原事件</a></p>}
-    {event && <details><summary>可选在线导师</summary>
+    {event && !pagesDemo && <details><summary>可选在线导师</summary>
       <p>原实验室的在线导师可在启用后，从服务器已核对的运行证据中选择追问。课堂作答由原评估器核对。</p>
       <a href={originalLessonHref(note.course.caseId)}>打开原实验室的学习助手</a>
     </details>}

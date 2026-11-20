@@ -9,6 +9,7 @@ import { StudentHeader } from "./StudentHeader.tsx";
 import { EvidenceCard, PageTitle, StatusNotice } from "../../content/student-ui.tsx";
 import { StudyReflection } from "./StudyReflection.tsx";
 import { profileId } from "../../student-web/src/learning/learner-repository";
+import { pagesDemo } from "./deployment.ts";
 
 const archiveModule = () => import("./study-archive.ts");
 
@@ -151,7 +152,7 @@ export function StudentNotes({ id }: { id: string | null }) {
       <PageTitle>实验笔记</PageTitle>
       <nav className="note-links" aria-label="笔记入口">
         {id && <a href={notesLink()}>全部解释</a>}
-        <a href={studentRoutes.notes}>原版实验笔记与学习记录</a>
+        {!pagesDemo && <a href={studentRoutes.notes}>原版实验笔记与学习记录</a>}
       </nav>
       {!id && <ProgressBackup onRestore={() => { setNotes(listNotes()); setRevision(value => value + 1); }}/>}
       {id && !opened && <StatusNotice tone="warning">这份解释在当前浏览器中不可用。可回到全部解释查找。</StatusNotice>}

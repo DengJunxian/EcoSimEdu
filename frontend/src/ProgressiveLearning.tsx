@@ -5,6 +5,7 @@ import { outcomeEvidence } from "../../student-web/src/learning/evidence-rules";
 import { personalLearning, ReviewPanel } from "../../student-web/src/learning/review-panel";
 import { isDue } from "../../student-web/src/learning/review-schedule";
 import { originalLessonHref } from "../../content/student-navigation.ts";
+import { pagesDemo } from "./deployment.ts";
 import { StudentHeader } from "./StudentHeader.tsx";
 import { courseById, pathways } from "./curriculum.ts";
 import { allNotes, courseLink, latestProgress } from "./learning-store.ts";
@@ -115,8 +116,9 @@ export function HomeStudyActions() {
   return <section className="home-study" aria-label="你的学习建议">
     {due && <div className="edu-panel"><h2>复习一道短题</h2><p>{courseById[due.case_id]?.title ?? "已有课程"} · {due.due_at} 到期</p>
       <a href="?view=review">打开复习</a></div>}
-    {!checkpoint && recent && <div className="edu-panel"><h2>继续原课堂</h2><p>{courseById[recent.case_id].title}</p>
-      <a href={originalLessonHref(recent.case_id)}>打开原进度与作答</a></div>}
+    {!checkpoint && recent && <div className="edu-panel"><h2>{pagesDemo ? "继续学习" : "继续原课堂"}</h2><p>{courseById[recent.case_id].title}</p>
+      <a href={pagesDemo ? courseLink({ caseId: recent.case_id }) : originalLessonHref(recent.case_id)}>
+        {pagesDemo ? "打开四阶课堂" : "打开原进度与作答"}</a></div>}
     {next && <div className="edu-panel"><h2>下一门课程</h2><p>{next.title}</p>
       <a href={courseLink({ caseId: next.id })}>打开下一课</a></div>}
     <div className="edu-panel"><h2>自由探索</h2><p>按想弄懂的机制选课。</p><a href="#paths">查看所有学习路径</a></div>

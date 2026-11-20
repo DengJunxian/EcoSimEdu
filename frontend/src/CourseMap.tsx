@@ -5,6 +5,7 @@ import { concepts, courseById, pathways, type Course } from "./curriculum.ts";
 import { StudentHeader } from "./StudentHeader.tsx";
 import { originalLessonHref } from "../../content/student-navigation.ts";
 import { CaseCard, PageTitle } from "../../content/student-ui.tsx";
+import { pagesDemo } from "./deployment.ts";
 import "./course-map.css";
 
 const HomeStudyActions = lazy(() => import("./ProgressiveLearning.tsx").then(module => ({ default: module.HomeStudyActions })));
@@ -73,7 +74,7 @@ function CourseRow({ course }: { course: Course }) {
         <a className="map-action" href={classroomHref(course.id)} aria-label={`打开四阶课堂 · ${course.title}`}>
           打开四阶课堂
         </a>
-        <a href={originalLessonHref(course.id)} className="original-course">原课堂与进度</a>
+        {!pagesDemo && <a href={originalLessonHref(course.id)} className="original-course">原课堂与进度</a>}
       </div>
     </CaseCard>
   </li>;
@@ -84,11 +85,12 @@ export function CourseMap() {
     <StudentHeader/>
     <main className="shell course-map" id="main" tabIndex={-1}>
       <StartingPoint/>
+      {pagesDemo && <p>这是十二门规则课的公开演示。学习进度保存在当前浏览器，正式学习档案、原课堂与模型实验可在本机版使用。</p>}
       <Suspense fallback={null}><HomeStudyActions/></Suspense>
       <section className="map-paths" aria-labelledby="paths">
         <div className="paths-heading">
           <h2 id="paths" tabIndex={-1}>学习路径</h2>
-          <a href="/cases">查看全部案例</a>
+          {!pagesDemo && <a href="/cases">查看全部案例</a>}
         </div>
         <nav className="path-jumps" aria-label="跳到一条学习路径">
           {pathways.map(path => <a key={path.id} href={`#${path.id}`}>{path.title}</a>)}
