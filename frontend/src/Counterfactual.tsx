@@ -1,5 +1,5 @@
 import { useMemo } from "react";
-import { outcomeLabel, type Command, type Lesson, type Session, type Trend } from "./lesson.ts";
+import { hypothesisLimit, outcomeLabel, type Command, type Lesson, type Session, type Trend } from "./lesson.ts";
 import { pairedSeeds } from "./experiments.ts";
 import { StudyResults, predictions } from "./ExperimentWorkbench.tsx";
 import type { CourseRef } from "./learning-store.ts";
@@ -41,6 +41,11 @@ export function PredictionCard({ lesson, session, send }: {
           onChange={() => send({ type: "predict", value })}/>{predictions[value]}
       </label>)}
     </fieldset>
+    {lesson.casePackage && !locked && <label className="experiment-hypothesis">实验假设（选填）
+      <textarea rows={2} maxLength={hypothesisLimit} value={session.hypothesis ?? ""}
+        placeholder="例如，政策会先改变哪一步，进而改变结果？"
+        onChange={event => send({ type: "hypothesis", value: event.target.value })}/>
+    </label>}
     {!locked && <button className="primary" disabled={!session.prediction}
       onClick={() => send({ type: "compare" })}>运行并验证</button>}
     {!locked && session.comparisonFailed && <p role="alert">这次运行未完成。原预测和参数已保留，可重新运行。</p>}
@@ -56,13 +61,14 @@ export function ComparisonView({ lesson, session, course }: { lesson: Lesson; se
     course: { caseId: course?.caseId ?? "demo", market: course?.market }, choices: session.choices,
     policy: comparison?.policy ?? lesson.policy.baseline, prediction: comparison?.prediction ?? "same" as const,
     seeds: pairedSeeds(lesson, !!session.multiSeed),
-  }), [course?.caseId, course?.market, session.choices, session.multiSeed, comparison, lesson]);
+    ...(session.hypothesis && { hypothesis: session.hypothesis }),
+  }), [course?.caseId, course?.market, session.choices, session.multiSeed, session.hypothesis, comparison, lesson]);
   const primary = useMemo(() => baseline && comparison ? { baseline, branch: comparison.run } : undefined, [baseline, comparison]);
   if (!baseline || !comparison) return <section className="canvas-panel pending-comparison">
     <h2>比较相同条件下的两次运行</h2>
     <p>先调整政策条件，然后预测{outcomeLabel(lesson)}会怎样变化。</p>
   </section>;
 
-  return <StudyResults key={JSON.stringify([baseline.id, comparison.run.id, session.choices, comparison.prediction, session.multiSeed])}
+  return <StudyResults key={JSON.stringify([baseline.id, comparison.run.id, session.choices, comparison.prediction, session.multiSeed, session.hypothesis])}
     lesson={lesson} plan={plan} primary={primary}/>;
 }

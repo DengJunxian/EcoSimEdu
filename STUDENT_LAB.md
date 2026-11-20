@@ -4,11 +4,7 @@
 
 ## 本机启动
 
-当前工作区可直接运行以下命令。独立交付包含预构建前端，首次使用时先安装锁定的 Python 依赖。
-
-```sh
-.venv/bin/python -m uvicorn services.simulation.api:app --host 127.0.0.1 --port 8776
-```
+安装 uv 后，独立候选包中的 `start-student-lab.command` 或 `start-student-lab.cmd` 会按锁文件启动本机服务。`UVICORN_PORT` 可选择端口，默认 8776。源码构建和文件校验见 [候选包说明](docs/v3/10-release.md)。
 
 用浏览器打开 [学习首页](http://127.0.0.1:8776/)或同源的[渐进课堂](http://127.0.0.1:8776/explore/)。可直接进入[新版双向拍卖](http://127.0.0.1:8776/learn/double_auction)、[SVB 挤兑](http://127.0.0.1:8776/learn/svb_run)或[居住隔离](http://127.0.0.1:8776/learn/schelling_segregation)，在[案例库](http://127.0.0.1:8776/cases)选择其他课程，在[实验笔记](http://127.0.0.1:8776/notes)查看新旧记录、导出或恢复新版 JSON。原版双向拍卖仍可通过[旧课堂入口](http://127.0.0.1:8776/?case=double_auction)打开。
 

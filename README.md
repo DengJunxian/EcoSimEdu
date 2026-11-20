@@ -1,10 +1,8 @@
 # EcoSimEdu
 
-EcoSimEdu V2 是面向经济学入门学生的本地互动教学平台。十二门四阶课堂覆盖个体决策、群体观察、反事实和证据解释。完成解释后，可做独立应用、迁移和次日复习。双向拍卖、硅谷银行挤兑和居住隔离提供逐事件的微观与宏观追踪。
+EcoSimEdu 是面向经济学入门学生的互动教学平台。V3 本机候选版提供十二门八阶段自学课。学生先预测并参与决策，再追踪机制、运行政策对照，最后提交独立解释、迁移和复习。双向拍卖、硅谷银行挤兑和居住隔离提供逐事件的微观与宏观追踪。
 
-公共品、公地治理、碳配额、啤酒游戏、GameStop 和闪电崩盘可在四阶课堂查看各自的账本或市场面板，从领域证据回查原事件，并在政策实验中读取两组运行的收尾账目。
-
-[打开 GitHub Pages 公开演示](https://dengjunxian.github.io/EcoSimEdu/)。十二门课的规则运行、续学、笔记与复习在浏览器内完成。原实验室、教师工作台和模型实验通过下方的本机版使用。
+[打开既有 GitHub Pages 演示](https://dengjunxian.github.io/EcoSimEdu/)。V3 候选版可在本机安装，也可由源码生成不依赖 API 的静态构建。见 [V3 使用和验收](docs/v3/10-release.md)。
 
 浏览器规则课堂只依赖本地文件与 HTTP 服务。原实验室仍提供十二课的七阶入口、边界实验、原运行回放和 JSON 导出。四门原实验室课程可选择模型实验，支持同条件规则对照。高级模型由本机服务管理凭证、可用性和预算，基础课程可独立运行。
 
@@ -14,19 +12,23 @@ EcoSimEdu V2 是面向经济学入门学生的本地互动教学平台。十二�
 
 ## 本机启动
 
-需要 Python 3.12、uv 和 Node.js 22.18 或更高版本。
+**预构建候选包**首次使用需要安装 [uv](https://docs.astral.sh/uv/)。解压后在 macOS 打开 `start-student-lab.command`，Windows 打开 `start-student-lab.cmd`。Linux 可执行 `sh ./start-student-lab.command`。首次启动会安装锁定的 Python 3.12 运行依赖。
+
+**源码工作区**需要 Python 3.12、uv 和 Node.js 22.18 或更高版本。先构建两套前端。
 
 ```sh
-uv venv --python 3.12 .venv
-uv pip sync --python .venv/bin/python requirements-edu.lock
 npm --prefix student-web ci
 npm --prefix student-web run build
 npm --prefix frontend ci
 npm --prefix frontend run build
-.venv/bin/python -m uvicorn services.simulation.api:app --host 127.0.0.1 --port 8776
+sh ./start-student-lab.command
 ```
 
 打开 [渐进课堂](http://127.0.0.1:8776/explore/) 或同一地址下的 [学生实验室](http://127.0.0.1:8776/)。也可打开[教师工作台](http://127.0.0.1:8776/teach)。详细操作、API 配置和验收见 [学生实验室指南](STUDENT_LAB.md)、[开发指南](docs/developer-guide.md)和 [实施状态](docs/progress.md)。[模型实调记录](docs/release/rc10-live-three-courses.md)列出逐课用量与结果。
+
+课程地图为十二门课提供「八阶段自学」。从预备进入案例，完成观察、反事实、独立解释和迁移，再按本机安排复习。旧四阶书签也可继续使用。[八阶段自学](docs/v3/03-eight-stage-flow.md) · [九课迁移与验收](docs/v3/07-nine-course-migration.md)
+
+本机渐进课堂的「AI 导师」可连接自己的模型账户。连接测试可能计费，跳过后可直接学习离线课程。 [连接与会话](docs/v3/01-study-ai.md) · [V3 进度](docs/v3/progress.md)
 
 本仓库包含教学源代码、课程配置、合成样本和经过公开发布处理的验证回执。课堂运行由新安装的本地实例生成，历史数据库和旧事件缓存随各自的本机环境保留。公开回执保留指标、用量和哈希，供应商请求及响应标识已清除。旧 RC9 与 RC10 归档回执仍对应各自的原始本地归档。
 

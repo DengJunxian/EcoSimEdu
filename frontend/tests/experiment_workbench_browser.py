@@ -114,6 +114,10 @@ def auction(page):
     role(result, "combobox", "对照曲线指标").select_option("last_price")
     expect(result).to_contain_text("两图共用纵轴")
     table = details(result, "按经济时点查看两组最近成交价与原事件")
+    expect(table.get_by_role("table")).to_be_visible()
+    next_page = role(table, "button", "下一页")
+    while next_page.is_visible() and next_page.is_enabled():
+        next_page.press("Enter")
     close = role(table, "rowheader", "收盘").locator("..")
     expect(close.get_by_role("cell").first).not_to_contain_text("未定义")
     buttons = close.get_by_role("button")
@@ -170,6 +174,7 @@ def boundary(page):
     expect(result).to_contain_text("两组在所选时点均无数值可绘制")
     expect(result.locator("canvas")).to_have_count(0)
     table = details(result, "按经济时点查看两组最近成交价与原事件").get_by_role("table")
+    expect(table.get_by_role("cell").first).to_contain_text("未定义")
     assert all("未定义" in text for text in table.get_by_role("cell").all_text_contents())
     snapshot(page, "no-trade")
 

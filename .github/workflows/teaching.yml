@@ -1,0 +1,95 @@
+name: Teaching release checks
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+env:
+  PYTHONUTF8: "1"
+
+jobs:
+  candidate:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1 # v6.3.0
+        with:
+          python-version: "3.12"
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: "22"
+          package-manager-cache: false
+      - name: Install locked dependencies
+        run: |
+          python -m pip install -r requirements-edu-dev.lock
+          npm --prefix frontend ci
+          npm --prefix student-web ci
+          python -m playwright install --with-deps chromium
+          python -c 'from playwright.sync_api import sync_playwright; p=sync_playwright().start(); print("CIVITAS_TEST_CHROMIUM="+p.chromium.executable_path); p.stop()' >> "$GITHUB_ENV"
+      - name: Build and verify rule trajectories
+        run: |
+          npm --prefix frontend run build
+          npm --prefix student-web run build
+          npm --prefix frontend test
+          PYTHONPATH=. python frontend/tests/auction_parity.py
+          PYTHONPATH=. python frontend/tests/svb_parity.py
+          PYTHONPATH=. python frontend/tests/remaining_parity.py
+          python -m scripts.check_learning_packages
+      - name: Check the extracted local candidate
+        run: |
+          python -m scripts.package_student_lab --output "$RUNNER_TEMP/local.tar.gz"
+          python -m scripts.check_course_provenance --archive "$RUNNER_TEMP/local.tar.gz"
+          python -m tarfile -e "$RUNNER_TEMP/local.tar.gz" "$RUNNER_TEMP"
+          cd "$RUNNER_TEMP"/EcoSimEdu_*_Local
+          python -m scripts.package_student_lab --verify
+          python -m pytest -q tests/contracts tests/mechanisms
+          python -m pytest -q tests/e2e/test_lesson_flow.py tests/e2e/test_migrated_lesson_flow.py tests/e2e/test_study_ai.py tests/e2e/test_unified_entry.py
+      - name: Check the public static build
+        run: |
+          VITE_ECOSIM_PAGES=1 npm --prefix frontend run build -- --outDir "$RUNNER_TEMP/pages"
+          python -m scripts.package_student_lab --static-notices "$RUNNER_TEMP/pages"
+          CIVITAS_V3_PAGES_DIR="$RUNNER_TEMP/pages" python -m pytest -q tests/e2e/test_lesson_flow.py tests/e2e/test_migrated_lesson_flow.py \
+            -k 'flagship_eight_stage_course_offline or nine_migrated_classrooms'
+
+  launchers:
+    strategy:
+      fail-fast: false
+      matrix:
+        platform: [ubuntu-24.04, windows-latest]
+    runs-on: ${{ matrix.platform }}
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1 # v6.3.0
+        with:
+          python-version: "3.12"
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: "22"
+          package-manager-cache: false
+      - name: Build both classroom shells
+        run: |
+          python -m pip install -r requirements-edu.lock uv==0.12.13
+          npm --prefix frontend ci
+          npm --prefix student-web ci
+          npm --prefix frontend run build
+          npm --prefix student-web run build
+      - name: Test launcher from the extracted candidate
+        shell: bash
+        run: |
+          python -m scripts.package_student_lab --output "$RUNNER_TEMP/local.tar.gz"
+          python -m tarfile -e "$RUNNER_TEMP/local.tar.gz" "$RUNNER_TEMP"
+          cd "$RUNNER_TEMP"/EcoSimEdu_*_Local
+          python -m scripts.package_student_lab --verify
+          python -m scripts.check_student_launcher

@@ -1,5 +1,6 @@
+import definition from "../../../cases/schelling_segregation/case.json" with { type: "json" };
 import opening from "../data/schelling-inputs.json" with { type: "json" };
-import { Recorder, profiles, roundEven, type Entity } from "./record.ts";
+import { Recorder, profiles, roundEven, type Entity, type ModelRun } from "./record.ts";
 
 const residents = opening.grid.filter((resident): resident is string => resident !== null).sort();
 const positionOf = new Map(residents.map((resident, index) => [resident, index]));
@@ -86,17 +87,48 @@ export function residentOptions(grid: readonly (string | null)[], resident: stri
   return { origin, home, satisfied: meetsThreshold(home, threshold), legal };
 }
 
+export function schellingCheckpoint(run: ModelRun, tick: number) {
+  const record = run.records[tick];
+  const frame = run.frames[tick];
+  if (record?.event_type !== "round_end" || record.seq !== tick || !frame?.board ||
+      !Number.isSafeInteger(record.period) || record.period < 1 || record.period >= opening.visits.length ||
+      typeof frame.metrics.remaining !== "number" || frame.metrics.remaining <= 0 ||
+      typeof frame.metrics.moves !== "number") return;
+  let prior = tick - 1;
+  while (prior > 1 && run.records[prior].event_type !== "round_end") prior--;
+  if (frame.metrics.moves > Number(run.frames[prior]?.metrics.moves)) return frame;
+}
+
+export function forkSchelling(parent: ModelRun, tick: number, destination: number) {
+  const frame = schellingCheckpoint(parent, tick);
+  const threshold = (parent.intervention as { threshold?: number } | undefined)?.threshold;
+  if (!frame?.board || parent.caseId !== "schelling_segregation" || parent.seed !== definition.seed ||
+      parent.id.includes("~fork-v1:") || threshold === undefined ||
+      !residentOptions(frame.board.cells, "A001", threshold).legal.some(option => option.cell === destination)) {
+    throw new Error("这个检查点或空格不可用于迁居分支。");
+  }
+  const run = runSchelling(parent.seed, parent.action, parent.scenario, threshold, opening, { parent, tick, destination });
+  return { ...run, id: `${parent.id}~fork-v1:${tick}:${destination}`, intervention: parent.intervention };
+}
+
 export function schelling(seed: number, action: string, scenario: string, threshold: number, input = opening) {
+  return runSchelling(seed, action, scenario, threshold, input);
+}
+
+function runSchelling(seed: number, action: string, scenario: string, threshold: number, input: typeof opening,
+  fork?: { parent: ModelRun; tick: number; destination: number }) {
+  const checkpoint = fork?.parent.frames[fork.tick];
   const hashes = Uint8Array.from(atob(input.search_digests), byte => byte.charCodeAt(0));
   const target = input.student_target;
-  const grid = [...input.grid];
+  const grid = [...(checkpoint?.board?.cells ?? input.grid)];
   const cells = new Map(grid.flatMap((actor, i) => actor ? [[actor, i] as const] : []));
   const vacancies = new Set(grid.flatMap((actor, i) => actor ? [] : [i]));
   const eligible = (local: readonly [number, number]) => meetsThreshold(local, threshold);
   const people = profiles(residents, `阈值 ${threshold}%，候选位置只能是空格`, "达到阈值时不按阈值规则迁移");
   for (const actor of residents) people[actor].state = actor[0];
   const log = new Recorder(residents, people);
-  let moves = 0, remaining = 0;
+  let moves = Number(checkpoint?.metrics.moves ?? 0);
+  let remaining = Number(checkpoint?.metrics.remaining ?? 0);
 
   function emit(kind: string, text: string, period: number, actors: string[], marked: number[], data?: object, turningPoint?: string,
     evidence?: NonNullable<Parameters<Recorder["emit"]>[3]>["evidence"]) {
@@ -116,7 +148,7 @@ export function schelling(seed: number, action: string, scenario: string, thresh
     { period, actors, entities, evidence, data, turningPoint, board: { size, cells: [...grid], marked } });
   }
 
-  function relocate(actor: string, destination: number, period: number, student = false) {
+  function relocate(actor: string, destination: number, period: number, student = false, forkTick?: number) {
     const origin = cells.get(actor)!;
     const before = counts(grid, origin, actor);
     const affected = [...new Set([...neighbors[origin], ...neighbors[destination]]
@@ -135,20 +167,29 @@ export function schelling(seed: number, action: string, scenario: string, thresh
     emit(student ? "student_move" : "move",
       `${actor} 从${coordinates(origin)}搬到${coordinates(destination)}。同组邻居 ${before.join("/")} → ${after.join("/")}，影响 ${affected.length} 户的邻居集合。`,
       period, [actor, ...affected], [origin, destination],
-      { actor_id: actor, origin, destination, before, after, changed_neighbors, source: student ? "student" : "rule" },
+      { actor_id: actor, origin, destination, before, after, changed_neighbors, source: student ? "student" : "rule",
+        ...(forkTick === undefined ? {} : { checkpoint_event: forkTick }) },
       moves === 1 ? "首次发生真实搬迁" : undefined,
       changed_neighbors.map(row => ({ actorId: row.actor, deltas: {}, text:
         `${row.actor} 的同组邻居 / 已占邻居 ${row.before.join("/")} → ${row.after.join("/")}` })));
   }
 
-  const marked = [cells.get("A001")!, target];
-  emit("opening", `社区共有 ${residents.length} 户，最低同类比例为 ${threshold}%`, 0, ["A001"], marked,
-    { size, grid: input.grid, student_target: target });
-  if (action === "move") relocate("A001", target, 0, true);
-  else emit("student_stay", "A001 留在原地。", 0, ["A001"], marked);
-
   let lastRound = 0, terminal = "round_limit";
-  for (const [index, visit] of input.visits.entries()) {
+  if (fork) {
+    log.frames.push(...fork.parent.frames.slice(0, fork.tick + 1));
+    log.records.push(...fork.parent.records.slice(0, fork.tick + 1));
+    lastRound = fork.parent.records[fork.tick].period;
+    relocate("A001", fork.destination, lastRound, true, fork.tick);
+  } else {
+    const marked = [cells.get("A001")!, target];
+    emit("opening", `社区共有 ${residents.length} 户，最低同类比例为 ${threshold}%`, 0, ["A001"], marked,
+      { size, grid: input.grid, student_target: target });
+    if (action === "move") relocate("A001", target, 0, true);
+    else emit("student_stay", "A001 留在原地。", 0, ["A001"], marked);
+  }
+
+  for (let index = lastRound; index < input.visits.length; index++) {
+    const visit = input.visits[index];
     const round = index + 1;
     lastRound = round;
     const start = moves;

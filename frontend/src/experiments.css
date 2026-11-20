@@ -12,5 +12,12 @@
 .study-table table { width: 100%; }
 .study-table .text-button { display: block; text-align: start; min-height: var(--edu-target); }
 .study-results .decision-actions a { display: inline-flex; align-items: center; text-decoration: underline; }
-.experiment-archive input { max-width: 100%; }
+.experiment-archive form { align-items: end; }
+.experiment-archive form > label {
+  display: grid;
+  gap: var(--edu-s1);
+  min-inline-size: 0;
+  max-inline-size: 100%;
+}
+.experiment-archive input { min-inline-size: 0; max-inline-size: 100%; }
 .experiment-archive > * + * { margin-block-start: var(--edu-s3); }

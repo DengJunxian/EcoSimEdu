@@ -1,11 +1,12 @@
 import { sha256Text, withLegacyDemandDeltas } from "./browser-result.ts";
 import { additionalSeeds } from "./seed-assets.ts";
-import { comparisonMetric, legalPolicy, outcome, validPair, type AlignedFrame, type Lesson, type Run, type Trend } from "./lesson.ts";
+import { comparisonMetric, legalPolicy, outcome, validHypothesis, validPair, type AlignedFrame, type Lesson, type Run, type Trend } from "./lesson.ts";
 import { validChoices, type CourseRef } from "./learning-store.ts";
 import { browserEnvelope, browserEvents, browserEvidence, evidencePointer } from "./run-evidence.ts";
 
 export type ExperimentPlan = {
   course: CourseRef; choices: readonly string[]; policy: number; prediction: Trend; seeds: readonly number[];
+  hypothesis?: string;
 };
 export type Pair = {
   seed: number; baseline: Run; branch: Run; left: number | null; right: number | null; delta: number | null;
@@ -128,7 +129,12 @@ export async function reopenExperiment(lesson: Lesson, course: CourseRef, saved:
       print(plan.seeds) !== print(pairedSeeds(lesson, plan.seeds.length > 1))) {
     throw new Error("课程、种子或计划条件无法核对。");
   }
-  const input = { course, choices: plan.choices, policy: plan.policy, prediction: plan.prediction, seeds: plan.seeds };
+  const { hypothesis } = plan;
+  if (hypothesis !== undefined && (!validHypothesis(hypothesis) || !hypothesis || hypothesis !== hypothesis.trim())) {
+    throw new Error("实验假设格式无法核对。");
+  }
+  const input = { course, choices: plan.choices, policy: plan.policy, prediction: plan.prediction, seeds: plan.seeds,
+    ...(hypothesis && { hypothesis }) };
   const samples = await runSamples(lesson, input);
   if (!samples.every(comparable)) throw new Error("其中一组运行无法重现。请保留原实验卡。");
   const serialized = print(saved);

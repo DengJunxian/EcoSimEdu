@@ -3,10 +3,12 @@ import { test } from "node:test";
 import { auctionLesson, demandPolicy } from "../src/auction.ts";
 import { actionsAt, informationFrame, marketAt, schoolsAt, sourceQuestion } from "../src/information-evidence.ts";
 import { cascadeLesson, lemonsLesson, schoolLesson } from "../src/models/information-lessons.ts";
-import { progressSnapshot, resumeProgress, saveProgress, sourceRun } from "../src/learning-store.ts";
+import { exportProgressArchive, progressSnapshot, resumeLessonFlow, resumeProgress, saveProgress, sourceRun, validateProgressArchive } from "../src/learning-store.ts";
 import { browserResultDigest, withLegacyDemandDeltas } from "../src/browser-result.ts";
 import { experimentCard, pairedSeeds, reopenExperiment, runSamples } from "../src/experiments.ts";
 import { startLesson, transition } from "../src/lesson.ts";
+import { flowChapter, initialFlow } from "../src/learning/lesson-flow.ts";
+import { schellingLesson } from "../src/models/schelling-lesson.ts";
 
 test("a stale tab cannot replace a later checkpoint", () => {
   const data = new Map();
@@ -22,6 +24,27 @@ test("a stale tab cannot replace a later checkpoint", () => {
   assert.equal(saveProgress(storage, course, one, seen), undefined);
   assert.deepEqual(resumeProgress(storage, course, lesson).choices, ["96", "no"]);
   assert.equal(progressSnapshot(storage, course), saved);
+});
+
+test("an early eight-stage checkpoint shares the original backup and rejects stale writes", () => {
+  const storage = Object.assign({}, {
+    getItem: key => storage[key] ?? null, setItem: (key, value) => { storage[key] = value; },
+  });
+  const course = { caseId: "schelling_segregation" };
+  const initial = startLesson(schellingLesson);
+  const draft = { ...initialFlow, chapter: 2, prediction: { option: "prediction-0", at: 1234 } };
+  const snapshot = saveProgress(storage, course, initial, null, draft);
+  assert.deepEqual(resumeProgress(storage, course, schellingLesson), initial);
+  assert.deepEqual(resumeLessonFlow(snapshot), draft);
+  const key = "ecosimedu:progressive:progress:v1:schelling_segregation";
+  assert.equal(validateProgressArchive(exportProgressArchive(storage)).get(key), snapshot);
+  assert.equal(saveProgress(storage, course, initial, null, initialFlow), undefined);
+  const legacy = transition(schellingLesson, initial, { type: "choose", option: "stay" });
+  const oldViewSaved = saveProgress(storage, course, legacy, snapshot);
+  assert.deepEqual(resumeLessonFlow(oldViewSaved), draft);
+  assert.equal(resumeLessonFlow(saveProgress(storage, course, legacy, oldViewSaved, null)), undefined);
+  assert.equal(flowChapter({ ...draft, chapter: 7, comparisonId: "old" },
+    { ...initial, stage: 4, comparison: { run: { id: "new" } } }), 5);
 });
 
 test("auction demand treatment does not charge a fee in any trade event", () => {

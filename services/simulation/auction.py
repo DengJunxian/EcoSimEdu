@@ -45,7 +45,11 @@ def initial_agents(seed):
     return agents
 
 
-def run_auction(scenario_id: str, seed: int, bid: int, *, parameters=None):
+def run_auction(scenario_id: str, seed: int, bid: int, *, parameters=None, cancel_after=None):
+    """Replay an optional student cancellation after an automatic turn settles."""
+    if cancel_after is not None and (type(cancel_after) is not int or cancel_after < 2):
+        raise ValueError("Invalid student cancellation checkpoint")
+    cancelled = False
     scenario = BOUNDARIES[CASE["case_id"]]["parameters"] if scenario_id == "boundary" else SCENARIOS[scenario_id]
     if parameters is not None:
         scenario = parameters
@@ -164,6 +168,17 @@ def run_auction(scenario_id: str, seed: int, bid: int, *, parameters=None):
                 boundary = marginal + fee
                 price = max(boundary, (reference if reference is not None else boundary) - 2) + shade
             quote(actor, price, "rule", round_no, reference)
+            if cancel_after is not None and len(events) - 1 == cancel_after:
+                order = active.get(player)
+                if not order or order.status != OrderStatus.PENDING:
+                    raise ValueError("No open student order at checkpoint")
+                book.cancel_order(order.order_id)
+                emit("order_cancelled", actor_id=player, order_id=order.order_id, round=round_no,
+                     source="student", checkpoint_event=cancel_after)
+                snapshot()
+                cancelled = True
+    if cancel_after is not None and not cancelled:
+        raise ValueError("Checkpoint does not follow a complete automatic turn")
     for actor, order in active.items():
         if order.status == OrderStatus.PENDING:
             book.cancel_order(order.order_id)
@@ -172,7 +187,7 @@ def run_auction(scenario_id: str, seed: int, bid: int, *, parameters=None):
     emit("market_close")
     snapshot()
     return {
-        "engine_version": ENGINE_VERSION, "rules": rules.to_dict(),
+        "engine_version": "double-auction/fork-v1" if cancelled else ENGINE_VERSION, "rules": rules.to_dict(),
         "root_hash": digest(root), "initial_hash": digest(initial), "initial": initial,
         "intervention": {"demand_shift": scenario["demand_shift"], "fee": fee},
         "events": events, "snapshots": snapshots, "demand": demand, "supply": supply,

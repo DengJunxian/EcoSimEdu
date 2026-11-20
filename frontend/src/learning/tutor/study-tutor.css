@@ -1,0 +1,24 @@
+.study-tutor .tutor-controls { align-items: end; margin-block: 0 8px; }
+.study-tutor .actor-picker { margin-bottom: 0; }
+.study-tutor p { margin-block: 6px; }
+.study-tutor .tutor-steps {
+  display: grid;
+  gap: 4px;
+  padding-inline-start: 1.4em;
+  max-width: 65ch;
+  list-style: decimal;
+}
+.study-tutor .decision-actions a { display: inline-flex; align-items: center; min-height: var(--edu-target); }
+.study-tutor .tutor-question { display: grid; gap: 4px; max-width: 60ch; font-weight: 650; }
+.study-tutor textarea {
+  min-width: 0;
+  margin: 0;
+  padding: 8px;
+  border: 1px solid var(--edu-line);
+  border-radius: 6px;
+  background: var(--edu-surface);
+  color: inherit;
+  font: inherit;
+  font-weight: 400;
+  resize: vertical;
+}

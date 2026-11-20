@@ -18,7 +18,35 @@ export type SvbRun = Run & {
   observations: readonly Readonly<Record<string, Received>>[];
 };
 
-export function simulateSvb({ seed, choices, policy }: Parameters<Lesson["run"]>[0], input: Omit<typeof opening, "source"> = opening): SvbRun {
+type SvbInput = Omit<typeof opening, "source">;
+type SvbParameters = Parameters<Lesson["run"]>[0];
+type DepositorBalance = { deposit: number; pending: number; payout: number; protectiveRequested: boolean };
+type Checkpoint = {
+  tick: number;
+  available: number;
+  balances: DepositorBalance[];
+  queue: { actorId: string; remaining: number }[];
+  origins: Map<string, Received[number]>;
+};
+const checkpoints = new WeakMap<Run, { state: Checkpoint; parameters: SvbParameters; input: SvbInput }>();
+
+export function svbCheckpoint(run: Run, tick: number) {
+  const state = checkpoints.get(run)?.state;
+  if (state?.tick === tick) return { tick: state.tick, available: state.available };
+}
+
+export function forkSvb(parent: SvbRun, tick: number) {
+  const source = checkpoints.get(parent);
+  if (!source || source.state.tick !== tick) throw new Error("这个轮末没有可暂缓的防御性提款。");
+  return runSvb(source.parameters, source.input, { parent, state: source.state });
+}
+
+export function simulateSvb(parameters: SvbParameters, input: SvbInput = opening): SvbRun {
+  return runSvb(parameters, input);
+}
+
+function runSvb({ seed, choices, policy }: SvbParameters, input: SvbInput,
+    fork?: { parent: SvbRun; state: Checkpoint }): SvbRun {
   if (seed !== input.seed || !course.action.options.some(option => option.id === choices[0]) ||
       (policy !== 0 && policy !== buffer && policy !== distributedPolicy)) throw new Error("未知开局、行动或政策");
 
@@ -27,24 +55,32 @@ export function simulateSvb({ seed, choices, policy }: Parameters<Lesson["run"]>
   const order = input.distributedOrder;
   const distributedGraph = Object.fromEntries(order.map((id, i) =>
     [id, [-1, -2, 1].map(offset => order[(i + offset + order.length) % order.length])]));
-  const people = input.people.map(row => ({
+  const people = input.people.map((row, index) => ({
     ...row, neighbors: scenario === "network" ? distributedGraph[row.id] : row.neighbors,
     pending: 0, payout: 0, protectiveRequested: false,
     payrollRound: row.id === playerId ? (choices[0] === "withdraw_now" ? 1 : 2) : row.payrollRound,
+    ...fork?.state.balances[index],
   }));
-  const initialDeposits = people.reduce((sum, person) => sum + person.deposit, 0);
+  const initialDeposits = input.people.reduce((sum, person) => sum + person.deposit, 0);
   const loans = initialDeposits + rules.initial_equity - rules.initial_cash - rules.securities * rules.initial_price;
-  let cash = rules.initial_cash + cashReallocation;
-  let units = rules.securities - cashReallocation / rules.initial_price;
-  let supportCash = rules.support_reserve;
-  let marketCash = rules.securities * rules.sale_price;
-  let price = rules.initial_price;
-  let queued = 0, requested = 0, paid = 0, borrowing = 0, saleLoss = 0, sold = 0;
-  let priorSale = false, queueExplained = false;
-  const queue: { person: typeof people[number]; remaining: number }[] = [];
-  const origins = new Map<string, NonNullable<LessonEvent["observed"]>[number]>();
-  const frames: Frame[] = [];
-  const receivedByRound: Record<string, Received>[] = [{}];
+  const parentFrame = fork?.parent.frames[fork.state.tick];
+  const ledger = parentFrame?.metrics;
+  let cash = ledger?.cash ?? rules.initial_cash + cashReallocation;
+  let units = ledger?.units ?? rules.securities - cashReallocation / rules.initial_price;
+  let supportCash = ledger?.supportCash ?? rules.support_reserve;
+  let marketCash = ledger?.marketCash ?? rules.securities * rules.sale_price;
+  let price = ledger?.price ?? rules.initial_price;
+  let queued = ledger?.queued ?? 0, requested = ledger?.requested ?? 0, paid = ledger?.paid ?? 0;
+  let borrowing = ledger?.borrowing ?? 0, saleLoss = ledger?.sale_loss ?? 0, sold = ledger?.sold ?? 0;
+  const frames = fork ? fork.parent.frames.slice(0, fork.state.tick + 1) : [];
+  const receivedByRound = fork ? fork.parent.observations.slice(0, fork.state.tick + 1) : [{}];
+  let priorSale = parentFrame?.events.some(event => event.kind === "sale") ?? false;
+  let queueExplained = frames.some(frame => !!frame.turningPoint);
+  const queue = fork?.state.queue.map(entry => ({
+    person: people.find(person => person.id === entry.actorId)!, remaining: entry.remaining,
+  })) ?? [];
+  const origins = new Map(fork?.state.origins);
+  let checkpoint: Checkpoint | undefined;
   const messages = new Map<string, Pick<Actor, "signal" | "reason" | "nextDecision" | "priorSignal">>();
 
   function snapshot(tick: number, events: readonly LessonEvent[], turningPoint?: string) {
@@ -73,8 +109,8 @@ export function simulateSvb({ seed, choices, policy }: Parameters<Lesson["run"]>
     ] };
   }
 
-  frames.push(snapshot(0, []));
-  for (let tick = 1; tick <= rules.steps; tick++) {
+  if (!fork) frames.push(snapshot(0, []));
+  for (let tick = frames.length; tick <= rules.steps; tick++) {
     const events: LessonEvent[] = [];
     function record(event: Omit<LessonEvent, "id">) {
       const item = { ...event, id: `${tick}/${events.length + 1}` };
@@ -97,25 +133,45 @@ export function simulateSvb({ seed, choices, policy }: Parameters<Lesson["run"]>
       return origin ? [origin] : [];
     }));
     receivedByRound.push(Object.fromEntries(people.map((person, i) => [person.id, observations[i]])));
+    const risk = observations.map(observed => rules.public_risk + observed.length * rules.neighbor_signal + saleTerm + queueTerm);
+    const defer = fork?.state.tick === tick - 1;
+    if (!fork && !checkpoint && tick > 2) {
+      const index = people.findIndex(person => person.id === playerId);
+      const person = people[index];
+      const available = Math.max(0, person.deposit - person.pending - person.protected);
+      if (!person.protectiveRequested && available && risk[index] >= person.threshold) {
+        checkpoint = {
+          tick: tick - 1, available,
+          balances: people.map(({ deposit, pending, payout, protectiveRequested }) => ({ deposit, pending, payout, protectiveRequested })),
+          queue: queue.map(({ person, remaining }) => ({ actorId: person.id, remaining })),
+          origins: new Map(origins),
+        };
+      }
+    }
     people.forEach((person, index) => {
       const observed = observations[index];
       const neighborTerm = observed.length * rules.neighbor_signal;
-      const score = rules.public_risk + neighborTerm + saleTerm + queueTerm;
+      const score = risk[index];
       const free = person.deposit - person.pending;
       const payroll = person.payrollRound === tick ? Math.min(person.payroll, free) : 0;
       const eligible = (person.id !== playerId || tick > 2) && !person.protectiveRequested;
       const available = Math.max(0, free - payroll - person.protected);
-      const protective = eligible && score >= person.threshold ? available : 0;
+      const studentDeferred = defer && person.id === playerId;
+      const protective = !studentDeferred && eligible && score >= person.threshold ? available : 0;
       const amount = payroll + protective;
       const signal = `邻居申请 ${observed.map(item => item.actorId).join("、") || "暂无"}；上轮待付 ${priorQueue}${priorSale ? "，发生急售" : "，无急售"}。`;
       const scoreText = `风险分 ${rules.public_risk} + ${neighborTerm} + ${saleTerm} + ${queueTerm} = ${score}，阈值 ${person.threshold}。`;
-      const reason = amount ? `申请 ${amount}（工资款 ${payroll}，防御性提款 ${protective}）。` :
+      const reason = studentDeferred ? "你选择本轮暂缓防御性提款，下一轮重新按规则判断。" : amount ? `申请 ${amount}（工资款 ${payroll}，防御性提款 ${protective}）。` :
         !eligible ? (person.id === playerId && tick <= 2 ?
           "前两轮按你的工资款时点行动，暂不追加防御性提款。" : "已提出过防御性提款，规则只允许一次。") :
         !available ? "本轮没有可再申请的未保障余额。" : "风险分未达阈值，本轮不追加提款。";
       const priorSignal = priorQueue ? { metricId: "queued", tick: tick - 1, value: priorQueue } : undefined;
       messages.set(person.id, { signal, priorSignal, reason: `${reason}${scoreText}`,
         nextDecision: "下一轮重新读取邻居、待付和急售信号。已入队金额按先到先付结算。",
+      });
+      if (studentDeferred) record({
+        actorId: person.id, kind: "decision", text: `${person.id} ${reason} 本轮可申请 ${available} 资金单位。`, deltas: {}, observed,
+        sourceEvents: [{ tick: tick - 1, label: "分支从上一轮末开始" }],
       });
       if (!amount) return;
       person.protectiveRequested ||= protective > 0;
@@ -181,8 +237,12 @@ export function simulateSvb({ seed, choices, policy }: Parameters<Lesson["run"]>
     }
     frames.push(frame);
   }
-  return { id: `svb/browser-v1/${seed}/${choices[0]}/${scenario === "network" ? "network" : policy}`, seed, frames,
-    scenario, network: Object.fromEntries(people.map(person => [person.id, person.neighbors])), observations: receivedByRound };
+  const id = fork ? `${fork.parent.id}~fork-v1:${fork.state.tick}:defer-protective` :
+    `svb/browser-v1/${seed}/${choices[0]}/${scenario === "network" ? "network" : policy}`;
+  const run: SvbRun = { id, seed, frames, scenario,
+    network: Object.fromEntries(people.map(person => [person.id, person.neighbors])), observations: receivedByRound };
+  if (checkpoint) checkpoints.set(run, { state: checkpoint, parameters: { seed, choices: [...choices], policy }, input });
+  return run;
 }
 
 const published = casePackage(course.case_id);
@@ -250,6 +310,13 @@ export const svbLesson: Lesson = {
     project: run => run.frames.map(frame => ({ ...frame, sourceTick: frame.tick,
       axisLabel: frame.tick ? `第 ${frame.tick} 轮末` : "开局" })),
     describe: `将价值 ${buffer} 的证券换成现金。两组初始资产总额和权益相同。政策组可立即动用的现金更多，证券头寸减少，利率敞口也随之降低。对照同时改变开局流动性和利率敞口。比较第 ${rules.steps} 轮末的待付金额。` },
+  fork: {
+    checkpoint: (run, tick) => !!svbCheckpoint(run, tick),
+    run: (run, tick, { action, destination }) => {
+      if (action !== "defer-protective" || destination !== undefined) throw new Error("需要有效的储户行动。");
+      return forkSvb(run as SvbRun, tick);
+    },
+  },
   seed: opening.seed,
   prepareSeed: async seed => {
     const inputs = await pairedInput("svb", opening.seed, seed);

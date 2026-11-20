@@ -49,6 +49,8 @@ function ActivityRenderer({ pack, phase, offline }: { pack: LearningPackage; pha
   const [attempts, setAttempts] = useState<Attempt[]>([]);
   const [error, setError] = useState("");
   const [busy, setBusy] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const disabled = busy || loading;
   const [shownHelp, setShownHelp] = useState<{ id: string; text: string }>();
   const [showFeedback, setShowFeedback] = useState<string>();
   const heading = useRef<HTMLHeadingElement>(null);
@@ -66,7 +68,9 @@ function ActivityRenderer({ pack, phase, offline }: { pack: LearningPackage; pha
       const saved = await readSession(base);
       if (active) { setSession(saved.session); setAttempts(saved.attempts); }
     }
-    const refresh = () => void load().catch(() => { if (active) setError("浏览器学习存储不可用。可以继续课堂并在存储恢复后刷新。"); });
+    const refresh = () => void load()
+      .catch(() => { if (active) setError("浏览器学习存储不可用。可以继续课堂并在存储恢复后刷新。"); })
+      .finally(() => { if (active) setLoading(false); });
     refresh();
     window.addEventListener("ecosimedu-worksheet-saved", refresh);
     return () => { active = false; window.removeEventListener("ecosimedu-worksheet-saved", refresh); };
@@ -196,18 +200,18 @@ function ActivityRenderer({ pack, phase, offline }: { pack: LearningPackage; pha
   return <section className="education-task" aria-label="课堂练习">
     <h2 key={completed ? "done" : activity?.id} ref={heading} tabIndex={-1}>{currentTitle}</h2>
     {error && <p role="alert" className="error">{error}</p>}
-    {!session && !error && <p role="status">正在读取本地学习记录…</p>}
+    {loading && <p role="status">正在读取本地学习记录…</p>}
     {demo && <p>演示会话</p>}
     {!completed && activity?.kind === "example" && <>
       <p>独立教学练习 · 自编数据</p>
       <p>{activity.text}</p>
-      <button type="button" className="primary" disabled={busy}
+      <button type="button" className="primary" disabled={disabled}
         onClick={() => void move(activities.find(row => row.id === activity.return_activity_id),
           { id: activity.id, state: "completed" })}>返回原题</button>
     </>}
     {!completed && item && <>
       <p>{item.id.startsWith("em-") ? "跨尺度机制推理" : "独立教学练习 · 自编数据"}</p>
-      {session ? <AssessmentRenderer key={item.id} item={item} options={options} busy={busy} onSubmit={response => void submit(response)}/> :
+      {session ? <AssessmentRenderer key={item.id} item={item} options={options} busy={disabled} onSubmit={response => void submit(response)}/> :
         <p>{item.prompt}</p>}
       {feedback && <div className="education-feedback">
         <h3 ref={feedbackHeading} tabIndex={-1}>
@@ -222,11 +226,11 @@ function ActivityRenderer({ pack, phase, offline }: { pack: LearningPackage; pha
       <p className="education-status" role="status">{shownHelp?.id === item.id ? shownHelp.text : undefined}</p>
       {!feedback && activeAttempt && <p>上次作答已保存 · {evidenceLabels[activeAttempt.evidence_class]}</p>}
       <div className="toolbar">
-        <button type="button" disabled={busy} onClick={() => void hint(1)}>看提示</button>
-        {offline && <button type="button" disabled={busy} onClick={() => void hint(2)}>看比较步骤</button>}
-        <button type="button" disabled={busy} onClick={() => void hint(3)}>看参考解</button>
-        {example && <button type="button" disabled={busy} onClick={() => void move(example, undefined, item)}>看完整例题</button>}
-        <button type="button" disabled={busy} onClick={() => void move(next, previous)}>
+        <button type="button" disabled={disabled} onClick={() => void hint(1)}>看提示</button>
+        {offline && <button type="button" disabled={disabled} onClick={() => void hint(2)}>看比较步骤</button>}
+        <button type="button" disabled={disabled} onClick={() => void hint(3)}>看参考解</button>
+        {example && <button type="button" disabled={disabled} onClick={() => void move(example, undefined, item)}>看完整例题</button>}
+        <button type="button" disabled={disabled} onClick={() => void move(next, previous)}>
           {state === "submitted" || feedback ? (next ? "下一练习" : "完成本阶段练习") : (next ? "跳过本题" : "跳过并返回课堂")}</button>
       </div>
     </>}

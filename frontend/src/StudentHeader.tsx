@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { studentBrand, studentRoutes, originalLessonHref } from "../../content/student-navigation.ts";
 import { AppShell, Navigation, StatusNotice } from "../../content/student-ui.tsx";
 import { notesLink } from "./learning-store.ts";
-import { pagesDemo } from "./deployment.ts";
+import { localStudyAI, pagesDemo } from "./deployment.ts";
 
 export function StudentHeader({ caseId }: { caseId?: string }) {
   const [online, setOnline] = useState(() => navigator.onLine);
@@ -24,6 +24,7 @@ export function StudentHeader({ caseId }: { caseId?: string }) {
           <a href={notesLink()}>实验笔记</a>
           <a href="?view=review">复习</a>
           {pagesDemo ? <a href="https://github.com/DengJunxian/EcoSimEdu#本机启动">本机版</a> : <>
+            {localStudyAI && <a href="./?view=ai">AI 导师</a>}
             {!caseId && <a href={studentRoutes.teach}>教师工作台</a>}
             {caseId ? <a href={originalLessonHref(caseId)}>原课堂与进度</a> :
               <a href={studentRoutes.model}>配置模型 API</a>}

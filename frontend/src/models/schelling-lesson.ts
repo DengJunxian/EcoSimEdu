@@ -1,6 +1,7 @@
 import definition from "../../../cases/schelling_segregation/case.json" with { type: "json" };
 import boundaries from "../../../cases/boundaries.json" with { type: "json" };
-import { coordinates, openingChoice, openingNeighbors, openingTarget, schelling } from "./schelling.ts";
+import { coordinates, forkSchelling, openingChoice, openingNeighbors, openingTarget, schelling, schellingCheckpoint } from "./schelling.ts";
+import type { ModelRun } from "./record.ts";
 import { seedOffset } from "../seed-assets.ts";
 import { defineCourse, metric, windowOf } from "./course-lesson.ts";
 
@@ -29,6 +30,13 @@ const scenarioFor = (policy: number) => policy === zero.parameters.threshold ? z
 
 export const schellingLesson: typeof standard = {
   ...standard,
+  fork: {
+    checkpoint: (run, tick) => !!schellingCheckpoint(run as ModelRun, tick),
+    run: (run, tick, { destination, action }) => {
+      if (destination === undefined || action !== undefined) throw new Error("需要有效的迁入空格。");
+      return forkSchelling(run as ModelRun, tick, destination);
+    },
+  },
   policy: { ...standard.policy, unit: "%", rangeLabel: "30% 与 50%",
     alternates: [
       { value: zero.parameters.threshold, label: zero.label, description: zero.description },

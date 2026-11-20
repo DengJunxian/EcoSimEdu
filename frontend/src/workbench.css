@@ -10,6 +10,7 @@
   align-items: start;
 }
 .studio-opening[data-replay="true"] { display: block; }
+.comparison-workbench { display: grid; min-width: 0; gap: var(--work-gap); }
 .studio .edu-title h1 { font-size: clamp(1.8rem, 3.3vw, 2.65rem); }
 .studio .edu-title { margin-bottom: var(--edu-s2); }
 .studio-opening[data-replay="true"] .edu-action { padding-block: var(--edu-s3); }
@@ -80,7 +81,9 @@
 .event-parties { display: flex; flex-wrap: wrap; gap: 0 var(--edu-s2); }
 .event-parties button[aria-pressed="true"] { font-weight: 760; }
 .event-parties + .inspector { margin-top: 0; }
-.actor-picker select, .metric-lookup select {
+.experiment-hypothesis { display: grid; gap: var(--edu-s1); margin-block: var(--edu-s2); font-weight: 650; }
+.study-hypothesis { overflow-wrap: anywhere; white-space: pre-wrap; }
+.actor-picker select, .metric-lookup select, .experiment-hypothesis textarea {
   min-height: var(--edu-target); min-width: 0; width: 100%;
   padding: var(--edu-s2);
   border: 1px solid var(--edu-control);
@@ -129,10 +132,13 @@
 .trace-perspective input { accent-color: var(--edu-green); }
 .microscope-lenses {
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: var(--work-gap);
   align-items: start;
 }
+.trace-aggregation caption { text-align: start; }
+.trace-aggregation :is(th, td) { overflow-wrap: anywhere; }
+.trace-aggregation td { font-variant-numeric: tabular-nums; }
 .microscope-lenses dd { margin-bottom: var(--edu-s2); }
 .microscope-lenses dt { font-weight: 700; }
 .microscope-lenses li { border-top: 1px solid var(--edu-line); padding-block: var(--edu-s2); }
@@ -163,3 +169,20 @@
   .studio-runbar .stage-action { margin-inline-start: 0; }
   .studio-evidence .replay-review { padding: var(--edu-s3); }
 }
+
+.flow-stepper li > button {
+  display: inline-flex;
+  gap: 8px;
+  align-items: center;
+  min-height: 44px;
+  text-align: start;
+}
+.flow-stepper li[aria-current="step"] > button { color: inherit; text-decoration: none; }
+.studio-results > .stage-action { justify-self: start; }
+
+.fork-lab { margin-top: var(--edu-s4); }
+.fork-lab-form > * + *, .fork-lab > section > * + * { margin-top: var(--edu-s2); }
+.fork-lab :is(td, th) { overflow-wrap: anywhere; }
+.fork-lab td { font-variant-numeric: tabular-nums; }
+.fork-lab .run-identity { overflow-wrap: anywhere; }
+.auction-fork-table td { width: 26%; white-space: nowrap; }

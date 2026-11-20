@@ -1,6 +1,10 @@
 import json
 import os
 import re
+from functools import partial
+from http.server import SimpleHTTPRequestHandler, ThreadingHTTPServer
+from shutil import copytree
+from threading import Thread
 from pathlib import Path
 
 import pytest
@@ -22,6 +26,34 @@ def launch_education_browser(chromium_options):
         return playwright.chromium.launch(**chromium_options)
 
     return launch
+
+
+@pytest.fixture(scope="session")
+def offline_classroom_app(request, tmp_path_factory):
+    if not (directory := os.environ.get("CIVITAS_V3_PAGES_DIR")):
+        yield request.getfixturevalue("local_app")
+        return
+    source = Path(directory)
+    if not (source / "index.html").is_file():
+        pytest.fail(f"Static classroom build not found at {source}")
+    root = tmp_path_factory.mktemp("classroom-pages")
+    copytree(source, root / "explore")
+
+    class PagesHandler(SimpleHTTPRequestHandler):
+        protocol_version = "HTTP/1.1"
+
+        def log_message(self, *_):
+            pass
+
+    handler = partial(PagesHandler, directory=root)
+    with ThreadingHTTPServer(("127.0.0.1", 0), handler) as server:
+        worker = Thread(target=server.serve_forever, daemon=True)
+        worker.start()
+        try:
+            yield f"http://127.0.0.1:{server.server_port}"
+        finally:
+            server.shutdown()
+            worker.join(timeout=5)
 
 
 def luminance(color):

@@ -17,14 +17,19 @@ export type Item = {
   feedback: { hint: string; explanation: string; misconception_code: string };
 };
 export type Activity = {
-  id: string; phase: Phase; kind: "assessment" | "example" | "review"; content_ref: string;
+  id: string; phase: Phase; kind: "assessment" | "example" | "review" | "scaffold"; content_ref: string;
   outcome_ids: string[]; assessment_item_ids: string[]; next_activity_id: string | null;
   completion_rule: "submit_or_skip" | "read_or_skip";
   remediation_activity_id?: string; return_activity_id?: string; text?: string;
 };
+export type ConceptScaffold = {
+  id: string; title: string; example: string; worked_example: string;
+  step_activity_id: string; check_activity_id: string;
+};
 export type LearningPackage = {
   schema_version: 3; case_id: string; case_version: string; content_version: string;
   source_ids: string[]; required_comparisons: string[]; activities: Activity[]; outcomes: Outcome[]; items: Item[];
+  scaffolds?: ConceptScaffold[];
 };
 
 export type Response = number[] | string[] | string | { [key: string]: string } | null;

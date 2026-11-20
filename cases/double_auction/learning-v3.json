@@ -545,6 +545,126 @@
         "explanation": "报价变化先看原订单，选择性退出先查质量信息何时揭示及实际退出。收盘价格本身无法区分机制。",
         "misconception_code": "all_fees_destroy_value"
       }
+    },
+    {
+      "id": "review-1-reinforce",
+      "version": 1,
+      "variant_id": "review-1-reinforce",
+      "family_id": "double_auction.1",
+      "outcome_ids": [
+        "double_auction.1"
+      ],
+      "kind": "numeric",
+      "prompt": "买家价值 103，卖家成本 70，成交价 82，买卖双方各付 4 代币。平台无另计资源耗用。填平台收入和三方合计。",
+      "context": {
+        "kind": "authored_model_exercise"
+      },
+      "assessment_role": "review",
+      "response_schema": {
+        "fields": [
+          {
+            "id": "platform",
+            "label": "平台收入",
+            "unit": "代币"
+          },
+          {
+            "id": "total",
+            "label": "三方合计",
+            "unit": "代币"
+          }
+        ]
+      },
+      "evaluator": {
+        "id": "numeric_v1",
+        "version": 1,
+        "answers": [
+          8,
+          33
+        ]
+      },
+      "feedback": {
+        "hint": "买卖双方付出的费用会计入平台账户。把平台收入也加到三方合计里。",
+        "explanation": "买方得 103−82−4＝17，卖方得 82−70−4＝8，平台得 4＋4＝8，三方合计 33。",
+        "misconception_code": "price_is_surplus"
+      }
+    },
+    {
+      "id": "micro-marginal-total-step",
+      "version": 1,
+      "variant_id": "micro-marginal-total-step",
+      "family_id": "micro-marginal-total",
+      "outcome_ids": [
+        "double_auction.1"
+      ],
+      "kind": "numeric",
+      "prompt": "第一笔交易的剩余为 9，第二笔增加 5。完成两笔的总剩余是多少？",
+      "context": {
+        "kind": "authored_model_exercise"
+      },
+      "assessment_role": "practice",
+      "response_schema": {
+        "fields": [
+          {
+            "id": "total",
+            "label": "总剩余",
+            "unit": "代币"
+          }
+        ]
+      },
+      "evaluator": {
+        "id": "numeric_v1",
+        "version": 1,
+        "answers": [
+          14
+        ]
+      },
+      "feedback": {
+        "hint": "相加两笔各自新增的剩余。",
+        "explanation": "9＋5＝14 代币。",
+        "misconception_code": "price_is_surplus"
+      }
+    },
+    {
+      "id": "micro-marginal-total-check",
+      "version": 1,
+      "variant_id": "micro-marginal-total-check",
+      "family_id": "micro-marginal-total",
+      "outcome_ids": [
+        "double_auction.1"
+      ],
+      "kind": "numeric",
+      "prompt": "一个教材交换项目已举办两场活动，分别增加净收益 14 和 9 代币。第三场若举办，扣除新增资源成本后将使净收益减少 2 代币。填写第三场的边际净收益及举办三场后的总净收益。",
+      "context": {
+        "kind": "authored_model_exercise"
+      },
+      "assessment_role": "practice",
+      "response_schema": {
+        "fields": [
+          {
+            "id": "marginal",
+            "label": "第三场的边际净收益",
+            "unit": "代币"
+          },
+          {
+            "id": "total",
+            "label": "三场的总净收益",
+            "unit": "代币"
+          }
+        ]
+      },
+      "evaluator": {
+        "id": "numeric_v1",
+        "version": 1,
+        "answers": [
+          -2,
+          21
+        ]
+      },
+      "feedback": {
+        "hint": "第三场使累计净收益下降，计算总量时计入这笔负值。",
+        "explanation": "第三场的边际净收益为 −2，三场总净收益为 14＋9−2＝21 代币。",
+        "misconception_code": "price_is_surplus"
+      }
     }
   ],
   "activities": [
@@ -732,6 +852,58 @@
       ],
       "completion_rule": "submit_or_skip",
       "next_activity_id": null
+    },
+    {
+      "id": "review-1-reinforce",
+      "phase": "notebook",
+      "kind": "review",
+      "outcome_ids": [
+        "double_auction.1"
+      ],
+      "content_ref": "review-1-reinforce",
+      "assessment_item_ids": [
+        "review-1-reinforce"
+      ],
+      "completion_rule": "submit_or_skip",
+      "next_activity_id": null
+    },
+    {
+      "id": "micro-marginal-total-step",
+      "phase": "intro",
+      "kind": "scaffold",
+      "outcome_ids": [
+        "double_auction.1"
+      ],
+      "content_ref": "micro-marginal-total-step",
+      "assessment_item_ids": [
+        "micro-marginal-total-step"
+      ],
+      "completion_rule": "submit_or_skip",
+      "next_activity_id": null
+    },
+    {
+      "id": "micro-marginal-total-check",
+      "phase": "intro",
+      "kind": "scaffold",
+      "outcome_ids": [
+        "double_auction.1"
+      ],
+      "content_ref": "micro-marginal-total-check",
+      "assessment_item_ids": [
+        "micro-marginal-total-check"
+      ],
+      "completion_rule": "submit_or_skip",
+      "next_activity_id": null
+    }
+  ],
+  "scaffolds": [
+    {
+      "id": "marginal-total",
+      "title": "边际与总量",
+      "example": "再完成一笔交易带来的净收益是边际量。把已经完成的各笔收益加起来，才得到总量。",
+      "worked_example": "两笔教材交换依次增加净剩余 12 和 8 代币。第二笔的边际剩余是 8，完成两笔的总剩余是 12＋8＝20 代币。",
+      "step_activity_id": "micro-marginal-total-step",
+      "check_activity_id": "micro-marginal-total-check"
     }
   ],
   "required_comparisons": [

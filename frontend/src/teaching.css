@@ -6,13 +6,14 @@
 .teaching-card > :not(:first-child), .teaching-review > :not(:first-child) { margin-block-start: var(--edu-s3); }
 .teaching-journey { grid-column: 1 / -1; scroll-margin-block-start: var(--edu-s3); }
 .study-phase label { display: inline-flex; align-items: center; gap: var(--edu-s1); min-height: var(--edu-target); }
-:is(.teaching-journey, .teaching-review) .toolbar { display: flex; flex-wrap: wrap; gap: var(--edu-s2); }
-:is(.teaching-journey, .teaching-review) .education-answer :is(input:not([type=radio]), textarea, select),
+:is(.teaching-journey, .teaching-review, .concept-scaffolds) .toolbar { display: flex; flex-wrap: wrap; gap: var(--edu-s2); }
+:is(.teaching-journey, .teaching-review, .concept-scaffolds) .education-answer :is(input:not([type=radio]), textarea, select),
 .study-reflection select {
   min-height: var(--edu-target); min-width: 0; max-width: 100%;
   padding: var(--edu-s2); background: var(--edu-surface); color: var(--edu-ink);
   border: 1px solid var(--edu-control); border-radius: var(--edu-control-radius);
 }
+.concept-scaffolds .education-task :is(h3, h4) { margin: 0; }
 .study-reflection { display: grid; gap: var(--edu-s2); margin-block: var(--edu-s3); }
 .study-reflection label { display: grid; gap: var(--edu-s1); max-width: 28rem; }
 .study-reflection button { justify-self: start; }

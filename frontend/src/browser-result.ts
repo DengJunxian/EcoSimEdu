@@ -8,6 +8,14 @@ export async function sha256Text(text: string) {
   return Array.from(new Uint8Array(hash), byte => byte.toString(16).padStart(2, "0")).join("");
 }
 
+export function canonicalBrowserJson(value: object) {
+  return JSON.stringify(value, (_key, field) => {
+    if (typeof field === "number" && !Number.isFinite(field)) throw new Error("Non-finite model value");
+    if (field === null || typeof field !== "object" || Array.isArray(field)) return field;
+    return Object.fromEntries(Object.keys(field).sort().map(key => [key, field[key]]));
+  });
+}
+
 // The earlier demand comparison recorded the treatment sentinel as an event fee.
 export function withLegacyDemandDeltas(run: Run): Run {
   if (!run.id.startsWith("double-auction/browser-v1/") || !run.id.endsWith("/demand")) return run;
@@ -30,10 +38,5 @@ export async function browserResultDigest(run: Run): Promise<ResultDigest> {
     records: (run as Partial<ModelRun>).records,
     orders: (run as Partial<AuctionRun>).quotes,
   };
-  const canonical = JSON.stringify(evidence, (_key, value) => {
-    if (typeof value === "number" && !Number.isFinite(value)) throw new Error("Non-finite model value");
-    if (value === null || typeof value !== "object" || Array.isArray(value)) return value;
-    return Object.fromEntries(Object.keys(value).sort().map(key => [key, value[key]]));
-  });
-  return { algorithm: "sha256", scope: "browser-evidence/v1", value: await sha256Text(canonical) };
+  return { algorithm: "sha256", scope: "browser-evidence/v1", value: await sha256Text(canonicalBrowserJson(evidence)) };
 }

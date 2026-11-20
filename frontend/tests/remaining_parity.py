@@ -7,6 +7,8 @@ from pathlib import Path
 
 from services.simulation import beer, carbon, cascade, commons, flash_crash
 from services.simulation import gamestop, lemons, matching, public_goods, schelling
+from services.simulation.ai import course_event_tutor, schelling_tutor
+from services.simulation.domain import case_packages
 from frontend.tests.generate_classroom_inputs import inputs
 
 ROOT = Path(__file__).resolve().parents[2]
@@ -29,7 +31,7 @@ EVIDENCE = {
     "information_cascade": ("signal", "choice", "policy", "choice_if_private_a", "choice_if_private_b",
                             "public_a_before_pct", "public_a_after_pct", "private_a_after_pct", "cascade",
                             "information_added", "state", "correct_count"),
-    "schelling_segregation": ("actor_id", "origin", "destination", "before", "after", "changed_neighbors", "terminal"),
+    "schelling_segregation": ("actor_id", "origin", "destination", "before", "after", "changed_neighbors", "terminal", "checkpoint_event"),
     "public_goods": ("contributions", "public_return", "net", "outgoing", "fines"),
     "commons_governance": ("start_stock", "remaining_stock", "allocations", "requests", "plans", "growth", "next_stock"),
     "carbon_market": ("issue", "abatement", "emissions", "buyer", "seller", "permits", "payment", "firm"),
@@ -77,9 +79,27 @@ def main():
         for key, (_, baseline, comparison) in CASES.items() if key != "beer_game"
         for offset in (1, 2) for policy in (baseline, comparison)
     ]
+    for action in ("move", "stay"):
+        for scenario, policy in (("baseline", 30), ("higher", 50)):
+            parent = schelling.simulate(spatial, scenario, spatial["seed"], action)
+            for row, following in zip(parent["events"], parent["events"][1:]):
+                if row["event_type"] != "round_end" or following["event_type"] == "market_close":
+                    continue
+                board = parent["snapshots"][row["seq"]]["grid"]["cells"]
+                origin = board.index("A001")
+                destinations = [cell for cell, occupant in enumerate(board) if occupant is None and
+                                schelling.satisfied(schelling.counts(board, schelling.SIZE, cell, "A001", origin), policy)]
+                if destinations:
+                    requests.append({"id": spatial["case_id"], "choices": [action, "prediction-0"], "policy": policy,
+                                     "relocation": {"checkpoint": row["seq"], "round": row["round"],
+                                                    "destination": destinations[0]}})
+
     report = subprocess.run(["node", "frontend/tests/remaining_parity.mjs", "--pipe"], cwd=ROOT,
                             input=json.dumps(requests), text=True, capture_output=True, check=True)
     counts = Counter()
+    tutor_count = tutor_closes = 0
+    event_focus_count = 0
+    fork_count = fork_frames = 0
     for request, line in zip(requests, report.stdout.splitlines(), strict=True):
         browser = json.loads(line)
         key = request["id"]
@@ -87,7 +107,21 @@ def main():
         case = definitions[key]
         label = f"{key}/{action}/{browser['scenario']}"
         seed = request.get("seed", case["seed"])
-        actual = CASES[key][0].simulate(case, browser["scenario"], seed, action)
+        relocation = request.get("relocation")
+        if relocation:
+            label += f"/fork:{relocation['checkpoint']}:{relocation['destination']}"
+            actual = schelling.simulate(case, browser["scenario"], seed, action,
+                                        relocation=(relocation["round"], relocation["destination"]))
+            run_id = (f"{key}/{schelling_tutor.ENGINE}|{seed}|{action}|{browser['scenario']}"
+                      f"~fork-v1:{relocation['checkpoint']}:{relocation['destination']}")
+            seq = actual["events"][-1]["seq"]
+            assert browser["reviewSource"] == {
+                "run_id": run_id, "seq": seq, "digest": schelling_tutor.replay_digest(run_id, actual, seq),
+            }, label
+            fork_count += 1
+            fork_frames += len(actual["events"])
+        else:
+            actual = CASES[key][0].simulate(case, browser["scenario"], seed, action)
         assert browser["seed"] == seed, label
         assert len(browser["metrics"]) == len(actual["events"]), (label, len(browser["metrics"]), len(actual["events"]))
         for event, expected, metrics, snapshot in zip(browser["records"], actual["events"], browser["metrics"],
@@ -103,10 +137,37 @@ def main():
                 if field in expected:
                     assert field in data, (label, event["seq"], field)
                     assert_matches(data[field], expected[field], f"{label}.{event['seq']}.{field}")
+        if not relocation and key == schelling_tutor.CASE_ID and seed == case["seed"]:
+            scenario = browser["scenario"]
+            run_id = f"{key}/{schelling_tutor.ENGINE}|{seed}|{action}|{scenario}"
+            close = browser["tutorClose"]
+            assert (close["run_id"], close["seq"]) == (run_id, actual["events"][-1]["seq"]), label
+            assert close["digest"] == schelling_tutor.completion_digest(run_id, actual), label
+            tutor_closes += 1
+            if scenario == "baseline":
+                seqs = [event["seq"] for event in actual["events"] if event["event_type"] in schelling_tutor.MOVES]
+                for seq, anchor in zip(seqs, browser["tutorAnchors"], strict=True):
+                    assert (anchor["run_id"], anchor["event_seq"]) == (run_id, seq), (label, seq)
+                    assert anchor["digest"] == schelling_tutor.replay_digest(run_id, actual, seq), (label, seq)
+                    tutor_count += 1
+        elif (key in course_event_tutor.guides() and seed == case["seed"]
+              and browser["scenario"] in {"baseline", course_event_tutor.guides()[key]["policy"]}):
+            package = case_packages()[key]
+            versions = (package.caseVersion, package.browserContentVersion)
+            run_id = f"{key}/browser-v1|{seed}|{action}|{browser['scenario']}"
+            seqs = [event["seq"] for event in actual["events"]
+                    if event["seq"] > 0 and event["event_type"] in course_event_tutor.guides()[key]["events"]]
+            for seq, focus in zip(seqs, browser["publicFocuses"], strict=True):
+                assert (focus["run_id"], focus["event_seq"]) == (run_id, seq), (label, seq)
+                assert focus["digest"] == course_event_tutor.prefix_digest(key, run_id, versions, actual, seq), (label, seq)
+                event_focus_count += 1
         counts[key] += len(actual["events"])
     for key in CASES:
         print(f"{key}: {counts[key]} event frames matched")
     print(f"{len(requests)} paired trajectories, {sum(counts.values())} frames matched")
+    print(f"{fork_count} inter-round Schelling branches, {fork_frames} frames and full review prefixes matched")
+    print(f"{tutor_count} Schelling relocation prefixes and {tutor_closes} closing records matched")
+    print(f"{event_focus_count} selected public event prefixes matched across nine courses")
 
 
 if __name__ == "__main__":

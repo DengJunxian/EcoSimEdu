@@ -1,4 +1,4 @@
-import { Fragment, lazy, Suspense, useEffect, useMemo, useState, type FormEvent } from "react";
+import { Fragment, lazy, Suspense, useEffect, useId, useMemo, useRef, useState, type FormEvent } from "react";
 import { EvidenceCard, PageTitle, StatusNotice } from "../../content/student-ui.tsx";
 import { comparable, conditions, deltaUnit, distribution, experimentCard, experimentLimits, pairResult, pairedRows, reopenExperiment,
   runSamples, sharedRange, statisticNames, type ExperimentPlan, type Pair, type Sample } from "./experiments.ts";
@@ -9,6 +9,7 @@ import { browserEvents } from "./run-evidence.ts";
 import "./experiments.css";
 
 const MetricChart = lazy(() => import("./MetricChart.tsx"));
+const rowsPerPage = 24;
 export const predictions: Record<Trend, string> = { down: "减少", same: "不变", up: "增加" };
 
 type Focus = { run: Run; tick: number; checkpoint: number; side: "基线" | "干预" };
@@ -26,17 +27,40 @@ function OriginalEvent({ lesson, focus }: { lesson: Lesson; focus: Focus }) {
 
 function PairDetails({ lesson, treatment, pair }: { lesson: Lesson; treatment: ReturnType<typeof conditions>; pair: Pair }) {
   const primary = comparisonMetric(lesson);
-  const secondary = lesson.casePackage?.caseId === "svb_run" ? lesson.metrics.find(metric => metric.id === "equity") :
-    lesson.casePackage?.caseId === "double_auction" ? { id: "last_price", label: "最近成交价", unit: "代币/件", color: primary.color } : undefined;
+  const secondary = useMemo(() => {
+    if (lesson.casePackage?.caseId === "svb_run") return lesson.metrics.find(metric => metric.id === "equity");
+    if (lesson.casePackage?.caseId === "double_auction")
+      return { id: "last_price", label: "最近成交价", unit: "代币/件", color: primary.color };
+  }, [lesson, primary.color]);
   const [viewMetric, setViewMetric] = useState(primary.id);
   const [focus, setFocus] = useState<Focus>();
+  const [evidenceOpen, setEvidenceOpen] = useState(false);
+  const [page, setPage] = useState(0);
+  const evidenceId = useId();
+  const previousPage = useRef<HTMLButtonElement>(null);
+  const nextPage = useRef<HTMLButtonElement>(null);
   const metric: Metric = secondary?.id === viewMetric ? secondary : primary;
   const id = metric.id;
   const rows = useMemo(() => pairedRows(lesson, pair.baseline, pair.branch), [lesson, pair]);
   const labels = useMemo(() => rows.map(row => row.label), [rows]);
+  const charts = useMemo(() => {
+    const frames = (side: "baseline" | "branch"): Frame[] =>
+      rows.map(row => ({ tick: row.tick, actors: [], events: [], metrics: row[side]?.metrics ?? {} }));
+    return { baseline: frames("baseline"), branch: frames("branch") };
+  }, [rows]);
+  const bounds = useMemo(() => sharedRange(rows.flatMap(row => [row.baseline?.metrics[id], row.branch?.metrics[id]])), [rows, id]);
+  const lastPage = Math.max(0, Math.ceil(rows.length / rowsPerPage) - 1);
+
+  function turnPage(target: number) {
+    setPage(target);
+    setFocus(undefined);
+    if (target === 0 || target === lastPage) {
+      requestAnimationFrame(() => (target === 0 ? nextPage : previousPage).current?.focus());
+    }
+  }
+
   const sides = [{ side: "基线" as const, name: "无干预基线", amount: treatment.baseline, value: pair.left, key: "baseline" as const, run: pair.baseline },
     { side: "干预" as const, name: "引入政策", amount: treatment.comparison, value: pair.right, key: "branch" as const, run: pair.branch }];
-  const bounds = sharedRange(rows.flatMap(row => [row.baseline?.metrics[id], row.branch?.metrics[id]]));
   return <>
     {secondary && <label className="study-curve-choice">对照曲线指标 <select value={viewMetric} onChange={event => setViewMetric(event.target.value)}>
       <option value={primary.id}>{primary.label}</option><option value={secondary.id}>{secondary.label}</option>
@@ -44,42 +68,49 @@ function PairDetails({ lesson, treatment, pair }: { lesson: Lesson; treatment: R
     {bounds ? <p className="small">两图共用纵轴 {displayNumber(bounds.min)} 至 {displayNumber(bounds.max)} {metric.unit}。</p> :
       <StatusNotice>两组在所选时点均无数值可绘制。</StatusNotice>}
     <div className="comparison-grid">
-      {sides.map(item => {
-        const frames: Frame[] = rows.map(row => ({ tick: row.tick, actors: [], events: [], metrics: row[item.key]?.metrics ?? {} }));
-        return <section key={item.name}>
-          <h3>{item.name}</h3><p>{item.amount}</p>
-          <p>{outcomeLabel(lesson)} <strong>{withUnit(item.value, primary.unit)}</strong></p>
-          {lesson.casePackage?.caseId === "svb_run" &&
-            <p>期末银行权益 <strong>{item.run.frames.at(-1)?.metrics.equity} {primary.unit}</strong></p>}
-          {bounds && <Suspense fallback={<p>正在绘制曲线…</p>}>
-            <MetricChart metric={metric} frames={frames} bounds={bounds} labels={labels}
-              financial={metric.id === lesson.priceMetric || metric.id === "last_price"}/>
-          </Suspense>}
-        </section>;
-      })}
+      {sides.map(item => <section key={item.name}>
+        <h3>{item.name}</h3><p>{item.amount}</p>
+        <p>{outcomeLabel(lesson)} <strong>{withUnit(item.value, primary.unit)}</strong></p>
+        {lesson.casePackage?.caseId === "svb_run" &&
+          <p>期末银行权益 <strong>{item.run.frames.at(-1)?.metrics.equity} {primary.unit}</strong></p>}
+        {bounds && <Suspense fallback={<p>正在绘制曲线…</p>}>
+          <MetricChart metric={metric} frames={charts[item.key]} bounds={bounds} labels={labels}
+            financial={metric.id === lesson.priceMetric || metric.id === "last_price"}/>
+        </Suspense>}
+      </section>)}
     </div>
-    <details className="trace-details">
+    <details className="trace-details" onToggle={event => setEvidenceOpen(event.currentTarget.open)}>
       <summary>按经济时点查看两组{metric.label}与原事件</summary>
-      <div className="study-table">
-        <table>
-          <caption>{metric.label}{metric.unit && `（${metric.unit}）`}</caption>
-          <thead><tr><th scope="col">经济时点</th><th scope="col">基线</th><th scope="col">干预</th></tr></thead>
-          <tbody>{rows.map(row => <Fragment key={row.tick}>
-            <tr><th scope="row">{row.label}</th>
-              {sides.map(({ key, side, run }) => {
-                const point = row[key];
-                const sourceTick = point?.sourceTick;
-                const expanded = focus?.checkpoint === row.tick && focus.side === side;
-                return <td key={key}>{displayObservation(point?.metrics[id])}
-                  {sourceTick !== undefined && <button type="button" className="text-button" aria-expanded={expanded}
-                    onClick={() => setFocus(expanded ? undefined : { run, tick: sourceTick, checkpoint: row.tick, side })}>
-                    查{side}原记录 {sourceTick}</button>}</td>;
-              })}
-            </tr>
-            {focus?.checkpoint === row.tick && <tr><td colSpan={3}><OriginalEvent lesson={lesson} focus={focus}/></td></tr>}
-          </Fragment>)}</tbody>
-        </table>
-      </div>
+      {evidenceOpen && <>
+        {lastPage > 0 && <div className="decision-actions trace-pages" role="group" aria-label="对照证据分页">
+          <button type="button" ref={previousPage} disabled={page === 0}
+            onClick={() => turnPage(page - 1)}>上一页</button>
+          <span role="status">第 {page + 1} / {lastPage + 1} 页</span>
+          <button type="button" ref={nextPage} disabled={page === lastPage}
+            onClick={() => turnPage(page + 1)}>下一页</button>
+        </div>}
+        <div className="study-table">
+          <table>
+            <caption>{metric.label}{metric.unit && `（${metric.unit}）`}</caption>
+            <thead><tr><th scope="col">经济时点</th><th scope="col">基线</th><th scope="col">干预</th></tr></thead>
+            <tbody>{rows.slice(page * rowsPerPage, (page + 1) * rowsPerPage).map(row => <Fragment key={row.tick}>
+              <tr><th scope="row">{row.label}</th>
+                {sides.map(({ key, side, run }) => {
+                  const point = row[key];
+                  const sourceTick = point?.sourceTick;
+                  const expanded = focus?.checkpoint === row.tick && focus.side === side;
+                  return <td key={key}>{displayObservation(point?.metrics[id])}
+                    {sourceTick !== undefined && <button type="button" className="text-button" aria-label={`查${side}原记录 ${sourceTick}`} aria-expanded={expanded}
+                      aria-controls={expanded ? evidenceId : undefined}
+                      onClick={() => setFocus(expanded ? undefined : { run, tick: sourceTick, checkpoint: row.tick, side })}>
+                      记录 {sourceTick}</button>}</td>;
+                })}
+              </tr>
+              {focus?.checkpoint === row.tick && <tr id={evidenceId}><td colSpan={3}><OriginalEvent lesson={lesson} focus={focus}/></td></tr>}
+            </Fragment>)}</tbody>
+          </table>
+        </div>
+      </>}
     </details>
   </>;
 }
@@ -136,6 +167,7 @@ export function StudyResults({ lesson, plan, primary, restored }: {
     <p>原预测：{predictions[plan.prediction]}。实际：{observed ? predictions[observed] : samples ? stat.count > 0 ? "部分可比较" : "无法比较" : "正在运行"}。
       {observed && (plan.prediction === observed ? "结果与预测一致。" : "可沿对齐的时点回查差异。")}</p>
     <dl className="study-method">
+      {plan.hypothesis && <div><dt>原假设</dt><dd className="study-hypothesis">{plan.hypothesis}</dd></div>}
       <div><dt>指标、单位与口径</dt><dd>{metric.label}{metric.unit && `（${metric.unit}）`} · {statisticNames[lesson.metricRoles.statistic]}</dd></div>
       <div><dt>本次处理</dt><dd>{treatment.treatment} · {treatment.baseline} → {treatment.comparison}。{treatment.mechanisms}</dd></div>
       <div><dt>各对共同条件</dt><dd>{treatment.common} 入场动作保持为「{action}」。</dd></div>

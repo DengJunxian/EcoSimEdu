@@ -82,11 +82,20 @@ test("prediction gates the seed plan and a failed primary or extra run preserves
   const changed = transition(broken, state, { type: "seed-count", multi: true });
   assert.equal(changed.prediction, undefined);
   assert.equal(transition(broken, changed, { type: "compare" }), changed);
-  const predicted = transition(broken, changed, { type: "predict", value: "down" });
+  const hypothesis = "需求下降会减少可成交的订单。";
+  const draft = transition(broken, changed, { type: "hypothesis", value: ` ${hypothesis} ` });
+  const predicted = transition(broken, draft, { type: "predict", value: "down" });
   const failed = transition(broken, predicted, { type: "compare" });
   assert.equal(failed.comparison, undefined);
   assert.equal(failed.comparisonFailed, true);
   assert.equal(failed.prediction, "down");
+  assert.equal(failed.hypothesis, draft.hypothesis);
+  const completed = transition(auction, predicted, { type: "compare" });
+  assert.ok(completed.comparison);
+  assert.equal(completed.hypothesis, hypothesis);
+  assert.equal(transition(auction, completed, { type: "hypothesis", value: "事后修改" }), completed);
+  assert.equal(transition(auction, completed, { type: "new-comparison" }).hypothesis, undefined);
+  assert.equal(transition(auction, draft, { type: "hypothesis", value: "字".repeat(241) }), draft);
   const extra = { ...auction, async prepareSeed(seed) {
     if (seed === auction.seed + 1) throw new Error("test seed unavailable");
     return auction.prepareSeed(seed);
@@ -97,10 +106,11 @@ test("prediction gates the seed plan and a failed primary or extra run preserves
 });
 
 test("multi-seed reruns match the same digests and reject altered cards, including the original prediction", async () => {
-  const plan = planFor(auction);
+  const plan = { ...planFor(auction), hypothesis: "需求减少时，成交量会下降。" };
   const samples = await runSamples(auction, plan);
   const card = JSON.parse(JSON.stringify(await experimentCard(auction, plan, samples)));
   const restored = await reopenExperiment(auction, plan.course, card);
+  assert.equal(restored.plan.hypothesis, plan.hypothesis);
   assert.deepEqual(restored.samples.map(item => item.delta), samples.map(item => item.delta));
   assert.equal(new Set(card.pairs.map(item => item.baseline.envelope.runId)).size, 3);
   for (let index = 0; index < samples.length; index++) {
@@ -113,6 +123,7 @@ test("multi-seed reruns match the same digests and reject altered cards, includi
   for (const edit of [
     card => { card.pairs[1].delta += 1; }, card => { card.plan.prediction = "up"; },
     card => { card.pairs[1].baseline.evidence.frameTick += 1; }, card => { card.plan.seeds[1] = -1; },
+    card => { card.plan.hypothesis += " 已验证"; }, card => { card.plan.hypothesis = "字".repeat(241); },
   ]) {
     const forged = structuredClone(card);
     edit(forged);

@@ -1,6 +1,7 @@
 import { useState, type Dispatch, type Ref } from "react";
 import { evidenceKinds, missingEvidence } from "../../content/microscope.ts";
 import { displayObservation, frameLabel, type Command, type Lesson, type Session } from "./lesson.ts";
+import { browserEngineVersion } from "./domain-contracts.ts";
 import { microscope, type TraceFocus } from "./microscope.ts";
 import { browserEnvelope } from "./run-evidence.ts";
 import type { CourseRef } from "./learning-store.ts";
@@ -112,6 +113,28 @@ export function TraceMicroscope({ lesson, course, session, metricId, send, headi
             </button>}
           </> : <p>{missingEvidence}</p>}
         </section>
+        {perspective === "system" && <section aria-label="局部聚合" className="edu-panel">
+          <h3>局部聚合</h3>
+          {view.aggregation ? <>
+            <table className="source-metrics trace-aggregation">
+              <caption>{view.aggregation.label}</caption>
+              <thead><tr><th scope="col">记录</th><th scope="col">之前</th><th scope="col">之后</th></tr></thead>
+              <tbody>{view.aggregation.rows.map(row => <tr key={row.label}>
+                <th scope="row">{row.label}</th>
+                <td>{displayObservation(row.before)}</td><td>{displayObservation(row.after)}</td>
+              </tr>)}</tbody>
+            </table>
+            <p>{view.aggregation.explanation}</p>
+            {!!view.aggregation.sources?.length && <ul>
+              {view.aggregation.sources.map(source => <li key={source.point.eventId}>
+                <button className="text-button" onClick={() => follow(source.point, source.actorId)}>
+                  {source.text} · {pointName(source.point)}
+                </button>
+              </li>)}
+            </ul>}
+          </> : <p>{view.point.tick === 0 ? "从开局向前一步，查看这一层的变化。" :
+            neighborhood && !view.eventType?.endsWith("move") ? "这一帧没有迁居事件。" : missingEvidence}</p>}
+        </section>}
         <section aria-label="宏观结果" className="edu-panel">
           <h3>宏观结果</h3>
           {view.metric ? <>
@@ -123,11 +146,24 @@ export function TraceMicroscope({ lesson, course, session, metricId, send, headi
             </dl>
             {view.metric.equation && <p><strong>{evidenceKinds.accounting}</strong> · {view.metric.equation}</p>}
             {view.metric.identity && <p>{view.metric.identity}</p>}
-            {!view.metric.equation && <p>{missingEvidence}</p>}
+            {!view.metric.equation && <p>{model.caseId === "double_auction" && metricId === "price"
+              ? view.metric.after === null ? "本事件没有成交价。" : "成交价来自这笔成交记录。"
+              : missingEvidence}</p>}
+            {view.contributions.length > 0 && <details>
+              <summary>{banking ? "回查本轮贡献事件" : "回查指标的原事件"}</summary>
+              <ul>{view.contributions.map(source => <li key={source.point.eventId}>
+                <button className="text-button" onClick={() => follow(source.point, source.actorId)}>
+                  {pointName(source.point)} · {source.text}
+                </button>
+              </li>)}</ul>
+            </details>}
           </> : <p>角色视角使用本角色已观察的信息。</p>}
         </section>
       </div>
-      <details><summary>核对运行编号</summary><p className="run-identity">{view.runId}</p></details>
+      <details><summary>核对运行编号</summary>
+        <p>{model.identityLabel} · 浏览器规则运行 {browserEngineVersion} · 案例版本 {model.caseVersion} · 种子 {run.seed}</p>
+        <p className="run-identity">{view.runId}</p>
+      </details>
       <button type="button" onClick={() => void save()} disabled={busy}>导出当前显微镜证据</button>
       {status && <p role="status">{status}</p>}
     </>}
