@@ -8,7 +8,7 @@ export function carbon(seed: number, action: string, scenario: string, cap: numb
   const people = profiles(participants, "每张配额覆盖 1 吨排放，须按登记簿中的持有量缴回",
     "按最低边际成本选减排，正短缺者转入配额");
   people[registry].state = "institution";
-  const log = new Recorder(participants, people);
+  const log = new Recorder(participants, people, true);
   const e0 = recordOf(firms, (_, i) => input.firms[i][0]);
   const intensity = recordOf(firms, (_, i) => input.firms[i][1]);
   const baseline = sum(Object.values(e0));
@@ -102,10 +102,11 @@ export function beer(seed: number, action: string, scenario: string, shared: boo
   let pending = [4, 4, 4], delivered = 0, produced = 0, cost = 0;
   const orderHistory: number[] = [];
   const log = new Recorder(roles, profiles(roles, "运输与生产需两周，下单后下一周才传到上游",
-    shared ? "订单公式读取共同终端需求及本环节库存" : "订单公式读取本环节收到的需求及库存"));
+    shared ? "订单公式读取共同终端需求及本环节库存" : "订单公式读取本环节收到的需求及库存"), true);
   log.emit("opening", "四个环节各有 12 件库存，在途货物和已下订单按不同的时钟到达。", {
     retail_stock: 12, retail_backlog: 0, factory_order: null, in_transit: 32, total_cost: 0, factory_variance_ratio: null,
   }, { period: 0, entities: recordOf(roles, role => ({ 期初库存: stock[role], 已订未到: outstanding[role] })),
+    panelEntities: recordOf(roles, role => ({ 期初库存: stock[role], 期末积压: backlog[role], 已订未到: outstanding[role] })),
     data: { initial_batches: batches, arrivals: [], dispatches: [], orders: null, demand_received: null,
       production: null, in_transit_batches: batches, delivered: 0, produced: 0 } });
   for (const [index, consumer] of demand.entries()) {

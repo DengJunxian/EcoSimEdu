@@ -25,7 +25,7 @@ class TradeTape {
     const participants = Object.keys(accounts);
     const people = profiles(participants, "限价买单须有足够现金，卖单须有已到账股票", "按价格优先、时间优先与在簿价格撮合");
     for (const actor of Object.keys(constraints)) people[actor].constraint = constraints[actor];
-    this.log = new Recorder(participants, people);
+    this.log = new Recorder(participants, people, true);
   }
 
   best(side: Side) {
@@ -52,13 +52,24 @@ class TradeTape {
     if (record?.origin_seq !== undefined) sourceEvents.push({ tick: record.origin_seq, label: `回查源事件 ${record.origin_seq}` });
     const bid = this.best("buy"), ask = this.best("sell");
     const orders = [...this.orders.values()];
+    const levels = { buy: new Map<number, number>(), sell: new Map<number, number>() };
+    for (const order of orders) {
+      const side = levels[order.side];
+      side.set(order.price, (side.get(order.price) ?? 0) + order.quantity);
+    }
+    const book = Object.fromEntries([
+      ...[...levels.buy].sort(([left], [right]) => right - left).slice(0, 4)
+        .map(([price, quantity]) => [`买 ${(price / 100).toFixed(2)} 的挂单股数`, quantity]),
+      ...[...levels.sell].sort(([left], [right]) => left - right).slice(0, 4)
+        .map(([price, quantity]) => [`卖 ${(price / 100).toFixed(2)} 的挂单股数`, quantity]),
+    ]);
     return this.log.emit(kind, text, {
       last_price: this.last === null ? null : this.last / 100,
       low_price: this.low === null ? null : this.low / 100, high_price: this.high === null ? null : this.high / 100,
       volume: this.volume, bid_depth: sum(orders.filter(order => order.side === "buy").map(order => order.quantity)),
       ask_depth: sum(orders.filter(order => order.side === "sell").map(order => order.quantity)),
       spread: ask && bid ? (ask.price - bid.price) / 100 : null, ...this.extra(),
-    }, { period: this.time, actors, data, turningPoint, signal, sourceEvents,
+    }, { period: this.time, actors, data, turningPoint, signal, sourceEvents, panelEntities: { 订单簿: book },
       evidence: kind === "inventory_limit" || kind === "margin_call" ?
         [{ actorId: actors[0], focusMetrics: [kind === "inventory_limit" ? "bid_depth" : "last_price"], text, deltas: {} }] : undefined,
       entities: recordOf(Object.keys(this.accounts), actor => ({

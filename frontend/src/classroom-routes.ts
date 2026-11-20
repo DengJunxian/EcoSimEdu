@@ -1,11 +1,12 @@
-import { createElement } from "react";
+import type { BrowserPanelProps } from "../../content/domain-panel.ts";
+import { createElement, type ComponentType } from "react";
 import { originalLessonHref } from "../../content/student-navigation.ts";
 import type { MigratedLesson } from "./models/course-lesson.ts";
 
-function loadCourse(load: () => Promise<MigratedLesson>) {
+function loadCourse(load: () => Promise<MigratedLesson>, panel?: () => Promise<ComponentType<BrowserPanelProps>>) {
   return async () => {
-    const [{ ModelClassroom }, lesson] = await Promise.all([import("./ModelClassroom.tsx"), load()]);
-    return { default: () => createElement(ModelClassroom, { lesson }) };
+    const [{ ModelClassroom }, lesson, Panel] = await Promise.all([import("./ModelClassroom.tsx"), load(), panel?.()]);
+    return { default: () => createElement(ModelClassroom, { lesson, Panel }) };
   };
 }
 
@@ -23,12 +24,18 @@ export const classrooms = {
   lemons_market: loadInformation(() => import("./models/information-lessons.ts").then(module => module.lemonsLesson)),
   information_cascade: loadInformation(() => import("./models/information-lessons.ts").then(module => module.cascadeLesson)),
   schelling_segregation: () => import("./SchellingClassroom.tsx"),
-  public_goods: loadCourse(() => import("./models/cooperation-lessons.ts").then(module => module.publicGoodsLesson)),
-  commons_governance: loadCourse(() => import("./models/cooperation-lessons.ts").then(module => module.commonsLesson)),
-  carbon_market: loadCourse(() => import("./models/allocation-lessons.ts").then(module => module.carbonLesson)),
-  beer_game: loadCourse(() => import("./models/allocation-lessons.ts").then(module => module.beerLesson)),
-  gamestop: loadCourse(() => import("./models/markets-lessons.ts").then(module => module.gameLesson)),
-  flash_crash: loadCourse(() => import("./models/markets-lessons.ts").then(module => module.flashLesson)),
+  public_goods: loadCourse(() => import("./models/cooperation-lessons.ts").then(module => module.publicGoodsLesson),
+    () => import("../../student-web/src/cases/cooperation/panels.tsx").then(module => module.PublicGoodsPanel)),
+  commons_governance: loadCourse(() => import("./models/cooperation-lessons.ts").then(module => module.commonsLesson),
+    () => import("../../student-web/src/cases/cooperation/panels.tsx").then(module => module.CommonsPanel)),
+  carbon_market: loadCourse(() => import("./models/allocation-lessons.ts").then(module => module.carbonLesson),
+    () => import("../../student-web/src/cases/markets/panels.tsx").then(module => module.CarbonPanel)),
+  beer_game: loadCourse(() => import("./models/allocation-lessons.ts").then(module => module.beerLesson),
+    () => import("../../student-web/src/cases/allocation/panels.tsx").then(module => module.BeerPanel)),
+  gamestop: loadCourse(() => import("./models/markets-lessons.ts").then(module => module.gameLesson),
+    () => import("../../student-web/src/cases/markets/panels.tsx").then(module => module.GameStopPanel)),
+  flash_crash: loadCourse(() => import("./models/markets-lessons.ts").then(module => module.flashLesson),
+    () => import("../../student-web/src/cases/markets/panels.tsx").then(module => module.FlashCrashPanel)),
   demo: () => import("./DemoClassroom.tsx"),
 };
 

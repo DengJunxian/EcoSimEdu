@@ -128,7 +128,7 @@ export type Command =
   | { type: "next-stage" }
   | { type: "select"; actorId: string }
   | { type: "play" | "pause" | "step" | "back" | "reset" | "go-to-close" | "go-to-turn" }
-  | { type: "locate"; tick: number; metricId: string; actorId?: string }
+  | { type: "locate"; tick: number; metricId: string; actorId?: string; keepSelection?: true }
   | { type: "trace"; focus: TraceFocus; actorId?: string }
   | { type: "perspective"; perspective: ObservationPerspective }
   | { type: "policy"; value: number }
@@ -230,12 +230,12 @@ export function transition(lesson: Lesson, session: Session, command: Command): 
         { ...session, cursor: run.frames.length - 1, revealed: run.frames.length - 1,
           playing: false, traceFocus: undefined, focusedMetric: lesson.originalId ? session.focusedMetric : undefined } : session;
     case "locate": {
-      if (stage !== 3 || session.perspective === "role" || !run || !Number.isInteger(command.tick) || command.tick > session.revealed ||
+      if ((!replay || stage !== 3 && !command.keepSelection) || session.perspective === "role" || !Number.isInteger(command.tick) || command.tick > session.revealed ||
           !run.frames[command.tick] || !lesson.metrics.some(metric => metric.id === command.metricId)) return session;
       const frame = run.frames[command.tick];
       const contributors = relatedActors(frame, command.metricId);
       const mover = frame.board && (frame.events[0]?.deltas.moves ?? 0) > 0 ? frame.events[0].actorId : undefined;
-      const selected = command.actorId && relatedActors(frame).includes(command.actorId)
+      const selected = command.keepSelection ? session.selected : command.actorId && relatedActors(frame).includes(command.actorId)
         ? command.actorId : contributors[0] ?? mover;
       return { ...session, cursor: command.tick, playing: false, selected, focusedMetric: command.metricId, traceFocus: undefined };
     }

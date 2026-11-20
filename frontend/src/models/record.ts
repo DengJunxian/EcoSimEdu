@@ -10,6 +10,8 @@ type RecordOptions = {
   evidence?: readonly Change[];
   sourceEvents?: LessonEvent["sourceEvents"];
   data?: object;
+  panelData?: object;
+  panelEntities?: Entity;
   period?: number;
   signal?: LessonEvent["priorSignal"];
   turningPoint?: string;
@@ -31,15 +33,20 @@ export const showFacts = (facts: Facts) => Object.entries(facts)
   .map(([name, value]) => `${name} ${value === null ? "未定义" : typeof value === "number" ? shown(value) : value}`)
   .join(" · ");
 
+type ModelFrame = Frame & { panel?: { entities: Entity; data?: object } };
+
 export class Recorder {
-  readonly frames: Frame[] = [];
+  readonly frames: ModelFrame[] = [];
   readonly records: { seq: number; event_type: string; period: number; summary: string; actors: readonly string[]; data?: object }[] = [];
   readonly entities: Entity = {};
 
   readonly participants;
   readonly profiles;
+  readonly domainPanel: boolean;
 
-  constructor(participants: readonly string[], profiles: Readonly<Record<string, Omit<Actor, "id">>>) {
+  constructor(participants: readonly string[], profiles: Readonly<Record<string, Omit<Actor, "id">>>,
+    domainPanel = false) {
+    this.domainPanel = domainPanel;
     this.participants = participants;
     this.profiles = profiles;
   }
@@ -81,6 +88,7 @@ export class Recorder {
     this.frames.push({
       tick, actors, metrics: { ...metrics }, events: [main, ...evidence.map((event, index) => ({ ...event, id: `${tick}.${index + 1}` }))],
       turningPoint: options.turningPoint, board: options.board,
+      ...(this.domainPanel ? { panel: { entities: { ...this.entities, ...options.panelEntities }, data: options.panelData } } : {}),
     });
     this.records.push({ seq: tick, event_type: kind, period: options.period ?? tick, summary: text, actors: actorIds, data: options.data });
     return tick;
@@ -93,6 +101,7 @@ export class Recorder {
 }
 
 export type ModelRun = Run & {
+  frames: readonly ModelFrame[];
   caseId: string; action: string; scenario: string; intervention?: object; records: Recorder["records"];
 };
 

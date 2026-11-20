@@ -8,7 +8,7 @@ export function publicGoods(seed: number, action: string, scenario: string, cost
   const roles = ["学生", "条件合作者", "自利策略", "规范维护者"];
   const people = profiles(participants, "每轮 20 代币，公共池每增加 1 代币，每人获得 0.4", "按策略及上一轮观察选择贡献");
   people[pool].state = "institution";
-  const log = new Recorder(participants, people);
+  const log = new Recorder(participants, people, true);
   const metrics = { contributions: 0, total_contributions: 0, net_income: 0, sanction_cost: 0 };
   const balance = recordOf(players, () => 0);
   let fines = recordOf(players, () => 0);
@@ -57,6 +57,9 @@ export function publicGoods(seed: number, action: string, scenario: string, cost
       turningPoint: round === 1 ? "首轮个体贡献汇入公共池并结算" : undefined,
       data: { net: recordOf(players, actor => net[actor] / 5), outgoing,
         fines: recordOf(players, actor => fines[actor] / 5) },
+      panelData: { gross: recordOf(players, actor => gross[actor] / 5),
+        sanctions: sanctionable.map(actor => ({ from: "P4", to: actor, points, cost: points * (cost ?? 0),
+          fine: fines[actor] / 5 })) },
       evidence: players.map(id => ({ actorId: id, text: `${id} 保留收入加公共回报，再扣施罚及受罚损失，得 ${net[id] / 5} 代币。`,
         deltas: { net_income: net[id] / 5, sanction_cost: outgoing[id] + fines[id] / 5 } })),
     });
@@ -72,7 +75,7 @@ export function commons(seed: number, action: string, scenario: string, limited:
   const people = profiles(participants, limited ? "统一限额每期每人 1 单位" : "取用量受可取库存约束",
     "常规计划按期初库存与取用能力计算");
   people[stockId].state = "institution";
-  const log = new Recorder(participants, people);
+  const log = new Recorder(participants, people, true);
   let stock = 180, income = 0;
   const metrics: Metrics = { stock, harvest: null, growth: null, income, monitoring_cost: 0 };
   const displayed: Entity = recordOf(users, (_, i) => ({ 取用能力: input.commons.users[i][0], 初始规则信任: input.commons.users[i][1] }));

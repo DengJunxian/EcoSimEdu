@@ -206,7 +206,9 @@ type StudioProps = {
   review?: (session: Session, send: (command: Command) => void, nextAction?: ReactNode, openActor?: (id: string) => void) => ReactNode;
   reviewByTimeline?: boolean;
   observationFrame?: (run: Run, frame: Frame) => Frame;
-  world?: (session: Session, select: (id: string) => void) => ReactNode;
+  world?: (session: Session, select: (id: string) => void, controls: {
+    micro: ReactNode; pin: (id: string) => void; seek: (tick: number) => void;
+  }) => ReactNode;
   actorDetail?: (session: Session, select: (id: string) => void,
     locate: (tick: number, metric: string, actorId?: string, eventId?: string) => void) => ReactNode;
   afterInvestigation?: (session: Session) => ReactNode;
@@ -263,6 +265,8 @@ function LessonStudio({ lesson, review, reviewByTimeline, observationFrame, worl
   const stageAction = useRef<HTMLButtonElement>(null);
   const actorPicker = useRef<HTMLSelectElement>(null);
   const focusActor = useRef(false);
+  const replayPosition = useRef<HTMLParagraphElement>(null);
+  const focusReplay = useRef(false);
   const [panel, setPanel] = useState<WorkbenchView>("world");
   const [traceOpen, setTraceOpen] = useState(!!session.traceFocus || session.perspective === "role");
   const traceHeading = useRef<HTMLHeadingElement>(null);
@@ -292,6 +296,11 @@ function LessonStudio({ lesson, review, reviewByTimeline, observationFrame, worl
     pauseReview.current?.focus({ preventScroll: true });
     pauseReview.current?.scrollIntoView({ block: "start", behavior: "instant" });
   }, [pauseTick, traceOpen]);
+  useLayoutEffect(() => {
+    if (!focusReplay.current) return;
+    focusReplay.current = false;
+    replayPosition.current?.focus();
+  }, [session.cursor]);
   useLayoutEffect(() => {
     if (!focusActor.current) return;
     focusActor.current = false;
@@ -347,6 +356,8 @@ function LessonStudio({ lesson, review, reviewByTimeline, observationFrame, worl
     }
   }
   const replaying = !!run && !!frame && (stage === 2 || stage === 3);
+  const micro = replaying && <MicroBoard lesson={lesson} frame={frame} prior={run.frames[session.cursor - 1]}
+    selected={actor?.id} metricId={session.focusedMetric} select={selectActor}/>;
   const title = stage === 1 ? lesson.title : stageNames[stage - 1];
   const nextStage = () => send({ type: "next-stage" });
   const ordinaryAdvance = stage < 4 && !(reviewByTimeline && stage === 3 && !roleView);
@@ -396,7 +407,7 @@ function LessonStudio({ lesson, review, reviewByTimeline, observationFrame, worl
 
       {replaying && <div className="studio-replay">
         <div className="studio-runbar" aria-label="共用回放控制" role="region">
-          <p><strong>{frameLabel(lesson.tickUnit, frame.tick)}</strong> · {session.playing ? "播放中" : "已暂停"}</p>
+          <p ref={replayPosition} tabIndex={-1}><strong>{frameLabel(lesson.tickUnit, frame.tick)}</strong> · {session.playing ? "播放中" : "已暂停"}</p>
           <Timeline session={session} send={send}/>
           <div className="studio-jumps">
             <button className="text-button" disabled={session.cursor === 0} onClick={() => send({ type: "back" })}>后退一步</button>
@@ -408,8 +419,15 @@ function LessonStudio({ lesson, review, reviewByTimeline, observationFrame, worl
         </div>
         {!roleView && <Workbench active={panel} change={setPanel}
           world={<div className="canvas-panel">
-            {world ? world(session, selectActor) : <MicroBoard lesson={lesson} frame={frame} prior={run.frames[session.cursor - 1]} selected={actor?.id} metricId={session.focusedMetric}
-              select={selectActor}/>}
+            {world ? world(session, selectActor, {
+              micro, pin: actorId => send({ type: "select", actorId }),
+              seek: tick => {
+                if (tick !== session.cursor && Number.isInteger(tick) && tick <= session.revealed && run.frames[tick]) {
+                  focusReplay.current = true;
+                }
+                send({ type: "locate", tick, metricId: activeMetric.id, keepSelection: true });
+              },
+            }) : micro}
           </div>}
           actors={<EvidenceCard label="主体与关系">
             <h2>主体与关系</h2>

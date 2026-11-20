@@ -1,3 +1,4 @@
+import type { BrowserPanelProps, BrowserPanelView, DomainEvent } from "../../../../content/domain-panel";
 import { SignalChain } from "../../../../content/information-ui";
 import { useState } from "react";
 import { LedgerEvidence, TraceClaims, TraceLenses, useTrace } from "../../emergence/trace-view";
@@ -6,7 +7,7 @@ import { MetricChart, showValue } from "../../lesson-view";
 import type { DomainPanelProps, FlagshipView } from "../../learning/flagship-types";
 import "./cooperation.css";
 
-type Event = FlagshipView["events"][number];
+type Event = DomainEvent;
 type Amounts = Record<string, number>;
 type Decision = Event & {
   turn: number; choice: string; signal?: string; private_a_after_pct?: number; visible_action_ids: string[];
@@ -31,7 +32,7 @@ const sum = (record: Amounts) => Object.values(record).reduce((total, value) => 
 const text = showValue;
 const actors = ["P1", "P2", "P3", "P4"];
 
-function visible(view: FlagshipView) {
+function visible(view: BrowserPanelView) {
   return view.events.slice(0, view.tick + 1);
 }
 
@@ -121,16 +122,17 @@ function CascadeTrace({ view, seek, initialOpen = false }: Pick<DomainPanelProps
   </details>;
 }
 
-function contributionAt(view: FlagshipView) {
+function contributionAt(view: BrowserPanelView) {
   return visible(view).filter(event => event.event_type === "contributions").at(-1) as Contributions | undefined;
 }
 
-function settlementAt(view: FlagshipView, round: number) {
+function settlementAt(view: BrowserPanelView, round: number) {
   return visible(view).find(event => event.event_type === "settlement" && event.round === round) as Settlement | undefined;
 }
 
-export function PublicGoodsPanel(props: DomainPanelProps) {
+export function PublicGoodsPanel(props: DomainPanelProps | BrowserPanelProps) {
   const { stage, view, comparison, pinned, pin, seek, cite } = props;
+  const legacy = "briefing" in props ? props : undefined;
   if (!view) return null;
   const round = contributionAt(view);
   if (!round) return <section className="cooperation-world" aria-label="公共池与小组账本">
@@ -170,11 +172,12 @@ export function PublicGoodsPanel(props: DomainPanelProps) {
       </p>
       <p>小组结算（代币）{text(sum(settlement.gross))} 毛收益 − {text(sum(settlement.outgoing))} 施罚成本 −
         {" "}{text(sum(settlement.fines))} 受罚扣损 = <strong>{text(sum(settlement.net))}</strong> 净收益。</p>
-      {stage !== "compare" && <button onClick={() => cite(settlement.seq, actor)}>引用本轮结算</button>}
-      {stage !== "compare" && view.origin === "offline_simulation" && <details>
+      {stage !== "compare" && cite && <button onClick={() => cite(settlement.seq, actor)}>引用本轮结算</button>}
+      {stage !== "compare" && view.origin !== "live_simulation" && <details>
         <summary>看投入怎样反馈到下一轮</summary>
         <p><strong>模型规则</strong> · P1、P2 的自动目标会用上一轮其他人的平均贡献调整。
-          上轮被罚会抬高该主体下一轮的自动目标。每轮仍有模型扰动，学生计划可覆盖 P1 的自动值。</p>
+          上轮被罚会抬高该主体下一轮的自动目标。每轮仍有模型扰动。{view.origin === "browser_rule_engine" ?
+            "开局选择用于 P1 的首轮贡献。" : "学生计划可覆盖 P1 的自动值。"}</p>
         {previous && previousSettlement ? <>
           <p>{actor} 上轮贡献 {previous.contributions[actor]}、扣损 {text(previousSettlement.fines[actor])}，
             本轮贡献 {round.contributions[actor]} 代币。</p>
@@ -188,7 +191,7 @@ export function PublicGoodsPanel(props: DomainPanelProps) {
     </>}
     {stage !== "compare" && <div className="toolbar">
       {settlement && <button className="text-button" onClick={() => seek(round.tick)}>回看贡献公开</button>}
-      <button className="text-button" onClick={() => cite(round.seq, actor)}>引用本轮贡献</button>
+      {cite && <button className="text-button" onClick={() => cite(round.seq, actor)}>引用本轮贡献</button>}
     </div>}
     {other && paired && <p>对照第 {other.round} 轮，公共池 {sum(other.contributions)} 代币，{actor} 贡献 {other.contributions[actor]}，
       净收益 {text(paired.net[actor])}；小组净收益 {text(sum(paired.net))}。</p>}
@@ -198,18 +201,18 @@ export function PublicGoodsPanel(props: DomainPanelProps) {
           第 {event.round} 轮 · 全组净收益 {text(sum(event.net))} 代币
         </button></li>)}</ul>
     </details>}
-    {stage !== "compare" && <LedgerEvidence view={view} metric="net_income" actor={actor} seek={tick => seek(tick)}
-      initialOpen={props.explore}/>}
-    {stage === "explain" && <FeedbackExplanation {...props} view={view} eventType="settlement"
+    {stage !== "compare" && legacy?.view && <LedgerEvidence view={legacy.view} metric="net_income" actor={actor} seek={tick => seek(tick)}
+      initialOpen={legacy.explore}/>}
+    {stage === "explain" && legacy?.view && <FeedbackExplanation {...legacy} view={legacy.view} eventType="settlement"
       prompt="引用一位参与者的结算。描述贡献如何进入公共池、惩罚如何影响个人与全组净收益，并指出哪条反馈规则会进入下一轮。写出一个仍待检验的政策解释。"/>}
   </section>;
 }
 
-function withdrawalAt(view: FlagshipView) {
+function withdrawalAt(view: BrowserPanelView) {
   return visible(view).filter(event => event.event_type === "withdrawal").at(-1) as Withdrawal | undefined;
 }
 
-export function CommonsPanel({ stage, view, comparison, pinned, pin, seek, cite }: DomainPanelProps) {
+export function CommonsPanel({ stage, view, comparison, pinned, pin, seek, cite }: DomainPanelProps | BrowserPanelProps) {
   if (!view) return null;
   const withdrawal = withdrawalAt(view);
   if (!withdrawal) return <section className="cooperation-world" aria-label="资源与管护账本">
@@ -218,7 +221,8 @@ export function CommonsPanel({ stage, view, comparison, pinned, pin, seek, cite 
   const regrowth = visible(view).find(event => event.event_type === "growth" && event.period === withdrawal.period) as Growth | undefined;
   const harvested = withdrawal.start_stock - withdrawal.remaining_stock;
   const actor = Object.hasOwn(withdrawal.plans, pinned) ? pinned : "F01";
-  const budgetDelta = withdrawal.monitor_budget_after - withdrawal.monitor_budget_before;
+  const monitoring = view.origin !== "browser_rule_engine";
+  const budgetDelta = monitoring ? withdrawal.monitor_budget_after - withdrawal.monitor_budget_before : null;
   const max = Math.max(1, withdrawal.start_stock, regrowth?.next_stock ?? 0);
   const other = comparison && withdrawalAt(comparison);
   const bars: [string, number][] = [["本期期初", withdrawal.start_stock], ["取用后余量", withdrawal.remaining_stock]];
@@ -241,18 +245,19 @@ export function CommonsPanel({ stage, view, comparison, pinned, pin, seek, cite 
       ["计划取用", `${text(withdrawal.plans[actor])} 单位`],
       ["获准申请", `${text(withdrawal.requests[actor])} 单位`],
       ["实际取用", `${text(withdrawal.allocations[actor])} 单位`],
-      ["本期扣缴", `${text(withdrawal.fines[actor])} 代币`],
+      ...(monitoring ? [["本期扣缴", `${text(withdrawal.fines[actor])} 代币`] as [string, string]] : []),
     ]}/>
-    <h3>管护账户</h3>
+    {monitoring ? <><h3>管护账户</h3>
     <p>检查 {withdrawal.monitored.length} 人，花费 {text(withdrawal.monitoring_cost)} 代币，扣缴入账 {text(sum(withdrawal.fines))} 代币。</p>
     <p>使用者净收入 {text(withdrawal.participant_net)} 加管护账户变动 {text(budgetDelta)} =
-      {" "}<strong>{text(withdrawal.gross_value - withdrawal.monitoring_cost)} 代币</strong>群体净收益。</p>
+      {" "}<strong>{text(withdrawal.gross_value - withdrawal.monitoring_cost)} 代币</strong>群体净收益。</p></> : <p>本课比较开放取用与每人每期最多取用 1 单位的规则。</p>}
     {other && <p>对照第 {other.period} 期，{actor} 计划 / 获准 / 实取分别为 {text(other.plans[actor])} /
-      {" "}{text(other.requests[actor])} / {text(other.allocations[actor])} 单位，监测花费 {text(other.monitoring_cost)} 代币。</p>}
+      {" "}{text(other.requests[actor])} / {text(other.allocations[actor])} 单位{monitoring ? `，监测花费 ${text(other.monitoring_cost)} 代币。` : "。"}</p>}
     {stage !== "compare" && <div className="toolbar">
       <button className="text-button" onClick={() => seek(withdrawal.tick)}>回看取用</button>
-      <button onClick={() => cite(withdrawal.seq)}>引用取用账本</button>
-      {regrowth && <button onClick={() => cite(regrowth.seq, "水域")}>引用再生记录</button>}
+      {cite && <button onClick={() => cite(withdrawal.seq)}>引用取用账本</button>}
+      {regrowth && (cite ? <button onClick={() => cite(regrowth.seq, "水域")}>引用再生记录</button> :
+        <button className="text-button" onClick={() => seek(regrowth.tick)}>回查本期再生 · 事件 {regrowth.seq}</button>)}
     </div>}
   </section>;
 }

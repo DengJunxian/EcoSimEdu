@@ -40,7 +40,7 @@ def key_button(scope, name):
     scope.get_by_role("button", name=name, exact=True).press("Enter")
 
 
-def walk(page, case_id, width):
+def walk(page, case_id, width, inspect=None):
     action, baseline, treatment = SELECTION[case_id]
     definition = json.loads(Path(f"cases/{case_id}/case.json").read_text())
     page.goto(BASE + "/")
@@ -69,6 +69,8 @@ def walk(page, case_id, width):
     expect(clock.get_by_role("button")).to_have_count(4)
     key_button(clock, "单步前进")
     expect(run_bar(page)).to_contain_text("事件 1")
+    if inspect:
+        inspect(page, case_id, micro=True)
     key_button(page, "后退一步")
     expect(run_bar(page)).to_contain_text("事件 0")
 
@@ -125,6 +127,8 @@ def walk(page, case_id, width):
             show_pane(page, "主体")
             expect(inspector.get_by_role("button", name="回查源事件", exact=False)).to_be_visible()
 
+    if inspect:
+        inspect(page, case_id)
     key_button(page, "查看运行收尾")
     page.get_by_text("从指标数值反查事件", exact=True).press("Enter")
     lookup = page.locator(".bridge-evidence")
