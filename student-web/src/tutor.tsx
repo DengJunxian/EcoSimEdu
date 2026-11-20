@@ -32,8 +32,9 @@ const hints = [
   { value: 3, label: "机制推导" },
 ];
 
-export function TutorPanel({ caseId, runId, tick, revealUntil, scene, onSeek }: {
+export function TutorPanel({ caseId, runId, tick, revealUntil, scene, onSeek, waitingForEvidence = false }: {
   caseId: string; runId?: string; tick?: number; revealUntil?: number;
+  waitingForEvidence?: boolean;
   scene?: SceneContext; onSeek?: (tick: number) => void;
 }) {
   const example = runId ? "当前事件发生了什么？" :
@@ -54,6 +55,7 @@ export function TutorPanel({ caseId, runId, tick, revealUntil, scene, onSeek }: 
     response?.question === question.trim() && response.hintLevel === hintLevel;
 
   async function ask(online = false) {
+    if (waitingForEvidence) return;
     const request = ++sequence.current;
     setPending(true);
     setError("");
@@ -91,11 +93,11 @@ export function TutorPanel({ caseId, runId, tick, revealUntil, scene, onSeek }: 
         </select>
       </label>}
       <div className="toolbar">
-        <button className="primary" disabled={pending || !question.trim()}>查询</button>
+        <button className="primary" disabled={waitingForEvidence || pending || !question.trim()}>查询</button>
         <button type="button" onClick={() => setQuestion(example)}>填写示例</button>
       </div>
     </form>
-    {pending && <p role="status">正在查找课程证据…</p>}
+    {waitingForEvidence ? <p role="status">正在载入当前事件…</p> : pending && <p role="status">正在查找课程证据…</p>}
     {error && <p role="alert" className="error">{error}</p>}
     <div aria-live="polite" aria-atomic="true">{visibleAnswer && <section className="quiet-content">
       <h4>{kinds[visibleAnswer.kind]}</h4>
@@ -115,7 +117,7 @@ export function TutorPanel({ caseId, runId, tick, revealUntil, scene, onSeek }: 
                 <a href={traceHref(caseId, citation.run_id, citation.tick)}>{citation.label}</a> : citation.label}
         </li>)}
       </ul>}
-      {canRequestOnline && <button type="button" onClick={() => void ask(true)}>在线组织解释</button>}
+      {canRequestOnline && !waitingForEvidence && <button type="button" onClick={() => void ask(true)}>在线组织解释</button>}
     </section>}</div>
   </details>;
 }

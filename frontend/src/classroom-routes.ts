@@ -9,12 +9,19 @@ function loadCourse(load: () => Promise<MigratedLesson>) {
   };
 }
 
+function loadInformation(load: () => Promise<MigratedLesson>) {
+  return async () => {
+    const [{ InformationClassroom }, lesson] = await Promise.all([import("./InformationClassroom.tsx"), load()]);
+    return { default: () => createElement(InformationClassroom, { lesson }) };
+  };
+}
+
 export const classrooms = {
   double_auction: () => import("./AuctionClassroom.tsx"),
   svb_run: () => import("./SvbClassroom.tsx"),
-  school_matching: loadCourse(() => import("./models/information-lessons.ts").then(module => module.schoolLesson)),
-  lemons_market: loadCourse(() => import("./models/information-lessons.ts").then(module => module.lemonsLesson)),
-  information_cascade: loadCourse(() => import("./models/information-lessons.ts").then(module => module.cascadeLesson)),
+  school_matching: loadInformation(() => import("./models/information-lessons.ts").then(module => module.schoolLesson)),
+  lemons_market: loadInformation(() => import("./models/information-lessons.ts").then(module => module.lemonsLesson)),
+  information_cascade: loadInformation(() => import("./models/information-lessons.ts").then(module => module.cascadeLesson)),
   schelling_segregation: () => import("./SchellingClassroom.tsx"),
   public_goods: loadCourse(() => import("./models/cooperation-lessons.ts").then(module => module.publicGoodsLesson)),
   commons_governance: loadCourse(() => import("./models/cooperation-lessons.ts").then(module => module.commonsLesson)),

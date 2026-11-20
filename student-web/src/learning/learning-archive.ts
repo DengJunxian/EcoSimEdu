@@ -43,7 +43,7 @@ export async function exportLearning(profile: string) {
     }
     const receipts = records.migration_backups!.map(({ legacy_key, digest, migrated_at }) => ({ legacy_key, digest, migrated_at }));
     const exposures = await result(tx.objectStore("exposures").getAll()) as SavedExposure[];
-    const byId = new Map(exposures.map(entry => [entry.id, entry]));
+    const byId = new Map(exposures.filter(entry => exposureArchiveId(entry.id)).map(entry => [entry.id, entry]));
     for (const rawId of unsavedExposureIds()) {
       const id = exposureArchiveId(rawId);
       if (!id) continue;
@@ -93,7 +93,7 @@ function portableRecords(records: unknown, profile: string) {
       const version = String(entry.content_version);
       if (!caseKey.test(caseId) || (name !== "experiments" && !semver.test(version))) reject();
       if (name === "sessions") {
-        if (entry.schema_version !== 1 || !strings(entry.accessible_activity_ids) || !strings(entry.return_stack) ||
+        if (entry.schema_version !== 1 || entry.demo !== undefined || !strings(entry.accessible_activity_ids) || !strings(entry.return_stack) ||
             entry.return_stack.length > 1 || !row(entry.phase_cursor) || !row(entry.activity_states) ||
             !Object.entries(entry.phase_cursor).every(([key, value]) => phaseKey.test(key) && typeof value === "string") ||
             !Object.values(entry.activity_states).every(value => typeof value === "string" &&

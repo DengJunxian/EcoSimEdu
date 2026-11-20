@@ -44,7 +44,8 @@ export function LearningActivities({ pack, loadError, phase, offline = false }: 
 function ActivityRenderer({ pack, phase, offline }: { pack: LearningPackage; phase: Phase; offline: boolean }) {
   const { activities, first } = phaseActivities(pack, phase);
   const [session, setSession] = useState<SessionState>();
-  const [fallback, setFallback] = useState(() => emptySession(pack, "storage-unavailable"));
+  const [demo] = useState(isDemo);
+  const [fallback, setFallback] = useState(() => emptySession(pack, "storage-unavailable", demo));
   const [attempts, setAttempts] = useState<Attempt[]>([]);
   const [error, setError] = useState("");
   const [busy, setBusy] = useState(false);
@@ -54,12 +55,11 @@ function ActivityRenderer({ pack, phase, offline }: { pack: LearningPackage; pha
   const feedbackHeading = useRef<HTMLHeadingElement>(null);
   const submitFocus = useRef<Element | null>(null);
   const requestedFocus = useRef<{ origin: Element | null } | null>(null);
-  const [demo] = useState(isDemo);
 
   useEffect(() => {
     let active = true;
     async function load() {
-      const base = emptySession(pack, await profileId(demo));
+      const base = emptySession(pack, await profileId(demo), demo);
       if (!demo) {
         try { await migrateLegacy(base); } catch { if (active) setError("旧课堂记录尚未备份，原记录可继续打开。"); }
       }

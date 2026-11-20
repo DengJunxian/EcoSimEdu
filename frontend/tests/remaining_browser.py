@@ -1,6 +1,8 @@
 """Walk all migrated courses over static resources, then inspect the downloaded evidence."""
 import json
+import re
 import sys
+from time import perf_counter
 from pathlib import Path
 
 from playwright.sync_api import expect, sync_playwright
@@ -95,6 +97,26 @@ def walk(page, case_id, width):
     else:
         key_button(page, "前往下一关键事件")
         expect(page.locator(".turning-point")).to_be_visible()
+        information = {"school_matching": (2, "S01"), "lemons_market": (1, "S01"), "information_cascade": (3, "D03")}
+        if case_id in information:
+            tick, actor = information[case_id]
+            question = page.get_by_role("region", name="从宏观回到个体的证据题")
+            correct = question.get_by_role("radio", name=re.compile(rf"^事件 {tick} ·"))
+            expect(question.get_by_role("radio")).to_have_count(2)
+            incorrect = next(option for option in question.get_by_role("radio").all()
+                             if not option.evaluate("(node, prefix) => node.labels[0].textContent.trim().startsWith(prefix)", f"事件 {tick} ·"))
+            incorrect.check()
+            key_button(question, "核对证据")
+            expect(question.get_by_role("status")).to_be_visible()
+            expect(question.get_by_role("button", name="打开对应个体与原事件")).to_have_count(0)
+            correct.check()
+            key_button(question, "核对证据")
+            key_button(question, "打开对应个体与原事件")
+            expect(run_bar(page)).to_contain_text(f"事件 {tick} · 已暂停")
+            expect(page.get_by_role("combobox", name="选择个体")).to_have_value(actor)
+            page.reload()
+            expect(question.get_by_role("status")).to_be_visible()
+            expect(question.get_by_role("button", name="打开对应个体与原事件")).to_be_visible()
         if case_id == "flash_crash":
             key_button(page, "前往下一关键事件")
             show_pane(page, "主体")
@@ -109,8 +131,10 @@ def walk(page, case_id, width):
     expect(lookup.get_by_role("table")).to_be_visible()
     if case_id == "flash_crash":
         expect(lookup.locator("#metric-evidence tbody tr")).to_have_count(24)
+        start = perf_counter()
         key_button(lookup, "下一页事件")
         expect(lookup.get_by_role("button", name="定位事件 24", exact=True)).to_be_visible()
+        print(f"{ENGINE} {width}px Flash Crash event table: keyboard-to-visible page {(perf_counter() - start) * 1000:.2f} ms", flush=True)
         key_button(lookup, "上一页事件")
     key_button(lookup, "定位事件 1")
     expect(run_bar(page)).to_contain_text("事件 1")
@@ -167,6 +191,7 @@ def walk(page, case_id, width):
         expect(form.get_by_text("原政策预测：减少", exact=False)).to_be_visible()
     assert page.evaluate("document.documentElement.scrollWidth === innerWidth")
     print(f"{ENGINE} {width}px {case_id}: {values[0]:.4f} → {values[1]:.4f}, verified evidence download", flush=True)
+    return explained
 
 
 if __name__ == "__main__":

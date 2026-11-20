@@ -170,7 +170,7 @@ export function simulateAuction({ seed, choices, policy }: Parameters<Lesson["ru
       buyer_surplus: buyerSurplus, seller_surplus: sellerSurplus, platform_fee: 2 * fee },
     { actorId: buy.actor_id, counterpartyId: sell.actor_id, focusMetrics: ["price"], kind: "trade",
       text: `${buy.order_id} 与 ${sell.order_id} 按在簿单 ${maker.order_id} 的 ${paid} 代币成交。`,
-      deltas: { volume: 1, surplus: delta, platform_cash: 2 * policy, participant_surplus: delta - 2 * policy } }, paid);
+      deltas: { volume: 1, surplus: delta, platform_cash: 2 * fee, participant_surplus: delta - 2 * fee } }, paid);
   }
 
   emit({ event_type: "market_open" }, { text: "市场开盘，当前订单簿为空。", deltas: {} });

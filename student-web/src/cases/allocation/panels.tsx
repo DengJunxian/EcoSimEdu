@@ -4,6 +4,7 @@ import { LedgerEvidence } from "../../emergence/trace-view";
 import { showValue } from "../../lesson-view";
 import type { DomainPanelProps, FlagshipView } from "../../learning/flagship-types";
 import type { Scalar } from "../../lesson-types";
+import { QualityBreakdown, SchoolSeats } from "../../../../content/information-ui";
 import "./panels.css";
 
 type RunEvent = FlagshipView["events"][number];
@@ -62,12 +63,7 @@ export function LemonsPanel({ stage, action, view, comparison, pinned, pin, seek
     <div className="allocation-split">
       <section>
         <h3>开盘挂牌分布</h3>
-        <ul className="lemon-quality">
-          {Object.entries(distribution).map(([quality, count]) => <li key={quality} aria-label={`质量 ${quality}，${count} 件`}>
-            <span>质量 {quality}</span><meter min={0} max={Math.max(...Object.values(distribution), 1)} value={count}
-              aria-label={`质量 ${quality} 的挂牌数量`}/><strong>{count}</strong>
-          </li>)}
-        </ul>
+        <QualityBreakdown distribution={distribution}/>
         <Facts rows={[[ "当前混合报价（代币）", currentPrice ?? "暂无" ],
           [ "当前愿售（件）", view.frame.metrics.willing_supply ], [ "实际交割（件）", view.frame.metrics.traded ]]}/>
       </section>
@@ -164,16 +160,11 @@ export function MatchingPanel({ stage, action, briefing, view, comparison, pinne
 
   return <section className="allocation-panel" aria-label="志愿与席位">
     <h2>志愿与席位</h2>
-    <div className="matching-seats" role="group" aria-label="三所学校席位">
-      {seats.map(school => {
-        const state = view.frame.entities[school];
-        const held = String(state["席位名单"] || "").split("、").filter(Boolean);
-        return <button type="button" key={school} aria-pressed={school === openSchool}
-          onClick={() => setOpenSchool(school)}>
-          <strong>{school} 校</strong><span>{seatStatus} {held.length} / {String(state["容量"])}</span>
-        </button>;
-      })}
-    </div>
+    <SchoolSeats active={openSchool} select={setOpenSchool} schools={seats.map(id => {
+      const state = view.frame.entities[id];
+      const held = String(state["席位名单"] || "").split("、").filter(Boolean);
+      return { id, status: seatStatus, used: held.length, capacity: String(state["容量"]) };
+    })}/>
     <p><strong>{openSchool} 校席位</strong> · {view.frame.entities[openSchool]["席位名单"] || "当前无占位"}</p>
     <details><summary>{openSchool} 校优先顺序</summary>
       <p>{String(view.frame.entities[openSchool]["学校优先序"]).replaceAll(" > ", " → ")}</p>

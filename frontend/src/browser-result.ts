@@ -8,6 +8,16 @@ export async function sha256Text(text: string) {
   return Array.from(new Uint8Array(hash), byte => byte.toString(16).padStart(2, "0")).join("");
 }
 
+// The earlier demand comparison recorded the treatment sentinel as an event fee.
+export function withLegacyDemandDeltas(run: Run): Run {
+  if (!run.id.startsWith("double-auction/browser-v1/") || !run.id.endsWith("/demand")) return run;
+  const auction = run as AuctionRun;
+  return { ...auction, frames: auction.frames.map(frame => frame.record.event_type === "trade"
+    ? { ...frame, events: frame.events.map(event => ({ ...event,
+      deltas: { ...event.deltas, platform_cash: -2, participant_surplus: event.deltas.surplus! + 2 },
+    })) } : frame) };
+}
+
 export async function browserResultDigest(run: Run): Promise<ResultDigest> {
   const evidence = {
     id: run.id,

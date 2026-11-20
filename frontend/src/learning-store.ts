@@ -1,4 +1,4 @@
-import { browserResultDigest } from "./browser-result.ts";
+import { browserResultDigest, withLegacyDemandDeltas } from "./browser-result.ts";
 import { browserEvents } from "./run-evidence.ts";
 import { browserEngineVersion, type EvidencePointer } from "./domain-contracts.ts";
 import { courseById } from "./curriculum.ts";
@@ -24,8 +24,8 @@ export function courseLink(course: CourseRef, extra?: Record<string, string>): s
 
 const courseKey = (course: CourseRef) => `${course.caseId}${course.market ? `|${course.market}` : ""}`;
 
-export function hasSavedProgress(storage: Storage, course: CourseRef) {
-  return storage.getItem(progressPrefix + courseKey(course)) !== null;
+export function progressSnapshot(storage: Storage, course: CourseRef) {
+  return storage.getItem(progressPrefix + courseKey(course));
 }
 const trend = (value: unknown): value is Trend => value === "up" || value === "down" || value === "same";
 const index = (value: unknown): value is number => typeof value === "number" && Number.isSafeInteger(value) && value >= 0;
@@ -66,11 +66,16 @@ export function latestProgress(storage: Storage, courseExists: (caseId: string) 
     .sort((a, b) => b!.updatedAt - a!.updatedAt)[0];
 }
 
-export function saveProgress(storage: Storage, course: CourseRef, session: Session) {
+export function saveProgress(storage: Storage, course: CourseRef, session: Session, expected?: string | null) {
   if (!session.choices.length) return;
+  const key = progressPrefix + courseKey(course);
+  if (expected !== undefined && storage.getItem(key) !== expected) return;
+
   const { run, comparison, playing: _playing, comparisonFailed: _comparisonFailed, ...state } = session;
   const record: SavedProgress = { ...state, course, updatedAt: Date.now(), runId: run?.id, comparisonId: comparison?.run.id };
-  storage.setItem(progressPrefix + courseKey(course), JSON.stringify(record));
+  const value = JSON.stringify(record);
+  storage.setItem(key, value);
+  return value;
 }
 
 export function resumeProgress(storage: Storage, course: CourseRef, lesson: Lesson): Session | undefined {
@@ -195,8 +200,10 @@ export async function sourceRun(lesson: Lesson, note: StudentNote, side: "baseli
       if (!stored || stored.runId !== run.id || stored.caseId !== course.caseId ||
         stored.versions?.case !== course.caseVersion || stored.versions?.engine !== browserEngineVersion ||
         stored.versions?.content !== course.browserContentVersion || stored.frameTick !== tick ||
-        stored.resultDigest?.algorithm !== digest.algorithm || stored.resultDigest?.scope !== digest.scope ||
-        stored.resultDigest?.value !== digest.value) return;
+        stored.resultDigest?.algorithm !== digest.algorithm || stored.resultDigest?.scope !== digest.scope) return;
+      const previous = withLegacyDemandDeltas(run);
+      if (stored.resultDigest?.value !== digest.value &&
+          (previous === run || stored.resultDigest?.value !== (await browserResultDigest(previous)).value)) return;
       const event = events.find(entry => entry.frameTick === tick && entry.eventId === stored.eventId);
       return event ? { run, tick, event, digest, verification: "saved" as const } : undefined;
     }

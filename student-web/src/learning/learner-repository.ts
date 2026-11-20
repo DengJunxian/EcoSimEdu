@@ -82,9 +82,10 @@ export async function profileId(demo: boolean) {
   });
 }
 
-export function emptySession(pack: LearningPackage, profile: string): SessionState {
+export function emptySession(pack: LearningPackage, profile: string, demo = false): SessionState {
   return {
     id: JSON.stringify([profile, pack.case_id, pack.content_version]), schema_version: 1, local_profile_id: profile,
+    ...(demo ? { demo: true as const } : {}),
     case_id: pack.case_id, content_version: pack.content_version, accessible_activity_ids: [],
     activity_states: {}, phase_cursor: {}, return_stack: [],
   };
@@ -94,22 +95,24 @@ export async function readSession(base: SessionState) {
   return transact(["sessions", "attempts"], "readonly", async tx => {
     const saved = await result(tx.objectStore("sessions").get(base.id)) as SessionState | undefined;
     const attempts = await result(tx.objectStore("attempts").index("session").getAll(base.id)) as Attempt[];
-    return { session: saved ?? base, attempts: attempts.sort((a, b) => a.submitted_at.localeCompare(b.submitted_at)) };
+    return { session: { ...base, ...saved }, attempts: attempts.sort((a, b) => a.submitted_at.localeCompare(b.submitted_at)) };
   });
 }
 
 export async function changeSession(base: SessionState, change: (state: SessionState) => SessionState) {
   return transact(["sessions"], "readwrite", async tx => {
     const sessions = tx.objectStore("sessions");
-    const state = change(await result(sessions.get(base.id)) as SessionState ?? base);
+    const saved = await result(sessions.get(base.id)) as SessionState | undefined;
+    const state = change({ ...base, ...saved });
     await result(sessions.put(state));
     return state;
   });
 }
 
 function exposureKey(session: SessionState, item: Item) {
-  // Help in a demo still exposes the variant to the same browser.
-  return JSON.stringify([session.case_id, item.variant_id]);
+  // Keep the portable personal key and all previously recorded exposures.
+  return JSON.stringify(session.demo ? ["demo", session.local_profile_id, session.case_id, item.variant_id] :
+    [session.case_id, item.variant_id]);
 }
 
 export function markUnsavedExposure(session: SessionState, item: Item) {
@@ -159,7 +162,8 @@ export async function submitAttempt(
         exposure.answer_seen || exposure.exemplar_seen || exposure.max_hint_level || exposure.exposure_unknown ? "assisted" : "independent",
     };
     const sessions = tx.objectStore("sessions");
-    const current = await result(sessions.get(base.id)) as SessionState ?? base;
+    const existing = await result(sessions.get(base.id)) as SessionState | undefined;
+    const current = { ...base, ...existing };
     const session: SessionState = { ...current,
       ...(activity.kind === "review" || unknown || keepCurrent ? {} : { current_activity_id: activity.id }),
       accessible_activity_ids: Array.from(new Set([...current.accessible_activity_ids, activity.id])),

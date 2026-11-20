@@ -1,0 +1,21 @@
+.information-board { display: grid; gap: var(--edu-s3); min-width: 0; }
+.information-board h3 { margin-block: 0 var(--edu-s1); }
+.information-board .canvas-heading { gap: var(--edu-s2); }
+.information-board .canvas-heading span { flex-shrink: 0; }
+.information-board .matching-seats, .info-seat-slots { display: grid; gap: var(--edu-s2); }
+.information-board .matching-seats { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+.information-board .matching-seats button { display: grid; text-align: start; gap: var(--edu-s1); }
+.info-seat-slots { grid-template-columns: repeat(auto-fit, minmax(52px, 1fr)); }
+.info-seat-slots li { display: grid; place-items: center; min-height: var(--edu-target); border-bottom: 1px solid var(--edu-line); }
+.info-seat-slots button { width: 100%; }
+.info-actors, .information-board .cooperation-chain { display: flex; flex-wrap: wrap; gap: var(--edu-s1); }
+.info-actors button { min-width: var(--edu-target); }
+.information-board button[aria-pressed="true"] { border-color: var(--edu-green); background: var(--edu-tint); }
+.information-board .cooperation-chain button { display: grid; text-align: start; gap: 2px; }
+.information-board .cooperation-chain [data-observed] { border-style: dashed; }
+.information-board .lemon-quality li { display: grid; grid-template-columns: auto 1fr 2ch; align-items: center; gap: var(--edu-s2); }
+.information-board .lemon-quality meter { width: 100%; }
+.info-market-lane, .information-details, .info-trace { margin-block-start: var(--edu-s2); }
+.info-trace .text-button { min-height: var(--edu-target); }
+.information-question { display: grid; gap: var(--edu-s2); }
+.information-question fieldset { margin-block-end: var(--edu-s2); }

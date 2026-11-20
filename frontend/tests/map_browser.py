@@ -91,7 +91,9 @@ with sync_playwright() as playwright:
             expect(page.get_by_label("API 密钥")).to_have_attribute("type", "password")
             page.goto(base + "/")
             page.get_by_role("link", name="复习", exact=True).press("Enter")
-            expect(page).to_have_url(f"{origin}/review")
+            expect(page).to_have_url(f"{base}/?view=review")
+            expect(page.get_by_role("heading", name="复习", exact=True)).to_be_visible()
+            page.goto(f"{origin}/review")
             expect(page.get_by_role("heading", name="复习", exact=True)).to_be_visible()
         assert not errors and not rejected, (errors, rejected)
         print(f"{engine} {width}px: offline map, concepts, and progressive classroom" +

@@ -21,7 +21,8 @@ export function StudentHeader({ caseId }: { caseId?: string }) {
           <a href="./#paths">学习路径</a>
           <a href="/cases">案例库</a>
           <a href={notesLink()}>实验笔记</a>
-          <a href={studentRoutes.review}>复习</a>
+          <a href="?view=review">复习</a>
+          {!caseId && <a href={studentRoutes.teach}>教师工作台</a>}
           {caseId ? <a href={originalLessonHref(caseId)}>原课堂与进度</a> :
             <a href={studentRoutes.model}>配置模型 API</a>}
         </Navigation>

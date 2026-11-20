@@ -24,9 +24,11 @@ const profile = [30, 50].map(policy => {
   return { policy, actors: run.frames[0].actors.length, frameCount: run.frames.length,
     firstMs, seeks: timings.length, medianMs: timings[200], p95Ms: timings[380] };
 });
+const start = performance.now();
 const flash = flashLesson.run({ seed: flashLesson.seed,
   choices: ["tight", "prediction-0"], policy: flashLesson.policy.baseline });
+const flashBuildMs = performance.now() - start;
 const denseClock = [...new Set(flash.records.map(event => event.period))];
 console.log(JSON.stringify({ platform: process.platform, arch: process.arch, profile,
-  dense: { frames: flash.frames.length, clock: flashLesson.casePackage.clock.label,
+  dense: { frames: flash.frames.length, actors: flash.frames[0].actors.length, flashBuildMs, clock: flashLesson.casePackage.clock.label,
     first: Math.min(...denseClock), last: Math.max(...denseClock), distinct: denseClock.length } }, null, 2));

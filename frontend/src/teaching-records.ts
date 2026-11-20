@@ -11,6 +11,7 @@ type NoteKey = { caseId: string; reference: string; savedAt: string };
 export type TeachingRecord = NoteKey & (
   | { kind: "forecast_exposure"; level: 1 | 2 | 3; original: string }
   | { kind: "self_assessment"; answer: keyof typeof reflectionOptions }
+  | { kind: "mechanism_evidence"; eventTick: number; choiceTick: number }
   | { kind: "coach_advice"; advice: string; eventId: string; runId: string }
 );
 
@@ -23,6 +24,9 @@ function valid(record: unknown): record is TeachingRecord {
   if (!Object.hasOwn(courseById, value.caseId) || typeof value.reference !== "string" ||
       !value.reference || value.reference.length > 400 || typeof value.savedAt !== "string" ||
       !Number.isFinite(Date.parse(value.savedAt))) return false;
+  if (value.kind === "mechanism_evidence") return ["school_matching", "lemons_market", "information_cascade"].includes(value.caseId) &&
+    Number.isSafeInteger(value.eventTick) && value.eventTick > 0 && Number.isSafeInteger(value.choiceTick) &&
+    value.choiceTick >= 0 && value.choiceTick <= value.eventTick;
   if (value.kind === "self_assessment") return Object.hasOwn(reflectionOptions, value.answer);
   if (value.kind === "forecast_exposure") return [1, 2, 3].includes(value.level) &&
     typeof value.original === "string" && value.original.length <= 200;

@@ -42,8 +42,9 @@ def payload():
     paths.update(ROOT / "student-web" / name for name in ("build.js", "index.html", "package.json", "package-lock.json", "tsconfig.json"))
     paths.update(ROOT / "frontend" / name for name in ("vite.config.ts", "index.html", "package.json",
                                                         "package-lock.json", "tsconfig.json", "README.md", "MIGRATION.md"))
-    if ROOT / "student-web/dist/index.html" not in paths:
-        raise SystemExit("Build the student assets first.")
+    for app in ("student-web", "frontend"):
+        if ROOT / app / "dist/index.html" not in paths:
+            raise SystemExit(f"Build {app} assets first.")
     return sorted(paths)
 
 

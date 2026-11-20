@@ -1,4 +1,4 @@
-import { sha256Text } from "./browser-result.ts";
+import { sha256Text, withLegacyDemandDeltas } from "./browser-result.ts";
 import { additionalSeeds } from "./seed-assets.ts";
 import { comparisonMetric, legalPolicy, outcome, validPair, type AlignedFrame, type Lesson, type Run, type Trend } from "./lesson.ts";
 import { validChoices, type CourseRef } from "./learning-store.ts";
@@ -90,14 +90,14 @@ const print = (value: unknown): string => JSON.stringify(value, (_key, raw) =>
   raw && typeof raw === "object" && !Array.isArray(raw)
     ? Object.fromEntries(Object.entries(raw).sort(([a], [b]) => a.localeCompare(b))) : raw);
 
-export async function experimentCard(lesson: Lesson, plan: ExperimentPlan, samples: readonly Sample[]) {
+export async function experimentCard(lesson: Lesson, plan: ExperimentPlan, samples: readonly Sample[], legacyDemand = false) {
   const course = lesson.casePackage;
   if (!course || samples.length !== plan.seeds.length || !samples.every(comparable)) {
     throw new Error("仍有种子未完成，先重新运行再导出。");
   }
   const metric = comparisonMetric(lesson);
   async function reference(run: Run, policy: number) {
-    const envelope = await browserEnvelope(run, course!, { choices: plan.choices, policy });
+    const envelope = await browserEnvelope(legacyDemand ? withLegacyDemandDeltas(run) : run, course!, { choices: plan.choices, policy });
     const tick = lesson.metricRoles.statistic === "peak"
       ? run.frames.find(frame => frame.metrics[metric.id] === outcome(lesson, run))?.tick
       : run.frames.at(-1)?.tick;
@@ -131,7 +131,10 @@ export async function reopenExperiment(lesson: Lesson, course: CourseRef, saved:
   const input = { course, choices: plan.choices, policy: plan.policy, prediction: plan.prediction, seeds: plan.seeds };
   const samples = await runSamples(lesson, input);
   if (!samples.every(comparable)) throw new Error("其中一组运行无法重现。请保留原实验卡。");
-  if (print(await experimentCard(lesson, input, samples)) !== print(saved)) {
+  const serialized = print(saved);
+  if (print(await experimentCard(lesson, input, samples)) !== serialized &&
+      (course.caseId !== "double_auction" || !samples.some(sample => withLegacyDemandDeltas(sample.branch) !== sample.branch) ||
+       print(await experimentCard(lesson, input, samples, true)) !== serialized)) {
     throw new Error("实验卡与本机重算的原运行、证据或差值不一致。");
   }
   return { plan: input, samples };

@@ -63,7 +63,7 @@ export function lemons(seed: number, action: string, scenario: string, fee: numb
     { actors: sold, entities: entities(sold, true, true), data: { transactions },
       evidence: transactions.map(row => ({ actorId: row.seller, counterpartyId: "B01", text: `${row.seller} 实际交割，支付价 ${shown(row.price)} 代币。`,
         deltas: { traded: 1 } })) });
-  return log.run("lemons_market", seed, action, scenario);
+  return { ...log.run("lemons_market", seed, action, scenario), marketInput: { quality, stock } };
 }
 
 const probability = (power: number) => Math.round(1e6 * 2 ** power / (1 + 2 ** power)) / 1e4;
@@ -116,7 +116,7 @@ export function cascade(seed: number, action: string, scenario: string, observed
   }
   log.emit("reveal", `真实箱子为 ${input.cascade.state}，12 人中 ${correct} 人猜对。`,
     metrics(Math.round(correct / 12 * 1e6) / 1e4), { data: { state: input.cascade.state, correct_count: correct } });
-  return log.run("information_cascade", seed, action, scenario);
+  return { ...log.run("information_cascade", seed, action, scenario), publishedActions: observed };
 }
 
 export function matching(seed: number, action: string, scenario: string, immediate: boolean, additionalA: number, input = opening) {
@@ -198,5 +198,5 @@ export function matching(seed: number, action: string, scenario: string, immedia
     evidence: firsts.map(id => ({ actorId: id, counterpartyId: placements[id], focusMetrics: ["first_true_choice"], deltas: {},
       text: `${id} 获真实第一志愿 ${placements[id]}。` })),
   });
-  return log.run("school_matching", seed, action, scenario);
+  return { ...log.run("school_matching", seed, action, scenario), matchingInput: { truePreferences, submitted, ranks, capacity } };
 }

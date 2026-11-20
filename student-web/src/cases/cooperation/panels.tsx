@@ -1,3 +1,4 @@
+import { SignalChain } from "../../../../content/information-ui";
 import { useState } from "react";
 import { LedgerEvidence, TraceClaims, TraceLenses, useTrace } from "../../emergence/trace-view";
 import { FeedbackExplanation } from "../../emergence/feedback-explanation";
@@ -61,21 +62,11 @@ export function CascadePanel({ stage, briefing, view, comparison, pin, pinned, s
   return <section className="cooperation-world" aria-label="私人抽样与行动链">
     <h2>谁影响了这次选择？</h2>
     {!decisions.length && <p>第一位参与者还未行动。向前推进一个事件查看行动链。</p>}
-    {decisions.length > 0 && <ol className="cooperation-chain" aria-label="已发生的行动">
-      {decisions.map(event => {
-        const actor = event.actors?.[0] ?? "";
-        const observed = selected?.visible_action_ids.includes(actor);
-        const chosen = selected?.seq === event.seq;
-        const choose = () => { pin(actor); seek(event.tick); };
-        return <li key={event.seq}><button type="button" aria-pressed={chosen} disabled={stage === "compare"}
-          data-observed={observed || undefined} onClick={choose}>
-          <span>{actor}</span>
-          <strong><span className="screen-reader-only">· 选择 </span>{event.choice}</strong>
-          {event.signal && <small>抽样 {event.signal}</small>}
-          {observed && <span className="screen-reader-only">· 当前参与者已观察</span>}
-        </button></li>;
-      })}
-    </ol>}
+    {decisions.length > 0 && <SignalChain label="已发生的行动" disabled={stage === "compare"} actions={decisions.map(event => {
+      const actor = event.actors?.[0] ?? "";
+      return { id: String(event.tick), actor, choice: event.choice, signal: event.signal,
+        observed: selected?.visible_action_ids.includes(actor), active: selected?.seq === event.seq };
+    })} choose={event => { pin(event.actor); seek(Number(event.id)); }}/>}
     {selected && <>
       <h3>{selected.actors?.[0]} 的观察与行动</h3>
       <p>{selected.visible_action_ids.length ? `观察过 ${selected.visible_action_ids.join("、")} 的公开行动。` :

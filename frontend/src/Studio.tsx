@@ -1,8 +1,8 @@
 import { lazy, Suspense, useEffect, useLayoutEffect, useMemo, useReducer, useRef, useState, type ReactNode } from "react";
 import { ComparisonView, PredictionCard } from "./Counterfactual";
 import { ExperimentArchive } from "./ExperimentWorkbench.tsx";
-import { chartMetric, displayNumber, displayObservation, frameLabel, matchesMetric, nextStageReady, relatedActors, startLesson, transition, type Command, type Lesson, type Session } from "./lesson.ts";
-import { courseRef, courseLink, hasSavedProgress, resumeProgress, saveProgress, stageNames, type CourseRef } from "./learning-store.ts";
+import { chartMetric, displayNumber, displayObservation, frameLabel, matchesMetric, nextStageReady, relatedActors, startLesson, transition, type Command, type Frame, type Lesson, type Run, type Session } from "./lesson.ts";
+import { courseRef, courseLink, progressSnapshot, resumeProgress, saveProgress, stageNames, type CourseRef } from "./learning-store.ts";
 import { SavedSource } from "./StudentNotes";
 import { Investigation } from "./Investigation";
 import { StudentHeader } from "./StudentHeader.tsx";
@@ -17,6 +17,7 @@ import { hasSavedExplanation, LearningJourney, LearningObjectives } from "./Prog
 import "./workbench.css";
 
 const MetricChart = lazy(() => import("./MetricChart"));
+const TeacherWork = lazy(() => import("./TeacherWork").then(module => ({ default: module.TeacherWork })));
 
 const prompts = [
   "",
@@ -100,7 +101,7 @@ function BridgeEvidence({ lesson, session, data, locate, selectActor }: {
   locate: (tick: number, metric: string, actorId?: string, eventId?: string) => void; selectActor: (id: string) => void;
 }) {
   const run = session.run!;
-  const frame = run.frames[session.cursor];
+  const frame = data[session.cursor];
   const metric = lesson.metrics.find(item => item.id === session.focusedMetric) ?? chartMetric(lesson);
   const prior = run.frames[frame.tick - 1];
   const deltas = relatedActors(frame, metric.id);
@@ -202,8 +203,10 @@ function IntervalLookup({ data, locate }: { data: NonNullable<Session["run"]>["f
 
 type StudioProps = {
   lesson: Lesson;
-  review?: (session: Session, send: (command: Command) => void, nextAction?: ReactNode) => ReactNode;
+  review?: (session: Session, send: (command: Command) => void, nextAction?: ReactNode, openActor?: (id: string) => void) => ReactNode;
   reviewByTimeline?: boolean;
+  observationFrame?: (run: Run, frame: Frame) => Frame;
+  world?: (session: Session, select: (id: string) => void) => ReactNode;
   actorDetail?: (session: Session, select: (id: string) => void,
     locate: (tick: number, metric: string, actorId?: string, eventId?: string) => void) => ReactNode;
   afterInvestigation?: (session: Session) => ReactNode;
@@ -214,6 +217,9 @@ export function Studio(props: StudioProps) {
   const course = courseRef(query);
   const source = query.get("source");
   const side = query.get("side");
+  if (course && query.get("view") === "teacher-work") return <Suspense fallback={<p role="status">正在打开作品核对…</p>}>
+    <TeacherWork lesson={props.lesson} course={course}/>
+  </Suspense>;
   if (course && query.get("experiment") === "1") return <ExperimentArchive lesson={props.lesson} course={course}/>;
   if (course && source && (side === "baseline" || side === "comparison")) {
     return <SavedSource lesson={props.lesson} id={source} side={side} {...course}/>;
@@ -221,23 +227,31 @@ export function Studio(props: StudioProps) {
   return <LessonStudio {...props} course={course} fresh={query.get("fresh") === "1"}/>;
 }
 
-function LessonStudio({ lesson, review, reviewByTimeline, actorDetail, afterInvestigation, course, fresh }: StudioProps & { course?: CourseRef; fresh: boolean }) {
-  const [{ initial, restoreFailed }] = useState(() => {
+function LessonStudio({ lesson, review, reviewByTimeline, observationFrame, world, actorDetail, afterInvestigation, course, fresh }: StudioProps & { course?: CourseRef; fresh: boolean }) {
+  const [{ initial, restoreFailed, opened }] = useState(() => {
     const initial = startLesson(lesson);
-    if (!course || fresh) return { initial, restoreFailed: false };
+    if (!course) return { initial, restoreFailed: false, opened: null };
     try {
-      const saved = resumeProgress(localStorage, course, lesson);
-      return { initial: saved ?? initial, restoreFailed: !saved && hasSavedProgress(localStorage, course) };
-    } catch { return { initial, restoreFailed: true }; }
+      const opened = progressSnapshot(localStorage, course);
+      const saved = fresh ? undefined : resumeProgress(localStorage, course, lesson);
+      return { initial: saved ?? initial, restoreFailed: !fresh && !saved && opened !== null, opened };
+    } catch { return { initial, restoreFailed: true, opened: null }; }
   });
   const [session, send] = useReducer((state: Session, command: Command) => transition(lesson, state, command), initial);
   const lastSaved = useRef(session);
+  const savedSnapshot = useRef(opened);
+  const [saveConflict, setSaveConflict] = useState(false);
   const [saveFailed, setSaveFailed] = useState(false);
   const [, noteSaved] = useReducer((revision: number) => revision + 1, 0);
   useLayoutEffect(() => {
     if (session === lastSaved.current || !course || !session.choices.length || restoreFailed) return;
     try {
-      saveProgress(localStorage, course, session);
+      const checkpoint = saveProgress(localStorage, course, session, savedSnapshot.current);
+      if (checkpoint === undefined) {
+        setSaveConflict(true);
+        return;
+      }
+      savedSnapshot.current = checkpoint;
       if (fresh) history.replaceState(history.state, "", courseLink(course));
       lastSaved.current = session;
       setSaveFailed(false);
@@ -256,11 +270,14 @@ function LessonStudio({ lesson, review, reviewByTimeline, actorDetail, afterInve
   const previousStage = useRef(session.stage);
   const { stage, run } = session;
   const asOf = session.revealed;
-  const visibleFrames = useMemo(() => run?.frames.slice(0, asOf + 1) ?? [], [run, asOf]);
+  const visibleFrames = useMemo(() => {
+    const frames = run?.frames.slice(0, asOf + 1) ?? [];
+    return run && observationFrame ? frames.map(frame => observationFrame(run, frame)) : frames;
+  }, [run, asOf, observationFrame]);
   const explained = stage === 4 && hasSavedExplanation(session);
   const roleView = stage === 3 && session.perspective === "role";
   const canTrace = !!course && !!microscopeRole(lesson) && stage === 3;
-  const frame = run?.frames[session.cursor];
+  const frame = visibleFrames[session.cursor];
   const actor = frame?.actors.find(entry => entry.id === session.selected);
   const event = frame?.events[0];
   const actorsInEvent = frame?.actors.filter(item => event?.participants?.includes(item.id) ||
@@ -345,6 +362,9 @@ function LessonStudio({ lesson, review, reviewByTimeline, actorDetail, afterInve
       {restoreFailed && <StatusNotice tone="error">这份进度无法恢复。本页的操作会保留原记录。
         {course && <a href={courseLink(course, { fresh: "1" })}>开始并保存新练习</a>}
       </StatusNotice>}
+      {saveConflict && <StatusNotice tone="warning">另一标签已经更新进度。本页可继续操作。续学检查点保留另一标签保存的版本。
+        <button type="button" onClick={() => location.reload()}>载入最新进度</button>
+      </StatusNotice>}
       {saveFailed && <StatusNotice tone="warning">当前浏览器无法保存进度。可以继续学习，完成后导出结果。</StatusNotice>}
       <div className="studio-opening" data-replay={replaying}>
         <ActionPanel label="当前学习任务">
@@ -388,8 +408,8 @@ function LessonStudio({ lesson, review, reviewByTimeline, actorDetail, afterInve
         </div>
         {!roleView && <Workbench active={panel} change={setPanel}
           world={<div className="canvas-panel">
-            <MicroBoard lesson={lesson} frame={frame} prior={run.frames[session.cursor - 1]} selected={actor?.id} metricId={session.focusedMetric}
-              select={selectActor}/>
+            {world ? world(session, selectActor) : <MicroBoard lesson={lesson} frame={frame} prior={run.frames[session.cursor - 1]} selected={actor?.id} metricId={session.focusedMetric}
+              select={selectActor}/>}
           </div>}
           actors={<EvidenceCard label="主体与关系">
             <h2>主体与关系</h2>
@@ -452,7 +472,7 @@ function LessonStudio({ lesson, review, reviewByTimeline, actorDetail, afterInve
               onClick={() => send({ type: ready ? "next-stage" : "step" })}>
               {!ready && pauseTick !== undefined ? "下一步 · 查看后续报价" : "试一项政策"}
             </button>)}
-          </section> : review?.(session, send)}
+          </section> : review?.(session, send, undefined, selectActor)}
           {stage === 3 && <ForecastReview lesson={lesson} session={session} locate={locateMetric}/>}
           {stage === 3 && <BridgeEvidence lesson={lesson} session={session} data={visibleFrames} locate={locateMetric} selectActor={selectActor}/>}
         </div>}

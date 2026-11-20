@@ -47,6 +47,7 @@ export type Attempt = {
 };
 export type ActivityState = "available" | "in_progress" | "submitted" | "completed" | "skipped";
 export type SessionState = {
+  demo?: true;
   id: string; schema_version: 1; local_profile_id: string; case_id: string; content_version: string;
   current_activity_id?: string; accessible_activity_ids: string[];
   activity_states: Record<string, ActivityState>; return_stack: string[];

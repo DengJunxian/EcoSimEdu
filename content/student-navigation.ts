@@ -4,6 +4,7 @@ export const studentRoutes = {
   explore: "/explore/",
   notes: "/notes",
   review: "/review",
+  teach: "/teach",
   model: "/#model-api",
 } as const;
 

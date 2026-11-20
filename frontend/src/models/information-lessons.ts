@@ -6,7 +6,7 @@ import { defineCourse, eventAt, metric, windowOf } from "./course-lesson.ts";
 
 export const schoolLesson = defineCourse("school_matching", schoolCase, {
   title: "把最想去的学校填在第一位吗？", role: "申请人 S01",
-  story: "参照波士顿学区招生机制改革。你最喜欢 A，其次 B，再是 C。三所学校各有 4 个席位，按公开优先序处理申请。",
+  story: "参照波士顿学区招生机制改革。你希望获得自己最喜欢的可入学学校，真实偏好是 A、B、C。三所学校各有 4 个席位，按公开优先序处理申请。",
   facts: [{ label: "真实偏好", value: "A > B > C" }, { label: "你的优先位次", value: "A 校第 6，B 校第 4" }],
   steps: ["提交志愿", "等待排序", "确认学校"],
   predict: { question: "首轮如果没有被选中，还能在延迟接受中申请下一志愿吗？", answers: ["可以", "申请到此结束"] },
@@ -22,7 +22,7 @@ export const schoolLesson = defineCourse("school_matching", schoolCase, {
 
 export const lemonsLesson = defineCourse("lemons_market", lemonsCase, {
   title: "你知道质量，买家只看到均价。你还挂牌吗？", role: "卖家 S01",
-  story: "参照 Akerlof 的二手车市场。你持有一件高质量商品，买方只能先观察挂牌商品的质量分布。",
+  story: "参照 Akerlof 的二手车市场。你想成交并保住卖方剩余。你知道自己商品的质量和最低可接受价格，买方先观察挂牌商品的整体质量。",
   facts: [{ label: "你的商品质量和保留价", value: "5 · 5 代币" }, { label: "混合报价规则", value: "候选池平均质量 × 1.2" }],
   steps: ["选择挂牌", "查看报价", "等待交割"],
   predict: { question: "如果统一报价低于你的保留价，你会以该报价成交吗？", answers: ["不卖，退出报价池", "挂牌后就必须成交"] },
