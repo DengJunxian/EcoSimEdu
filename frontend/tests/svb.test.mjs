@@ -1,7 +1,8 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
+import { progressSnapshot, resumeProgress, saveProgress } from "../src/learning-store.ts";
 import { outcome, startLesson, transition } from "../src/lesson.ts";
-import { distributedPolicy, svbLesson, simulateSvb } from "../src/svb.ts";
+import { distributedPolicy, forkSvb, svbCheckpoint, svbLesson, simulateSvb } from "../src/svb.ts";
 
 const input = { seed: svbLesson.seed, choices: ["withdraw_now", "at-request"], policy: 0 };
 
@@ -90,4 +91,62 @@ test("SVB bridge waits for feedback and exposes only legal policy steps", () => 
   assert.equal(result.comparison.prediction, "up");
   assert.equal(result.run, paused.run);
   assert.equal(result.comparison.run.seed, paused.run.seed);
+});
+
+
+test("an SVB branch retains the queue and signals and changes only the targeted round's choice", () => {
+  const baseline = simulateSvb(input);
+  const checkpoint = svbCheckpoint(baseline, 2);
+  assert.deepEqual(checkpoint, { tick: 2, available: 17 });
+  assert.equal(svbCheckpoint(baseline, 1), undefined);
+  assert.throws(() => forkSvb(baseline, 3));
+  const branch = forkSvb(baseline, 2);
+  assert.throws(() => forkSvb(branch, 2));
+  assert.deepEqual(branch.frames.slice(0, 3), baseline.frames.slice(0, 3));
+  assert.deepEqual(branch.observations.slice(0, 3), baseline.observations.slice(0, 3));
+  assert.deepEqual(branch.frames[3].metrics.queued, 721);
+  assert.deepEqual(baseline.frames[3].metrics.queued, 738);
+  assert.deepEqual(branch.frames[3].metrics.paid, baseline.frames[3].metrics.paid);
+  assert.deepEqual(branch.frames[3].events.find(e => e.kind === "decision")?.deltas, {});
+  assert.ok(!branch.frames[3].events.some(e => e.kind === "request" && e.actorId === "D01"));
+  assert.ok(branch.frames[4].events.some(e => e.kind === "request" && e.actorId === "D01" && e.deltas.requested === 17));
+  assert.deepEqual(branch.frames.at(-1).metrics, baseline.frames.at(-1).metrics);
+  const pending = [];
+  for (const frame of branch.frames) {
+    const { metrics } = frame;
+    for (const event of frame.events) {
+      if (event.kind === "request") pending.push({ actorId: event.actorId, remaining: event.deltas.requested });
+      if (event.kind === "payment") {
+        assert.equal(pending[0].actorId, event.actorId);
+        pending[0].remaining -= event.deltas.paid;
+        assert.ok(pending[0].remaining >= 0);
+        if (!pending[0].remaining) pending.shift();
+      }
+    }
+    assert.equal(metrics.queued, pending.reduce((sum, request) => sum + request.remaining, 0));
+    assert.equal(metrics.queued, metrics.requested - metrics.paid);
+    assert.equal(metrics.equity, metrics.cash + metrics.marketValue + metrics.loans - metrics.deposits - metrics.borrowing);
+    assert.equal(metrics.cash + metrics.marketCash + metrics.supportCash + metrics.paid, 1260);
+  }
+  assert.deepEqual(simulateSvb(input), baseline);
+});
+
+test("SVB deferral is gated by the view and restores from the original checkpoint entry", () => {
+  const run = simulateSvb(input);
+  const stage = { ...startLesson(svbLesson), stage: 3, run, choices: input.choices };
+  const request = { type: "fork-run", checkpoint: 2, action: "defer-protective", prediction: "down" };
+  assert.equal(transition(svbLesson, stage, request), stage);
+  const paused = transition(svbLesson, stage, { type: "seek-checkpoint", tick: 2 });
+  const role = { ...paused, perspective: "role" };
+  assert.equal(transition(svbLesson, role, request), role);
+  assert.equal(transition(svbLesson, paused, { ...request, action: undefined, destination: 19 }), paused);
+  const pair = transition(svbLesson, paused, request);
+  assert.equal(pair.run, run);
+  assert.equal(pair.revealed, 2);
+  const storage = { getItem: key => storage[key] ?? null, setItem: (key, value) => { storage[key] = value; } };
+  const course = { caseId: "svb_run" };
+  saveProgress(storage, course, pair, null);
+  const stored = JSON.parse(progressSnapshot(storage, course));
+  assert.deepEqual(stored.fork, { action: "defer-protective", checkpoint: 2, prediction: "down", runId: pair.fork.run.id });
+  assert.deepEqual(resumeProgress(storage, course, svbLesson).fork, pair.fork);
 });

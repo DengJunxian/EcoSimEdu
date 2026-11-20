@@ -15,6 +15,7 @@ from services.simulation.auction import ROOT, digest
 from services.simulation.lessons import CATALOG, MODULES, load_case
 from services.simulation.live import LIVE_CASES
 
+from .package_student_lab import FRONTEND_NOTICES, LAUNCHERS, LEGACY_NOTICES, RELEASE
 SOURCE_FILE = ROOT / "cases/sources.json"
 ASSET_FILE = ROOT / "cases/data-assets.json"
 LIVE_RECEIPTS = ("docs/audit/wp08-real-canary.json", "docs/release/real-api-receipt.json")
@@ -71,6 +72,14 @@ def inventory():
              "项目手工定义的动作及规则参数", "python -m scripts.check_boundaries")
     register("cases/learning-outcomes.json", "authored_learning_design", "1", CATALOG, "每门课三项目标",
              "项目编写的目标、任务与迁移映射", "python -m scripts.check_learning_packages")
+    register("cases/classroom-guides-v3.json", "authored_learning_design", RELEASE,
+             read(ROOT / "cases/classroom-guides-v3.json"), "九门迁移课程各一份学习引导",
+             "依据发布案例的角色、制度和观察证据编写",
+             "python -m pytest -q tests/e2e/test_migrated_lesson_flow.py")
+    register("cases/visible-event-guides-v3.json", "authored_learning_design", RELEASE,
+             read(ROOT / "cases/visible-event-guides-v3.json"), "九课发布政策、事件与公开读数的教学投影",
+             "依据规则运行的公开指标、事件和可见字段编写",
+             "PYTHONPATH=. python frontend/tests/remaining_parity.py")
     register("cases/case-packages-v1.json", "derived_teaching_metadata", "1", CATALOG, "每门发布课一份领域契约",
              "从案例身份、来源登记、学习包和显式指标定义生成",
              "python -m scripts.generate_case_packages --check")
@@ -175,7 +184,7 @@ def inventory():
         for path in (ROOT / "cases").rglob("*")
         if path.suffix in {".json", ".gz"} and path not in {SOURCE_FILE, ASSET_FILE}
     }, "Unregistered data file in cases/"
-    return {"schema_version": 1, "content_release": "1.1.0-rc.1", "courses": course_lineage, "files": files,
+    return {"schema_version": 1, "content_release": RELEASE, "courses": course_lineage, "files": files,
             "runtime_records": [
                 {"kind": "computed_rule", "export_origin": "offline_simulation", "cases": list(CATALOG),
                  "method": "指定版本的课件、引擎、种子、情景和学生动作；运行时计算"},
@@ -204,8 +213,13 @@ def verify_saved_live(path):
 
 
 def verify_archive(path, inventory_files):
+    extras = {*LAUNCHERS, ".github/workflows/teaching.yml", "student-lab.env.example", "LICENSE", "NOTICE",
+              *(f"THIRD_PARTY/frontend/{name}" for name in FRONTEND_NOTICES),
+              *(f"THIRD_PARTY/student-web/{name}" for name in LEGACY_NOTICES)}
     with open_tar(path, "r:gz") as archive:
-        names = [member.name for member in archive.getmembers() if member.isfile()]
+        members = archive.getmembers()
+        names = [member.name for member in members]
+        assert names and len(names) == len(set(names)) and all(member.isfile() for member in members)
         prefix = names[0].split("/", 1)[0] + "/"
         assert all(name.startswith(prefix) for name in names)
         names = {name.removeprefix(prefix) for name in names}
@@ -213,7 +227,9 @@ def verify_archive(path, inventory_files):
         assert names == manifest["files"].keys() | {"RELEASE_MANIFEST.json"}
         data_files = {item["path"]: item["sha256"] for item in inventory_files}
         for name in sorted(names - {"RELEASE_MANIFEST.json"}):
-            assert Path(name).suffix in {".py", ".md", ".json", ".gz", ".txt", ".tsx", ".ts", ".css", ".html", ".js", ".mjs", ".lock"}
+            assert name in extras or Path(name).suffix in {
+                ".py", ".md", ".json", ".gz", ".txt", ".tsx", ".ts", ".css", ".html", ".js", ".mjs", ".lock",
+            }
             assert not name.startswith(".civitas-edu/") and (not name.endswith(".gz") or name in data_files)
             contents = archive.extractfile(prefix + name).read()
             manifest_entry = manifest["files"][name]

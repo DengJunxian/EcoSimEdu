@@ -1,4 +1,4 @@
-import { scheduleFromAttempt } from "./review-schedule";
+import { isDue, scheduleFromAttempt, type ReviewSchedule } from "./review-schedule";
 import type { SourceRef } from "./flagship-study";
 import { evaluate } from "./assessment";
 import type { Activity, Attempt, Exposure, Item, LearningPackage, Response, SessionState } from "./education-types";
@@ -142,7 +142,7 @@ export async function expose(session: SessionState, item: Item, kind: "hint" | "
 }
 
 export async function submitAttempt(
-  base: SessionState, activity: Activity, item: Item, response: Response, presentedOrder: string[], reviewId?: string,
+  base: SessionState, activity: Activity, item: Item, response: Response, presentedOrder: string[], schedule?: ReviewSchedule,
   sourceRefs: SourceRef[] = [], unknown = false, keepCurrent = false,
 ) {
   const id = exposureKey(base, item);
@@ -174,10 +174,12 @@ export async function submitAttempt(
       exposure.solution_seen_at ?? submitted_at }));
     await result(sessions.put(session));
     const reviews = tx.objectStore("reviews");
-    if (reviewId) {
-      const review = await result(reviews.get(reviewId));
-      if (!review || review.status !== "scheduled" || review.profile !== base.local_profile_id ||
-          !item.outcome_ids.includes(review.outcome_id) || review.content_version !== base.content_version) {
+    if (schedule) {
+      const review = await result(reviews.get(schedule.id)) as ReviewSchedule | undefined;
+      if (!review || review.due_at !== schedule.due_at || !isDue(review, new Date(submitted_at)) ||
+          review.profile !== base.local_profile_id || review.case_id !== base.case_id ||
+          review.outcome_id !== schedule.outcome_id || !item.outcome_ids.includes(review.outcome_id) ||
+          review.content_version !== base.content_version || activity.kind !== "review" || item.assessment_role !== "review") {
         throw new Error("复习安排已更新，请刷新。");
       }
       await result(reviews.put({ ...review, status: "completed" }));

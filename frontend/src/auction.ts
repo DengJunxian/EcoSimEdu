@@ -12,7 +12,7 @@ type RecordEvent = {
   seq: number; tick: number; event_type: string; round?: number; actor_id?: string; order_id?: string;
   side?: Side; price?: number; quantity?: 1; source?: "student" | "rule"; reference_price?: number | null;
   buyer_id?: string; seller_id?: string; buy_order_id?: string; sell_order_id?: string; maker_order_id?: string;
-  buyer_surplus?: number; seller_surplus?: number; platform_fee?: number;
+  buyer_surplus?: number; seller_surplus?: number; platform_fee?: number; checkpoint_event?: number;
 };
 export type AuctionFrame = Frame & {
   record: RecordEvent;
@@ -34,7 +34,30 @@ const paidFee = course.scenarios.find(row => row.id === "fee")!.fee;
 const demandScenario = course.scenarios.find(row => row.id === "demand")!;
 export const demandPolicy = -1;
 
-export function simulateAuction({ seed, choices, policy }: Parameters<Lesson["run"]>[0], boundary = false, input: Omit<typeof opening, "source"> = opening): AuctionRun {
+type AuctionInput = Omit<typeof opening, "source">;
+type AuctionParameters = Parameters<Lesson["run"]>[0];
+type AuctionCheckpoint = { tick: number; round: number; nextActor: number; order: Order };
+const checkpoints = new WeakMap<Run, {
+  points: Map<number, AuctionCheckpoint>; parameters: AuctionParameters; boundary: boolean; input: AuctionInput;
+}>();
+
+export function auctionCheckpoint(run: Run, tick: number) {
+  return checkpoints.get(run)?.points.get(tick);
+}
+
+export function forkAuction(parent: AuctionRun, tick: number) {
+  const source = checkpoints.get(parent);
+  const point = source?.points.get(tick);
+  if (!source || !point) throw new Error("该时点没有可撤回的学生挂单。");
+  return runAuction(source.parameters, source.boundary, source.input, { parent, point });
+}
+
+export function simulateAuction(parameters: AuctionParameters, boundary = false, input: AuctionInput = opening): AuctionRun {
+  return runAuction(parameters, boundary, input);
+}
+
+function runAuction({ seed, choices, policy }: AuctionParameters, boundary: boolean, input: AuctionInput,
+    fork?: { parent: AuctionRun; point: AuctionCheckpoint }): AuctionRun {
   const bid = Number(choices[0]);
   const baseShift = boundary ? boundarySpec.parameters.demand_shift : 0;
   const higherDemand = !boundary && policy === demandPolicy;
@@ -43,24 +66,38 @@ export function simulateAuction({ seed, choices, policy }: Parameters<Lesson["ru
   const shift = higherDemand ? demandScenario.demand_shift : baseShift;
   const fee = higherDemand ? 0 : policy;
 
+  const checkpoint = fork?.parent.frames[fork.point.tick];
   const agents: Record<string, Account> = Object.fromEntries(Object.entries(input.accounts).map(([id, data]) => {
     const side = data.side as Side;
-    return [id, { ...data, side, marginals: data.marginals.map(value => value + (side === "buy" ? shift : 0)) }];
+    return [id, { ...data, ...checkpoint?.accounts[id], side, marginals: data.marginals.map(value => value + (side === "buy" ? shift : 0)) }];
   }));
   const demand = Object.values(agents).filter(actor => actor.side === "buy").flatMap(actor => actor.marginals)
     .sort((a, b) => b - a);
   const supply = Object.values(agents).filter(actor => actor.side === "sell").flatMap(actor => actor.marginals)
     .sort((a, b) => a - b);
   const ceiling = demand.reduce((total, value, index) => total + Math.max(0, value - (supply[index] ?? value)), 0);
-  const standing = new Map<string, Order>();
-  const active = new Map<string, Order>();
+  const frames = fork ? fork.parent.frames.slice(0, fork.point.tick + 1) : [];
+  const standing = new Map(checkpoint?.book.map(order => [order.order_id, order]));
+  const active = new Map(checkpoint?.book.map(order => [order.actor_id, order]));
   const entered = new Set<string>();
   const quotes: Record<string, Order> = {};
-  const states: Record<string, Pick<Actor, "signal" | "reason" | "priorSignal">> = {};
-  const frames: AuctionFrame[] = [];
-  let last: { price: number; tick: number } | undefined;
-  let volume = 0, surplus = 0, platform = 0;
-  let observedBook = false;
+  if (fork) {
+    for (const { record } of frames) {
+      if (record.event_type === "order_submitted" && record.order_id && record.actor_id) {
+        entered.add(record.actor_id);
+        quotes[record.order_id] = fork.parent.quotes[record.order_id];
+      }
+    }
+  }
+  const states: Record<string, Pick<Actor, "signal" | "reason" | "priorSignal">> = Object.fromEntries(
+    checkpoint?.actors.map(({ id, signal, reason, priorSignal }) => [id, { signal, reason, priorSignal }]) ?? []);
+  const latestTrade = frames.filter(frame => frame.record.event_type === "trade").at(-1);
+  let last = latestTrade ? { price: latestTrade.record.price!, tick: latestTrade.tick } : undefined;
+  let volume = checkpoint?.metrics.volume ?? 0;
+  let surplus = checkpoint?.metrics.surplus ?? 0;
+  let platform = checkpoint?.metrics.platform_cash ?? 0;
+  let observedBook = boundary && frames.some(frame => !!frame.turningPoint && frame.record.event_type !== "trade");
+  const points = new Map<number, AuctionCheckpoint>();
 
   function emit(event: Omit<RecordEvent, "seq" | "tick">, detail: Omit<LessonEvent, "id">, tradedPrice: number | null = null) {
     const tick = frames.length;
@@ -88,7 +125,7 @@ export function simulateAuction({ seed, choices, policy }: Parameters<Lesson["ru
         state: active.has(id) ? "standing" : actor.filled ? "filled" : "ready",
         constraint: `现金 ${actor.cash} 代币，持有 ${actor.goods} 件，已成交 ${actor.filled} 件。`,
         ...(states[id] ?? { signal: "尚无成交价可参照。", reason: "等待本方提交报价。" }),
-        nextDecision: id === course.player_id ? "这张限价单会留到成交或收盘。" :
+        nextDecision: id === course.player_id ? (fork ? "撤单后，本次分支不再提交新单。" : "这张限价单会留到成交或收盘。") :
           "轮到自己时按可交易数量、下一件的价值或成本，以及最近成交价决定报价。",
       })),
       metrics: {
@@ -100,13 +137,18 @@ export function simulateAuction({ seed, choices, policy }: Parameters<Lesson["ru
     });
   }
 
-  function cancel(order: Order, round: number) {
+  function cancel(order: Order, round: number, forkTick?: number) {
     standing.delete(order.order_id);
     active.delete(order.actor_id);
     states[order.actor_id] = { signal: `原限价 ${order.price} 代币。`,
-      reason: round === course.rounds ? "收到收盘撤单通知，本单未成交。" : "轮到重新报价，撤销先前留在簿上的订单。" };
-    emit({ event_type: "order_cancelled", actor_id: order.actor_id, order_id: order.order_id, round },
-      { actorId: order.actor_id, kind: "cancel", text: `${order.actor_id} 撤回 ${order.order_id}。`, deltas: {} });
+      reason: forkTick !== undefined ? "你在撮合后的检查点撤回尚未成交的限价单。" :
+        round === course.rounds ? "收到收盘撤单通知，本单未成交。" : "轮到重新报价，撤销先前留在簿上的订单。" };
+    const origin = forkTick === undefined ? undefined : frames.find(frame => frame.record.event_type === "order_submitted" &&
+      frame.record.order_id === order.order_id);
+    emit({ event_type: "order_cancelled", actor_id: order.actor_id, order_id: order.order_id, round,
+      ...(forkTick === undefined ? {} : { source: "student", checkpoint_event: forkTick }) },
+      { actorId: order.actor_id, kind: "cancel", text: `${order.actor_id} 撤回 ${order.order_id}。`, deltas: {},
+        ...(origin && { sourceEvents: [{ tick: origin.tick, label: "原始挂单" }] }) });
   }
 
   function quote(actorId: string, price: number, source: "student" | "rule", round: number) {
@@ -173,22 +215,34 @@ export function simulateAuction({ seed, choices, policy }: Parameters<Lesson["ru
       deltas: { volume: 1, surplus: delta, platform_cash: 2 * fee, participant_surplus: delta - 2 * fee } }, paid);
   }
 
-  emit({ event_type: "market_open" }, { text: "市场开盘，当前订单簿为空。", deltas: {} });
-  quote(course.player_id, bid, "student", 0);
-  input.rounds.forEach((turn, round) => {
-    for (const [id, noise] of turn as [string, number][]) {
+  if (fork) {
+    cancel(fork.point.order, fork.point.round, fork.point.tick);
+  } else {
+    emit({ event_type: "market_open" }, { text: "市场开盘，当前订单簿为空。", deltas: {} });
+    quote(course.player_id, bid, "student", 0);
+  }
+  for (let round = fork?.point.round ?? 0; round < input.rounds.length; round++) {
+    const turn = input.rounds[round] as [string, number][];
+    const start = fork?.point.round === round ? fork.point.nextActor : 0;
+    for (let index = start; index < turn.length; index++) {
+      const [id, noise] = turn[index];
       const actor = agents[id];
       if (actor.filled === actor.marginals.length) continue;
       const previous = active.get(id);
       if (previous) cancel(previous, round);
       const marginal = actor.marginals[actor.filled];
       const shade = Math.floor(noise / (round + 1));
-      const boundary = actor.side === "buy" ? Math.min(marginal, actor.cash) - fee : marginal + fee;
-      const refPrice = last?.price ?? boundary;
-      const price = actor.side === "buy" ? Math.min(boundary, refPrice + 2) - shade : Math.max(boundary, refPrice - 2) + shade;
+      const quoteLimit = actor.side === "buy" ? Math.min(marginal, actor.cash) - fee : marginal + fee;
+      const refPrice = last?.price ?? quoteLimit;
+      const price = actor.side === "buy" ? Math.min(quoteLimit, refPrice + 2) - shade : Math.max(quoteLimit, refPrice - 2) + shade;
       quote(id, price, "rule", round);
+      const order = active.get(course.player_id);
+      if (!fork && order) {
+        const tick = frames.length - 1;
+        points.set(tick, { tick, round, nextActor: index + 1, order });
+      }
     }
-  });
+  }
   for (const actorId of entered) {
     const order = active.get(actorId);
     if (order) cancel(order, course.rounds);
@@ -196,8 +250,11 @@ export function simulateAuction({ seed, choices, policy }: Parameters<Lesson["ru
   emit({ event_type: "market_close" }, { text: "市场收盘，尚未成交的订单全部撤回。", deltas: {} });
 
   const market = boundary ? "boundary" : "base";
-  return { id: `double-auction/browser-v1/${seed}/${market}/${bid}/${higherDemand ? "demand" : policy}`,
-    seed, frames, market, bid, fee, demandShift: shift, ceiling, quotes };
+  const id = fork ? `${fork.parent.id}~fork-v1:${fork.point.tick}:cancel-open-order` :
+    `double-auction/browser-v1/${seed}/${market}/${bid}/${higherDemand ? "demand" : policy}`;
+  const run = { id, seed, frames, market, bid, fee, demandShift: shift, ceiling, quotes } as const;
+  if (points.size) checkpoints.set(run, { points, parameters: { seed, choices: [...choices], policy }, boundary, input });
+  return run;
 }
 
 export function roundEnds(run: Run): readonly AlignedFrame[] {
@@ -261,6 +318,13 @@ export function auctionLesson(boundary: boolean): Lesson {
       alternates: boundary ? undefined : [{ value: demandPolicy, label: demandScenario.label, baselineLabel: "原买方估值，交易费 0",
         description: `买方各单位估值增加 ${demandScenario.demand_shift} 代币。卖方成本、种子和你的原始限价保持相同，交易费为 0。` }],
       project: roundEnds, describe: "保留同一种子和你的原始限价。收费改变买家的总支出和卖家的净收入，费用转入平台。" },
+    fork: {
+      checkpoint: (run, tick) => !!auctionCheckpoint(run, tick),
+      run: (run, tick, { action, destination }) => {
+        if (action !== "cancel-open-order" || destination !== undefined) throw new Error("需要有效的撤单动作。");
+        return forkAuction(run as AuctionRun, tick);
+      },
+    },
     seed: opening.seed,
     prepareSeed: async seed => {
       const inputs = await pairedInput("auction", opening.seed, seed);

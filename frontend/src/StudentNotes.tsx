@@ -156,22 +156,24 @@ export function StudentNotes({ id }: { id: string | null }) {
       </nav>
       {!id && <ProgressBackup onRestore={() => { setNotes(listNotes()); setRevision(value => value + 1); }}/>}
       {id && !opened && <StatusNotice tone="warning">这份解释在当前浏览器中不可用。可回到全部解释查找。</StatusNotice>}
-      {!id && !notes.length && <p className="edu-status">在课堂完成政策对照并保存解释后，可在这里回查。<a href="./#paths">去选一门课</a></p>}
+      {!id && !notes.length && <p className="edu-status">在课堂完成对照并保存解释后，可在这里回查。<a href="./#paths">去选一门课</a></p>}
       <ol className="note-list">{(opened ? [opened] : notes).map(note => (
         <li key={note.id}>
           <h2>{courseById[note.course.caseId].title}
-            {note.course.caseId === "svb_run" && (note.comparisonId.endsWith("/network") ? " · 分散信息来源" : " · 提高现金缓冲")}</h2>
-          <p><time dateTime={note.savedAt}>{new Date(note.savedAt).toLocaleString()}</time> · 原政策预测：{trendLabel[note.prediction]}</p>
+            {note.fork ? " · 中途行动" :
+              note.course.caseId === "svb_run" && (note.comparisonId.endsWith("/network") ? " · 分散信息来源" : " · 提高现金缓冲")}</h2>
+          <p><time dateTime={note.savedAt}>{new Date(note.savedAt).toLocaleString()}</time> · {note.fork ? "原动作预测" : "原政策预测"}：{trendLabel[note.prediction]}</p>
           {opened ? <dl className="note-text">
             <dt>我的主张</dt><dd>{note.claim ?? note.comparison}</dd>
             <dt>模型规则</dt><dd>{note.rule}</dd>
             <dt>算术核对</dt><dd>{note.calculation}</dd>
             {note.claim && note.claim !== note.comparison && <><dt>配对差异</dt><dd>{note.comparison}</dd></>}
             <dt>现实假设</dt><dd>{note.hypothesis}</dd>
+            {note.alternative && <><dt>其他解释及核查</dt><dd>{note.alternative}</dd></>}
           </dl> : <p><a href={notesLink(note.id)}>打开已保存的解释</a></p>}
           <div className="note-links">
             <a href={sourceLink(note, "baseline")}>查看基线原事件 {note.evidence?.baseline?.eventId ?? note.baselineEvent}</a>
-            <a href={sourceLink(note, "comparison")}>查看政策组原事件 {note.evidence?.comparison?.eventId ?? note.comparisonEvent}</a>
+            <a href={sourceLink(note, "comparison")}>查看{note.fork ? "分支" : "政策组"}原事件 {note.evidence?.comparison?.eventId ?? note.comparisonEvent}</a>
           </div>
           {opened && <StudyReflection key={note.id} note={note}/>}
         </li>
@@ -224,7 +226,7 @@ export function SavedSource({ lesson, id, side, caseId, market }: {
     <StudentHeader caseId={caseId}/>
     <main className="shell lesson-shell student-notes" id="main" tabIndex={-1}>
       <a href={notesLink(id)}>返回已保存的解释</a>
-      <PageTitle>{side === "baseline" ? "基线" : "政策组"}{event ? "原事件" : "原轮次"} · {
+      <PageTitle>{side === "baseline" ? "基线" : source.fork ? "分支" : "政策组"}{event ? "原事件" : "原轮次"} · {
         selected ? `${frameLabel(lesson.tickUnit, tick)} · ${selected.id}` : frameLabel(lesson.tickUnit, tick)}</PageTitle>
       <p>{courseById[caseId]?.title} · 种子 {run.seed}</p>
       <p className="run-identity">运行编号 <code>{evidence.runId}</code></p>

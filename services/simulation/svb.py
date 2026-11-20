@@ -46,7 +46,11 @@ def _neighbors(people, seed, layout):
     }
 
 
-def simulate(case, scenario_id, seed, action, *, decide=None, classroom_policy=None):
+def simulate(case, scenario_id, seed, action, *, decide=None, classroom_policy=None, defer_after=None):
+    """Replay an optional one-round student deferral before protective withdrawals."""
+    if defer_after is not None and (type(defer_after) is not int or not 2 <= defer_after < case["rules"]["steps"]
+                                    or decide is not None or classroom_policy is not None):
+        raise ValueError("Invalid withdrawal checkpoint")
     if decide is not None and classroom_policy is not None:
         raise ValueError("Only one model policy may own a round")
     options = {option["id"] for option in case["action"]["options"]}
@@ -232,6 +236,12 @@ def simulate(case, scenario_id, seed, action, *, decide=None, classroom_policy=N
             )
             if person in model_choices:
                 protective = model_choices[person][0]
+            if defer_after is not None and person == player and step == defer_after + 1:
+                if not protective:
+                    raise ValueError("The student has no protective withdrawal to defer")
+                record("student_deferred", f"{player} 在本轮暂缓 {protective} 的防御性提款。", [player],
+                       actor_id=player, checkpoint_round=defer_after, amount_deferred=protective)
+                protective = 0
             if protective:
                 state["protective_requested"] = True
             amount = payroll + protective
@@ -325,7 +335,7 @@ def simulate(case, scenario_id, seed, action, *, decide=None, classroom_policy=N
     if classroom_policy is not None:
         classroom_policy.commit(rules["steps"], events, snapshots)
     return {
-        "engine_version": "svb/2" if classroom_policy is not None else "svb/1", "initial": initial,
+        "engine_version": "svb/fork-v1" if defer_after is not None else "svb/2" if classroom_policy is not None else "svb/1", "initial": initial,
         "events": events,
         "snapshots": snapshots,
         "metrics": snapshots[-1]["metrics"],

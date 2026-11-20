@@ -11,11 +11,14 @@ from services.simulation.svb import simulate
 CASE = json.loads((Path(__file__).parents[2] / "cases/svb_run/case.json").read_text())
 
 
-@pytest.mark.parametrize("scenario_id", [scenario["id"] for scenario in CASE["scenarios"]])
-@pytest.mark.parametrize("seed,action", [(20230309, "withdraw_now"), (17, "withdraw_later")])
-def test_bank_run_reconciles_every_event(scenario_id, seed, action):
-    result = simulate(CASE, scenario_id, seed, action)
-    assert result == simulate(CASE, scenario_id, seed, action)
+@pytest.mark.parametrize("scenario_id,seed,action,defer_after", [
+    *((scenario["id"], seed, action, None) for scenario in CASE["scenarios"]
+      for seed, action in ((20230309, "withdraw_now"), (17, "withdraw_later"))),
+    ("baseline", 20230309, "withdraw_now", 2),
+])
+def test_bank_run_reconciles_every_event(scenario_id, seed, action, defer_after):
+    result = simulate(CASE, scenario_id, seed, action, defer_after=defer_after)
+    assert result == simulate(CASE, scenario_id, seed, action, defer_after=defer_after)
     assert result["initial_hash"] == digest(result["initial"])
     initial = result["initial"]
     assert len(initial["people"]) == 60
@@ -38,6 +41,10 @@ def test_bank_run_reconciles_every_event(scenario_id, seed, action):
         if kind == "revaluation":
             price = event["new_price"]
             equity -= (event["old_price"] - price) * units
+        if kind == "student_deferred":
+            assert event["checkpoint_round"] == defer_after
+            assert event["actor_id"] == "D01"
+            assert 0 < event["amount_deferred"] <= balances["D01"] - amounts_by_person["D01"]
         if kind == "requests":
             for row in event["requests"]:
                 request_id, person = row["request_id"], row["person"]
@@ -150,3 +157,9 @@ def test_no_neighbor_edges_means_no_neighbor_messages():
         not row["observation_seqs"]
         for event in result["events"] if event["event_type"] == "requests" for row in event["requests"]
     )
+
+
+def test_deferral_rejects_ineligible_rounds():
+    for round_number in (1, 3, CASE["rules"]["steps"]):
+        with pytest.raises(ValueError):
+            simulate(CASE, "baseline", CASE["seed"], "withdraw_now", defer_after=round_number)

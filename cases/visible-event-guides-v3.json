@@ -1,0 +1,74 @@
+{
+  "school_matching": {
+    "policy": "immediate",
+    "metrics": { "applications": "累计申请（份）", "rejections": "累计拒绝（份）" },
+    "events": {
+      "round_proposals": { "label": "提交志愿申请", "rule": "提交会增加申请数。学校在本轮结算时按优先顺序和容量决定暂留和拒绝。", "question": "这笔申请何时才会进入学校的排序？", "policy_rule": "提交会增加申请数。即时接受下，学校在本轮按优先顺序分配剩余席位，被录取的学生立即锁定席位。" },
+      "round_resolution": { "label": "席位排序与暂留", "rule": "学校按优先顺序处理当前申请。延迟接受允许后到的高优先级申请者替换暂留者。", "question": "哪项变化对应被拒的申请？怎样继续核对这些学生的下一志愿？", "policy_label": "席位排序与确认录取", "policy_rule": "学校按优先顺序填补空余席位。即时接受下，本轮录取立即生效，后到的申请者无法替换已经录取的学生。", "policy_question": "从累计拒绝的相邻读数，能核对本轮拒绝了几份申请吗？" }
+    }
+  },
+  "lemons_market": {
+    "policy": "certified",
+    "metrics": { "quoted_pool_price": "混合池暂定价（代币）", "willing_supply": "愿售商品（件）", "traded": "累计成交（件）" },
+    "events": {
+      "offer_iteration": { "label": "重新报价与筛选", "rule": "给出暂定价后，保留价高于报价的卖家退出。剩余候选池给下一轮报价提供输入。", "question": "这一步观察到的愿售数量和实付成交数量各是多少？", "policy_rule": "获得核验的商品按核验质量单独定价。统一暂定价只适用于未核验的混合池，愿售总量包括单独定价的商品。" },
+      "settlement": { "label": "实际交割", "rule": "交割把符合成交条件的报价记为真实成交。暂定价和愿售量是此前筛选环节的读数。", "question": "在哪个数值中可以核对这一步正式交割的数量？" }
+    }
+  },
+  "information_cascade": {
+    "policy": "private",
+    "metrics": { "public_a_pct": "公开 A 箱后验（%）", "revealing_decisions": "累计带来新信息的行动（次）", "cascade_decisions": "累计级联行动（次）" },
+    "events": {
+      "decision": { "label": "公开行动与后验更新", "rule": "如果两种私信号都会导致同一项行动，公开行动无法区分它们。用公共后验前后读数检查更新。", "question": "这一步公共后验发生了什么变化？累计带来新信息的行动增加了吗？", "policy_label": "行动与公开信念", "policy_rule": "前序行动不公开。后续参与者无法用它更新公共信念。用公开 A 箱后验的相邻读数核对。", "policy_question": "行动隐藏后，这一步公共后验改变了吗？" }
+    }
+  },
+  "public_goods": {
+    "policy": "low_cost",
+    "metrics": { "contributions": "本轮贡献（代币）", "net_income": "累计群体净收益（代币）", "sanction_cost": "累计惩罚损耗（代币）" },
+    "events": {
+      "contributions": { "label": "同时提交贡献", "rule": "本轮贡献先进入公共池。每投入一枚，四人各获得 0.4 代币的回报。", "question": "能否用本轮贡献核算每个人的公共回报？", "facts": { "public_return": "每人公共回报（代币）" } },
+      "settlement": { "label": "个人和集体结算", "rule": "结算把个人保留资金、公共回报与惩罚收支合并，再求四人的净收益合计。", "question": "怎样从累计净收益的相邻读数算出这一轮的群体净收益？" }
+    }
+  },
+  "commons_governance": {
+    "policy": "quota",
+    "metrics": { "stock": "水域存量（单位）", "harvest": "本期实际取用（单位）", "growth": "本期再生（单位）" },
+    "events": {
+      "withdrawal": { "label": "按约束分配与取用", "rule": "从期初存量扣掉分配后实际取得的数量，得到用于计算再生的剩余存量。", "question": "分配前后少了多少单位？它与实际取用量是否一致？", "facts": { "start_stock": "期初存量", "remaining_stock": "取用后存量" } },
+      "growth": { "label": "自然再生", "rule": "自然再生发生在取用以后。再生量加到取用后的存量上，构成下一期期初资源。", "question": "把哪两个量相加，可以核对下一期的开局存量？", "facts": { "remaining_stock": "取用后存量", "next_stock": "下一期期初存量" } }
+    }
+  },
+  "beer_game": {
+    "policy": "shared",
+    "metrics": { "retail_stock": "零售库存（件）", "retail_backlog": "尚待交付（件）", "in_transit": "全链在途货物（件）" },
+    "events": {
+      "week_end": { "label": "周末收货和履约核对", "rule": "按周核对实际到货和发货。新订单先传给上游，在途批次到达时才进入接收方的手头库存。", "question": "哪些读数描写手头存量和运输中的实物？现在能从哪处账本核对实际到货？" }
+    }
+  },
+  "carbon_market": {
+    "policy": "tighten",
+    "metrics": { "cap": "发行总量（张）", "permits_moved": "累计转移（张）", "surrendered": "累计缴回（张）" },
+    "events": {
+      "transfer": { "label": "配额转移", "rule": "一张编号配额只能有一个持有者。卖方减持与买方增持相抵，转移不会增加发行总量。", "question": "从编号和累计转移量，能核对这次转了几张吗？", "facts": { "buyer": "买方", "seller": "卖方", "permits": "配额编号" } },
+      "surrender": { "label": "缴回履约", "rule": "企业按实际排放缴回配额。它缴回登记簿上的编号，累计缴回增加。", "question": "这份缴回记录里的编号数与对应排放量是多少？", "facts": { "firm": "履约企业", "permits": "缴回编号", "emissions": "对应排放（吨）" } }
+    }
+  },
+  "gamestop": {
+    "policy": "no_social",
+    "metrics": { "reach": "累计触达（人）", "last_price": "最近成交价（美元）", "volume": "累计成交（股）" },
+    "events": {
+      "message": { "label": "公开话题发布", "rule": "话题记录追踪收到消息的账户，成交价由撮合产生的交易更新。", "question": "哪些读数可以分别检验消息触达与订单成交？", "facts": { "message_id": "消息编号" } },
+      "forward": { "label": "转发既有话题", "rule": "转发沿用原话题编号。收到相同来源两次，仍可沿编号查到同一条消息。", "question": "这笔事件影响了触达、成交量还是成交价？", "facts": { "message_id": "消息编号", "origin_seq": "原消息事件" } },
+      "trade": { "label": "订单实际成交", "rule": "撮合事件给出成交数量和价格。可以沿买卖订单号分别回查委托。", "question": "这次成交使成交量增加多少？两张订单号是什么？", "facts": { "buy_order_id": "买单", "sell_order_id": "卖单", "quantity": "成交（股）" } }
+    }
+  },
+  "flash_crash": {
+    "policy": "no_withdrawal",
+    "metrics": { "bid_depth": "买方深度（股）", "program_filled": "程序累计成交（股）", "last_price": "最近成交价（美元）" },
+    "events": {
+      "trade": { "label": "实际撮合成交", "rule": "成交消耗订单簿中的可成交量。可以沿买卖订单号核对这笔成交。", "question": "这笔成交的数量与程序累计成交的变化有什么关系？", "facts": { "buy_order_id": "买单", "sell_order_id": "卖单", "quantity": "成交（股）" } },
+      "inventory_limit": { "label": "做市库存达到触发条件", "rule": "核对本次承接卖单后的净增库存是否达到阈值。后续撤单须由实际撤单记录核对。", "question": "这一步的阈值是多少？买方深度的变化是否已经出现在本事件？", "facts": { "excess": "净增库存（股）", "limit": "阈值（股）" } },
+      "cancel": { "label": "撤回剩余挂单", "rule": "撤单从订单簿移走尚未成交的剩余数量。应与真正更新成交价或成交量的撮合区分开来。", "question": "撤单移走几股？买方深度与程序累计成交分别变了多少？", "facts": { "order_id": "订单号", "quantity": "撤回（股）" } }
+    }
+  }
+}

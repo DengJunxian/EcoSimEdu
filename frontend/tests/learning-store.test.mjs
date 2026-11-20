@@ -1,9 +1,11 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
 import { auctionLesson } from "../src/auction.ts";
+import { browserEnvelope, browserEvents, browserEvidence, evidencePointer } from "../src/run-evidence.ts";
+import { svbLesson } from "../src/svb.ts";
 import { schellingLesson } from "../src/models/schelling-lesson.ts";
 import { startLesson, transition } from "../src/lesson.ts";
-import { allNotes, exportProgressArchive, latestProgress, restoreProgressArchive, resumeProgress, saveProgress, sourceLink, sourceRun } from "../src/learning-store.ts";
+import { allNotes, exportProgressArchive, latestProgress, restoreProgressArchive, resumeProgress, saveNote, saveProgress, sourceLink, sourceRun } from "../src/learning-store.ts";
 
 const storage = () => ({
   getItem(key) { return this[key] ?? null; },
@@ -113,4 +115,46 @@ test("a malformed backup makes no writes and a storage failure can be retried", 
   assert.deepEqual(restoreProgressArchive({ ...target, setItem() { throw new Error("quota"); } }, archive),
     { restored: 0, existing: 0, conflicts: 0, failed: 1 });
   assert.equal(restoreProgressArchive(target, archive).restored, 1);
+});
+
+test("a fork explanation survives an archive without progress and verifies both exact sources", async () => {
+  const cases = [
+    [schellingLesson, ["move", "prediction-0"], { checkpoint: 73, destination: 19 }, 1, "74"],
+    [svbLesson, ["withdraw_now", "at-payment"], { checkpoint: 2, action: "defer-protective" }, 3, "3/1"],
+    [auctionLesson(false), ["96", "yes"], { checkpoint: 2, action: "cancel-open-order" }, 4, "3"],
+  ];
+  for (const [lesson, choices, fork, baselineTick, branchId] of cases) {
+    const published = lesson.casePackage;
+    const course = { caseId: published.caseId };
+    const policy = lesson.policy.baseline;
+    const baseline = lesson.run({ seed: lesson.seed, choices, policy });
+    const branch = lesson.fork.run(baseline, fork.checkpoint, fork);
+    async function pointer(run, test) {
+      const source = browserEvents(run, published).find(test);
+      const envelope = await browserEnvelope(run, published, { choices, policy });
+      return evidencePointer(browserEvidence(envelope, source, run.frames.length - 1));
+    }
+    const evidence = {
+      baseline: await pointer(baseline, event => event.frameTick === baselineTick),
+      comparison: await pointer(branch, event => event.eventId === branchId),
+    };
+    const note = {
+      baselineEvent: evidence.baseline.frameTick, comparisonEvent: evidence.comparison.frameTick,
+      baselineId: baseline.id, comparisonId: branch.id, course, choices, policy, fork, evidence,
+      savedAt: "2026-11-20T04:00:00Z", prediction: "down",
+      rule: "one action", calculation: "difference", comparison: "paired",
+      hypothesis: "same entry", alternative: "compare the same economic period",
+    };
+    const original = storage(), imported = storage();
+    const id = saveNote(original, note);
+    assert.equal(restoreProgressArchive(imported, exportProgressArchive(original)).restored, 1);
+    const saved = allNotes(imported)[0];
+    assert.equal(saved.id, id);
+    assert.equal((await sourceRun(lesson, saved, "baseline")).event.eventId, evidence.baseline.eventId);
+    assert.equal((await sourceRun(lesson, saved, "comparison")).event.eventId, branchId);
+    assert.equal(await sourceRun(lesson, { ...saved, fork: { ...fork, checkpoint: 0 } }, "comparison"), undefined);
+    assert.equal(await sourceRun(lesson, { ...saved, baselineId: "unrelated" }, "comparison"), undefined);
+    assert.equal(await sourceRun(lesson, { ...saved, comparisonEvent: fork.checkpoint }, "comparison"), undefined);
+    assert.equal(await sourceRun(lesson, { ...saved, evidence: undefined }, "comparison"), undefined);
+  }
 });

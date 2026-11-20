@@ -5,12 +5,22 @@ import pytest
 from services.simulation.auction import CASE, SCENARIOS, digest, initial_agents, run_auction
 
 
-@pytest.mark.parametrize("scenario", SCENARIOS)
-@pytest.mark.parametrize("seed,bid", [(1962, 96), (0, 1), (77, 108), (2**32 - 1, 97)])
-def test_tape_matches_orders_and_conserves_assets(scenario, seed, bid):
+@pytest.mark.parametrize("scenario,seed,bid,cancel_after", [
+    *((scenario, seed, bid, None) for scenario in SCENARIOS
+      for seed, bid in ((1962, 96), (0, 1), (77, 108), (2**32 - 1, 97))),
+    ("baseline", 1962, 96, 2), ("boundary", 1962, 35, 2),
+])
+def test_tape_matches_orders_and_conserves_assets(scenario, seed, bid, cancel_after):
     with patch("socket.socket.connect", side_effect=AssertionError("socket use")):
-        result = run_auction(scenario, seed, bid)
-        assert digest(result) == digest(run_auction(scenario, seed, bid))
+        result = run_auction(scenario, seed, bid, cancel_after=cancel_after)
+        assert digest(result) == digest(run_auction(scenario, seed, bid, cancel_after=cancel_after))
+    if cancel_after is not None:
+        original = run_auction(scenario, seed, bid)
+        assert result["events"][:cancel_after + 1] == original["events"][:cancel_after + 1]
+        assert result["snapshots"][:cancel_after + 1] == original["snapshots"][:cancel_after + 1]
+        cancellation = result["events"][cancel_after + 1]
+        assert cancellation["source"] == "student" and cancellation["checkpoint_event"] == cancel_after
+        assert all(event.get("buy_order_id") != cancellation["order_id"] for event in result["events"][cancel_after + 1:])
     assert result["root_hash"] == digest(initial_agents(seed))
     fee = result["intervention"]["fee"]
     initial = result["initial"]
@@ -85,3 +95,9 @@ with patch('socket.socket.connect', side_effect=AssertionError('socket use')):
 assert 'config' not in sys.modules
 assert 'core.llm.config' not in sys.modules
 """], check=True)
+
+
+def test_fork_requires_an_unfilled_student_order_after_matching():
+    for tick in (1, 3, 4, 500):
+        with pytest.raises(ValueError):
+            run_auction("baseline", CASE["seed"], 96, cancel_after=tick)

@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import { frameLabel, type Lesson, type Run, type Session } from "./lesson.ts";
+import { frameLabel, type ForkRecipe, type Lesson, type Session } from "./lesson.ts";
 import { allNotes, notesLink, saveNote, trendLabel, type CourseRef, type Explanation, type SavedExplanation } from "./learning-store.ts";
 import { browserEnvelope, browserEvents, browserEvidence, evidencePointer, runRecords, seedEvidence } from "./run-evidence.ts";
 import type { EventEnvelope } from "./domain-contracts.ts";
@@ -24,14 +24,20 @@ function EvidencePicker({ events, name, label, selection, tickUnit }: {
   </label>;
 }
 
-export function Investigation({ course, lesson, session, onSaved }: {
-  course: CourseRef; lesson: Lesson; session: Session; onSaved?: () => void;
+export function Investigation({ course, lesson, session, fork, onSaved }: {
+  course: CourseRef; lesson: Lesson; session: Session; fork?: Session["fork"]; onSaved?: () => void;
 }) {
   const baseline = session.run!;
-  const comparison = session.comparison!.run;
+  const pair = fork ?? session.comparison!;
+  const { run: comparison, prediction } = pair;
+  const policy = fork ? lesson.policy.baseline : session.comparison!.policy;
+  const recipe: ForkRecipe | undefined = fork && { checkpoint: fork.checkpoint,
+    ...(fork.action ? { action: fork.action } : { destination: fork.destination! }) };
+  const comparisonLabel = recipe ? "分支" : "政策组";
   const published = lesson.casePackage!;
   const baselineEvents = useMemo(() => browserEvents(baseline, published), [baseline, published]);
-  const comparisonEvents = useMemo(() => browserEvents(comparison, published), [comparison, published]);
+  const comparisonEvents = useMemo(() => browserEvents(comparison, published)
+    .filter(event => !fork || event.frameTick! > fork.checkpoint), [comparison, published, fork]);
   const [busy, setBusy] = useState(false);
   const [notes, setNotes] = useState(() => {
     try { return allNotes(localStorage, baseline.id, comparison.id); }
@@ -48,7 +54,8 @@ export function Investigation({ course, lesson, session, onSaved }: {
 
   async function describeRuns() {
     return await Promise.all([baseline, comparison].map((run, index) => browserEnvelope(run, published, {
-      choices: session.choices, policy: index === 0 ? lesson.policy.baseline : session.comparison!.policy,
+      choices: session.choices, policy: index === 0 ? lesson.policy.baseline : policy,
+      ...(index === 1 && recipe && { fork: recipe, parentRunId: baseline.id }),
       ...("records" in run ? { scenario: (run as ModelRun).scenario, intervention: (run as ModelRun).intervention } : {}),
       ...(published.caseId === "svb_run" ? { scenario: (run as SvbRun).scenario, network: (run as SvbRun).network } : {}),
       ...(published.caseId === "double_auction" ? { demand_shift: (run as AuctionRun).demandShift,
@@ -66,12 +73,12 @@ export function Investigation({ course, lesson, session, onSaved }: {
       modelRule: lesson.bridge?.rule,
       references: lesson.source.references,
       choices: session.choices,
-      policyPrediction: session.comparison!.prediction,
+      policyPrediction: prediction,
       observations: [baseline, comparison].map(run => ({ id: run.id, seed: run.seed,
         ...("records" in run ? { scenario: (run as ModelRun).scenario, action: (run as ModelRun).action, intervention: (run as ModelRun).intervention } : {}),
         initialActors: run.frames[0].actors, events: runRecords(run), metrics: run.frames.map(frame => frame.metrics) })),
       runEnvelopes,
-      eventEnvelopes: [baselineEvents, comparisonEvents],
+      eventEnvelopes: [baselineEvents, recipe ? browserEvents(comparison, published) : comparisonEvents],
       ...(selected ? { explanation: selected.explanation,
         evidence: [seedEvidence(baseline, selected.explanation.baselineEvent), seedEvidence(comparison, selected.explanation.comparisonEvent)],
         sourceEvidence: [browserEvidence(runEnvelopes[0], selected.baseline, baseline.frames.length - 1),
@@ -87,7 +94,9 @@ export function Investigation({ course, lesson, session, onSaved }: {
 
   return <section className="studio-explanation" aria-labelledby="explanation-heading">
     <h2 id="explanation-heading">用两次运行解释机制</h2>
-    <p>{lesson.explanationPrompt ?? "引用一次基线运行和一次政策运行里的证据，再用它们解释机制。"}</p>
+    <p>{recipe ? "引用基线和分支的原始记录，解释中途行动怎样改变后续结果。" :
+      lesson.explanationPrompt ?? "引用一次基线运行和一次政策运行里的证据，再用它们解释机制。"}</p>
+    {recipe && <p>原动作预测为「{trendLabel[prediction]}」。分支证据从检查点后的事件中选择。</p>}
     <form onSubmit={async event => {
       event.preventDefault();
       if (busy) return;
@@ -95,7 +104,7 @@ export function Investigation({ course, lesson, session, onSaved }: {
       const selectedBaseline = baselineEvents.find(entry => entry.eventId === form.get("baselineEvent"));
       const selectedComparison = comparisonEvents.find(entry => entry.eventId === form.get("comparisonEvent"));
       if (selectedBaseline?.frameTick == null || selectedComparison?.frameTick == null) {
-        setStatus("请选取两条运行事件并填完四项解释。");
+        setStatus("请选取两条原始事件，并填写解释。");
         return;
       }
       const explanation: Explanation = {
@@ -103,9 +112,11 @@ export function Investigation({ course, lesson, session, onSaved }: {
         claim: String(form.get("claim") ?? "").trim() || String(form.get("difference")).trim(),
         rule: String(form.get("rule")).trim(), calculation: String(form.get("calculation")).trim(),
         comparison: String(form.get("difference")).trim(), hypothesis: String(form.get("hypothesis")).trim(),
+        ...(recipe && { alternative: String(form.get("alternative") ?? "").trim() }),
       };
-      if (!explanation.rule || !explanation.calculation || !explanation.comparison || !explanation.hypothesis) {
-        setStatus("请选取两条运行事件并填完四项解释。");
+      if (!explanation.rule || !explanation.calculation || !explanation.comparison || !explanation.hypothesis ||
+          recipe && !explanation.alternative) {
+        setStatus("请选取两条原始事件，并填写解释。");
         return;
       }
       const exportRequested = (event.nativeEvent as SubmitEvent).submitter?.getAttribute("value") === "export";
@@ -123,14 +134,14 @@ export function Investigation({ course, lesson, session, onSaved }: {
         };
         const savedAt = new Date().toISOString();
         const outcomeId = published.learningOutcomes.find(goal => goal.id === form.get("outcome"))?.id;
-        const saved: SavedExplanation = { ...explanation, choices: session.choices, prediction: session.comparison!.prediction,
-          baselineId: baseline.id, comparisonId: comparison.id, savedAt, policy: session.comparison!.policy,
-          course, evidence, outcomeId };
+        const saved: SavedExplanation = { ...explanation, choices: session.choices, prediction,
+          baselineId: baseline.id, comparisonId: comparison.id, savedAt, policy,
+          course, evidence, outcomeId, ...(recipe && { fork: recipe }) };
         const id = saveNote(localStorage, saved);
         setSavedId(id);
         setNotes(allNotes(localStorage, baseline.id, comparison.id));
         onSaved?.();
-        setStatus(`解释已保存在本浏览器。已引用基线事件 ${selectedBaseline.eventId}、干预事件 ${selectedComparison.eventId}。`);
+        setStatus(`解释已保存在本浏览器。已引用基线事件 ${selectedBaseline.eventId}、${recipe ? "分支" : "干预"}事件 ${selectedComparison.eventId}。`);
       } catch {
         setStatus(exportRequested ? "无法核对并导出本次运行。" : "本浏览器无法核对并保存解释。");
       } finally {
@@ -147,7 +158,7 @@ export function Investigation({ course, lesson, session, onSaved }: {
       </label>
       <EvidencePicker tickUnit={lesson.tickUnit} events={baselineEvents} name="baselineEvent" label="无干预证据"
         selection={previous?.evidence?.baseline?.eventId ?? (previous && String(previous.baselineEvent))}/>
-      <EvidencePicker tickUnit={lesson.tickUnit} events={comparisonEvents} name="comparisonEvent" label="政策组证据"
+      <EvidencePicker tickUnit={lesson.tickUnit} events={comparisonEvents} name="comparisonEvent" label={`${comparisonLabel}证据`}
         selection={previous?.evidence?.comparison?.eventId ?? (previous && String(previous.comparisonEvent))}/>
       <label>哪条规则决定了个体的行动？
         <textarea name="rule" rows={2} required maxLength={1000} defaultValue={previous?.rule}/></label>
@@ -157,6 +168,8 @@ export function Investigation({ course, lesson, session, onSaved }: {
         <textarea name="difference" rows={2} required maxLength={1000} defaultValue={previous?.comparison}/></label>
       <label>应用到现实还需核对的假设
         <textarea name="hypothesis" rows={2} required maxLength={1000} defaultValue={previous?.hypothesis}/></label>
+      {recipe && <label>还有哪一种可能解释，如何核查？
+        <textarea name="alternative" rows={2} required maxLength={1000} defaultValue={previous?.alternative}/></label>}
       <div className="decision-actions">
         <button value="save" type="submit" className="primary" disabled={busy}>保存解释</button>
         <button value="export" type="submit" disabled={busy}>导出含解释的结果</button>
@@ -172,17 +185,19 @@ export function Investigation({ course, lesson, session, onSaved }: {
     {saved?.evidence?.baseline && saved.evidence.comparison && <a href="#classroom-practice">去做独立练习</a>}
     {savedId && <a href={notesLink(savedId)}>在实验笔记打开已保存的解释</a>}
     {saved?.evidence?.baseline && <StudyReflection key={saved.id} note={saved}
-      event={baselineEvents.find(event => event.eventId === saved.evidence!.baseline.eventId)}/>}
+      event={baselineEvents.find(event => event.eventId === saved.evidence!.baseline.eventId)}
+      comparisonEvent={comparisonEvents.find(event => event.eventId === saved.evidence?.comparison?.eventId)}/>}
     {notes.length > 0 && <details className="trace-details">
       <summary>同条件的历史解释（{notes.length} 条）</summary>
       <ol>{notes.map(note => <li key={note.id}>
-        <p>{new Date(note.savedAt).toLocaleString()} · 原政策预测：{trendLabel[note.prediction]}。
-          引用了基线事件 {note.baselineEvent} 和干预事件 {note.comparisonEvent}。</p>
+        <p>{new Date(note.savedAt).toLocaleString()} · {recipe ? "原动作预测" : "原政策预测"}：{trendLabel[note.prediction]}。
+          引用了基线事件 {note.evidence?.baseline?.eventId ?? note.baselineEvent} 和{recipe ? "分支" : "干预"}事件 {note.evidence?.comparison?.eventId ?? note.comparisonEvent}。</p>
         <dl>
           <dt>规则</dt><dd>{note.rule}</dd>
           <dt>算术</dt><dd>{note.calculation}</dd>
           <dt>对照</dt><dd>{note.comparison}</dd>
           <dt>假设</dt><dd>{note.hypothesis}</dd>
+          {note.alternative && <><dt>其他解释及核查</dt><dd>{note.alternative}</dd></>}
         </dl>
       </li>)}</ol>
     </details>}

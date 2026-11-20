@@ -34,7 +34,7 @@ export type LessonEvent = {
   sourceEvents?: readonly { tick: number; label: string }[];
   participants?: readonly string[];
   text: string;
-  kind?: "request" | "payment" | "support" | "sale" | "revaluation" | "trade" | "quote" | "cancel" | "reject";
+  kind?: "request" | "payment" | "support" | "sale" | "revaluation" | "trade" | "quote" | "cancel" | "reject" | "decision";
   deltas: Readonly<Partial<Record<string, number>>>;
   priorSignal?: PriorSignal;
   observed?: readonly { actorId: string; tick: number; eventId: string }[];
@@ -94,6 +94,7 @@ export type Lesson = {
     rangeLabel?: string; alternates?: readonly { value: number; label: string; description: string; baselineLabel?: string }[]; };
   seed: number;
   prepareSeed?: (seed: number) => Promise<Lesson["run"]>;
+  fork?: { checkpoint: (run: Run, tick: number) => boolean; run: (parent: Run, tick: number, action: ForkAction) => Run };
   run: (input: { seed: number; choices: readonly string[]; policy: number }) => Run;
 };
 
@@ -103,7 +104,14 @@ export function legalPolicy(lesson: Lesson, value: unknown): value is number {
     value >= policy.min && value <= policy.max && (value - policy.min) % (policy.step ?? 1) === 0);
 }
 
+export const hypothesisLimit = 240;
+export const validHypothesis = (value: unknown): value is string =>
+  typeof value === "string" && value.length <= hypothesisLimit;
+
 type Comparison = { run: Run; policy: number; prediction: Trend };
+type ForkAction = { destination: number; action?: never } | { action: "defer-protective" | "cancel-open-order"; destination?: never };
+export type ForkRecipe = { checkpoint: number } & ForkAction;
+type ForkDecision = ForkRecipe & { prediction: Trend };
 
 export type Session = {
   stage: Stage;
@@ -118,7 +126,9 @@ export type Session = {
   playing: boolean;
   policy: number;
   prediction?: Trend;
+  hypothesis?: string;
   comparison?: Comparison;
+  fork?: ForkDecision & { run: Run };
   multiSeed?: true;
   comparisonFailed?: true;
 };
@@ -130,9 +140,12 @@ export type Command =
   | { type: "play" | "pause" | "step" | "back" | "reset" | "go-to-close" | "go-to-turn" }
   | { type: "locate"; tick: number; metricId: string; actorId?: string; keepSelection?: true }
   | { type: "trace"; focus: TraceFocus; actorId?: string }
+  | { type: "seek-checkpoint"; tick: number }
+  | ({ type: "fork-run" } & ForkDecision)
   | { type: "perspective"; perspective: ObservationPerspective }
   | { type: "policy"; value: number }
   | { type: "predict"; value: Trend }
+  | { type: "hypothesis"; value: string }
   | { type: "seed-count"; multi: boolean }
   | { type: "compare" | "new-comparison" };
 
@@ -229,6 +242,23 @@ export function transition(lesson: Lesson, session: Session, command: Command): 
       return stage === 3 && run && lesson.bridge?.closeLabel ?
         { ...session, cursor: run.frames.length - 1, revealed: run.frames.length - 1,
           playing: false, traceFocus: undefined, focusedMetric: lesson.originalId ? session.focusedMetric : undefined } : session;
+    case "seek-checkpoint": {
+      if (stage !== 3 || !run || session.perspective === "role" || !lesson.fork?.checkpoint(run, command.tick)) return session;
+      return { ...session, playing: false, cursor: command.tick, revealed: Math.max(session.revealed, command.tick),
+        selected: microscopeRole(lesson), traceFocus: undefined };
+    }
+    case "fork-run": {
+      const { type: _type, ...decision } = command;
+      const { checkpoint, prediction } = decision;
+      if (stage !== 3 || !run || session.perspective === "role" || session.playing || !lesson.fork ||
+          cursor !== checkpoint || checkpoint > session.revealed ||
+          (prediction !== "up" && prediction !== "down" && prediction !== "same")) return session;
+      try {
+        const branch = lesson.fork.run(run, checkpoint, decision);
+        if (!validPair(run, branch, run.seed)) return session;
+        return { ...session, fork: { ...decision, run: branch } };
+      } catch { return session; }
+    }
     case "locate": {
       if ((!replay || stage !== 3 && !command.keepSelection) || session.perspective === "role" || !Number.isInteger(command.tick) || command.tick > session.revealed ||
           !run.frames[command.tick] || !lesson.metrics.some(metric => metric.id === command.metricId)) return session;
@@ -268,18 +298,22 @@ export function transition(lesson: Lesson, session: Session, command: Command): 
     case "predict":
       return stage === 4 && !session.comparison && session.policy !== lesson.policy.baseline
         ? { ...session, prediction: command.value } : session;
+    case "hypothesis":
+      return stage === 4 && !session.comparison && validHypothesis(command.value)
+        ? { ...session, hypothesis: command.value || undefined } : session;
     case "compare":
       if (stage !== 4 || !run || !session.prediction || session.policy === lesson.policy.baseline ||
           session.comparison) return session;
       try {
         const branch = lesson.run({ seed: run.seed, choices: session.choices, policy: session.policy });
         if (!validPair(run, branch, run.seed)) throw new Error("Invalid paired recording");
-        return { ...withoutComparisonFailure(session), comparison: { policy: session.policy, prediction: session.prediction, run: branch } };
+        return { ...withoutComparisonFailure(session), hypothesis: session.hypothesis?.trim() || undefined,
+          comparison: { policy: session.policy, prediction: session.prediction, run: branch } };
       } catch {
         return { ...session, comparisonFailed: true };
       }
     case "new-comparison":
-      return stage === 4 ? { ...session, comparison: undefined, prediction: undefined } : session;
+      return stage === 4 ? { ...session, comparison: undefined, prediction: undefined, hypothesis: undefined } : session;
   }
 }
 

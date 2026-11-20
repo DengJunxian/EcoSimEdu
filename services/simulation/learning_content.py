@@ -83,7 +83,7 @@ class Item(AuthoringModel):
 class Activity(AuthoringModel):
     id: str
     phase: Phase
-    kind: Literal["assessment", "example", "review"]
+    kind: Literal["assessment", "example", "review", "scaffold"]
     outcome_ids: list[str]
     content_ref: str
     assessment_item_ids: list[str]
@@ -92,6 +92,15 @@ class Activity(AuthoringModel):
     remediation_activity_id: str | None = None
     return_activity_id: str | None = None
     text: str | None = None
+
+
+class ConceptScaffold(AuthoringModel):
+    id: str
+    title: str
+    example: str
+    worked_example: str
+    step_activity_id: str
+    check_activity_id: str
 
 
 class LearningPackage(AuthoringModel):
@@ -104,6 +113,7 @@ class LearningPackage(AuthoringModel):
     outcomes: list[Outcome]
     items: list[Item]
     activities: list[Activity]
+    scaffolds: list[ConceptScaffold] = []
 
 
 def index(values, label):
@@ -184,7 +194,7 @@ def validate_package(package, case, concepts):
     for key, activity in activities.items():
         if set(activity.outcome_ids) - outcomes.keys():
             raise ValueError(f"{key}: unknown activity outcome")
-        if activity.kind in {"assessment", "review"}:
+        if activity.kind in {"assessment", "review", "scaffold"}:
             if (activity.assessment_item_ids != [activity.content_ref] or activity.content_ref not in items or
                     activity.return_activity_id or activity.completion_rule != "submit_or_skip"):
                 raise ValueError(f"{key}: invalid assessment activity")
@@ -192,7 +202,8 @@ def validate_package(package, case, concepts):
             if (item.id in assigned or set(activity.outcome_ids) != set(item.outcome_ids) or
                     (item.assessment_role == "transfer" and activity.phase != "notebook") or
                     (item.assessment_role == "review") != (activity.kind == "review") or
-                    (activity.kind == "review" and (activity.next_activity_id or activity.remediation_activity_id))):
+                    (activity.kind in {"review", "scaffold"} and (activity.next_activity_id or activity.remediation_activity_id)) or
+                    (activity.kind == "scaffold" and (activity.phase != "intro" or item.assessment_role != "practice"))):
                 raise ValueError(f"{key}: invalid assessment assignment")
             assigned.add(item.id)
         if activity.kind == "example":
@@ -212,7 +223,7 @@ def validate_package(package, case, concepts):
                 raise ValueError(f"{key}: invalid phase successor")
             inbound.add(following.id)
 
-    for phase in {activity.phase for activity in activities.values() if activity.kind != "review"}:
+    for phase in {activity.phase for activity in activities.values() if activity.kind in {"assessment", "example"}}:
         main = {activity.id for activity in activities.values()
                 if activity.phase == phase and activity.kind == "assessment"}
         if not main:
@@ -230,6 +241,19 @@ def validate_package(package, case, concepts):
             raise ValueError(f"{phase}: unreachable activities")
     if assigned != items.keys():
         raise ValueError("unassigned items")
+
+    scaffold_activities = {key for key, activity in activities.items() if activity.kind == "scaffold"}
+    used = set()
+    for key, scaffold in index(package.scaffolds, "scaffolds").items():
+        step, check = scaffold.step_activity_id, scaffold.check_activity_id
+        pair = {step, check}
+        if (len(pair) != 2 or not pair <= scaffold_activities or pair & used or
+                any(not value.strip() for value in (scaffold.title, scaffold.example, scaffold.worked_example)) or
+                set(activities[step].outcome_ids) != set(activities[check].outcome_ids)):
+            raise ValueError(f"{key}: invalid scaffold steps")
+        used.update(pair)
+    if used != scaffold_activities:
+        raise ValueError("unassigned scaffold activities")
 
 
 @lru_cache

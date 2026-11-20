@@ -21,6 +21,7 @@ from fastapi.staticfiles import StaticFiles
 from pydantic import model_validator, BaseModel, ConfigDict, Field, StrictInt, ValidationError
 
 from . import domain, live, live_client, live_l2
+from .ai.router import router as study_ai_router
 from .auction import BOUNDARIES, CASE, ENGINE_VERSION, ROOT, SCENARIOS, canonical_json, digest, run_auction
 from .auction_view import project_auction
 from .emergence import cascade as cascade_trace
@@ -43,6 +44,7 @@ VERSION = "1.1.0-rc.4"
 EVENT_CACHE_BYTES = 24 * 1024 * 1024
 CANONICAL_RESULT_PREFIX = b'{"format":"canonical-result/1",'
 app = FastAPI(title="Civitas Economica", version=VERSION)
+app.include_router(study_ai_router)
 
 
 class RunRequest(BaseModel):

@@ -1,11 +1,13 @@
 import { lazy, Suspense, useEffect, useState } from "react";
 import { courseLink, latestProgress, stageNames } from "./learning-store.ts";
+import { flowQuery, flowSteps, hasLessonFlow } from "./learning/lesson-flow.ts";
 import { classroomHref } from "./classroom-routes.ts";
 import { concepts, courseById, pathways, type Course } from "./curriculum.ts";
 import { StudentHeader } from "./StudentHeader.tsx";
 import { originalLessonHref } from "../../content/student-navigation.ts";
 import { CaseCard, PageTitle } from "../../content/student-ui.tsx";
-import { pagesDemo } from "./deployment.ts";
+import { StudyAIStart } from "./app/onboarding/StudyAI.tsx";
+import { localStudyAI, pagesDemo } from "./deployment.ts";
 import "./course-map.css";
 
 const HomeStudyActions = lazy(() => import("./ProgressiveLearning.tsx").then(module => ({ default: module.HomeStudyActions })));
@@ -32,8 +34,8 @@ function StartingPoint() {
     <div className="map-start">
       {progress && course ? <div>
         <h2>继续上次学习</h2>
-        <p>{course.title}{progress.course.market && " · 供需无交叠"} · {stageNames[progress.stage - 1]}</p>
-        <a className="map-action primary" href={courseLink(progress.course)}>继续上次学习</a>
+        <p>{course.title}{progress.course.market && " · 供需无交叠"} · {progress.flow ? flowSteps[progress.flow.chapter] : stageNames[progress.stage - 1]}</p>
+        <a className="map-action primary" href={courseLink(progress.course, progress.flow ? flowQuery : undefined)}>继续上次学习</a>
       </div> : <div>
         <h2>{opening.question}</h2>
         <p>给二手教材报一个限价，然后用买单和卖单核对成交。</p>
@@ -71,6 +73,8 @@ function CourseRow({ course }: { course: Course }) {
         </details>
       </div>
       <div className="course-entry">
+        {hasLessonFlow(course.id) && <a className="map-action primary" href={courseLink({ caseId: course.id }, flowQuery)}
+          aria-label={`八阶段自学 · ${course.title}`}>八阶段自学</a>}
         <a className="map-action" href={classroomHref(course.id)} aria-label={`打开四阶课堂 · ${course.title}`}>
           打开四阶课堂
         </a>
@@ -85,6 +89,7 @@ export function CourseMap() {
     <StudentHeader/>
     <main className="shell course-map" id="main" tabIndex={-1}>
       <StartingPoint/>
+      {localStudyAI && <StudyAIStart/>}
       {pagesDemo && <p>这是十二门规则课的公开演示。学习进度保存在当前浏览器，正式学习档案、原课堂与模型实验可在本机版使用。</p>}
       <Suspense fallback={null}><HomeStudyActions/></Suspense>
       <section className="map-paths" aria-labelledby="paths">

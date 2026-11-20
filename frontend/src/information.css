@@ -10,7 +10,7 @@
 .info-seat-slots button { width: 100%; }
 .info-actors, .information-board .cooperation-chain { display: flex; flex-wrap: wrap; gap: var(--edu-s1); }
 .info-actors button { min-width: var(--edu-target); }
-.information-board button[aria-pressed="true"] { border-color: var(--edu-green); background: var(--edu-tint); }
+.information-board button[aria-pressed="true"] { border-color: var(--edu-green); background: var(--edu-wash); }
 .information-board .cooperation-chain button { display: grid; text-align: start; gap: 2px; }
 .information-board .cooperation-chain [data-observed] { border-style: dashed; }
 .information-board .lemon-quality li { display: grid; grid-template-columns: auto 1fr 2ch; align-items: center; gap: var(--edu-s2); }

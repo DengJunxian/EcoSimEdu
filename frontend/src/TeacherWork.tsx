@@ -3,8 +3,8 @@ import { EvidenceCard, PageTitle, StatusNotice } from "../../content/student-ui.
 import { auctionLesson } from "./auction.ts";
 import type { Evidence, RunEnvelope } from "./domain-contracts.ts";
 import { chartMetric, displayObservation, frameLabel, legalPolicy, type Lesson } from "./lesson.ts";
-import { sourceRun, trendLabel, type CourseRef, type Explanation, type StudentNote } from "./learning-store.ts";
-import { evidencePointer } from "./run-evidence.ts";
+import { sourceRun, trendLabel, validForkRecipe, type CourseRef, type Explanation, type StudentNote } from "./learning-store.ts";
+import { bankEventValues, evidencePointer } from "./run-evidence.ts";
 import { StudentHeader } from "./StudentHeader.tsx";
 
 const fields = [["claim", "主张"], ["rule", "模型规则"], ["calculation", "算术核对"],
@@ -36,12 +36,19 @@ async function verifyWork(lesson: Lesson, course: CourseRef, file: File) {
   if (work.runEnvelopes[0]?.runId !== base.runId || work.runEnvelopes[1]?.runId !== comparison.runId) {
     throw new Error("Inconsistent run references");
   }
-  const policy = work.runEnvelopes[1]?.inputs?.policy;
+  const inputs = work.runEnvelopes[1]?.inputs;
+  const policy = inputs?.policy;
+  const fork = inputs?.fork;
+  const alternative = work.explanation.alternative;
+  if (alternative !== undefined && (typeof alternative !== "string" || alternative.length > 1000))
+    throw new Error("Unsupported explanation");
+  if (fork !== undefined && (!validForkRecipe(course.caseId, fork) || inputs?.parentRunId !== base.runId ||
+    !alternative?.trim())) throw new Error("Unsupported fork");
   const model = course.caseId === "double_auction" && base.runId?.split("/")[3] === "boundary"
     ? auctionLesson(true) : lesson;
   if (typeof policy !== "number" || !legalPolicy(model, policy)) throw new Error("Illegal policy");
   const note: StudentNote = { ...work.explanation, id: "teacher-import", course, savedAt: "",
-    choices: work.choices, prediction: work.policyPrediction, policy,
+    choices: work.choices, prediction: work.policyPrediction, policy, ...(fork !== undefined && { fork }),
     baselineId: base.runId, comparisonId: comparison.runId, evidence: { baseline: base, comparison } };
   const sides = await Promise.all([sourceRun(model, note, "baseline"), sourceRun(model, note, "comparison")]);
   if (!sides[0]?.event || !sides[1]?.event) throw new Error("Unverified sources");
@@ -63,6 +70,7 @@ export function TeacherWork({ lesson, course }: { lesson: Lesson; course: Course
     const file = new FormData(event.currentTarget).get("work");
     if (!(file instanceof File)) return;
     setError(false);
+    setResult(undefined);
     setBusy(true);
     try {
       setResult(await verifyWork(lesson, course, file));
@@ -85,17 +93,23 @@ export function TeacherWork({ lesson, course }: { lesson: Lesson; course: Course
       {error && <StatusNotice tone="error">无法核对这份作品及两条来源。请选择本课导出的解释 JSON。</StatusNotice>}
       {result && <>
         <h2 ref={resultHeading} tabIndex={-1}>已核对两条运行来源</h2>
-        <p>原政策预测 {trendLabel[result.note.prediction]}</p>
+        <p>{result.note.fork ? "原动作预测" : "原政策预测"} {trendLabel[result.note.prediction]}</p>
         <dl className="note-text">{fields.map(([key, label]) => result.note[key] &&
-          <div key={key}><dt>{label}</dt><dd>{result.note[key]}</dd></div>)}</dl>
-        {result.sides.map(({ run, tick, event }, index) =>
-          <EvidenceCard key={run.id} label={index ? "政策组原事件" : "基线原事件"}>
-            <h3>{index ? "政策组" : "基线"} · {frameLabel(lesson.tickUnit, tick)} · {event.eventId}</h3>
+          <div key={key}><dt>{label}</dt><dd>{result.note[key]}</dd></div>)}
+          {result.note.alternative && <div><dt>其他解释及核查</dt><dd>{result.note.alternative}</dd></div>}
+        </dl>
+        {result.sides.map(({ run, tick, event }, index) => {
+          const label = index ? result.note.fork ? "分支" : "政策组" : "基线";
+          const values = course.caseId === "svb_run"
+            ? bankEventValues(run.frames[tick], run.frames[tick - 1], event.eventId, metric.id)
+            : { before: run.frames[tick - 1]?.metrics[metric.id], after: run.frames[tick].metrics[metric.id] };
+          return <EvidenceCard key={run.id} label={`${label}原事件`}>
+            <h3>{label} · {frameLabel(lesson.tickUnit, tick)} · {event.eventId}</h3>
             <p className="run-identity">运行编号 <code>{run.id}</code></p>
             <p>{event.summary}</p>
-            <p>{lesson.tickUnit === "event" ? "事件" : "轮次"}前后 · {metric.label} · {displayObservation(run.frames[tick - 1]?.metrics[metric.id])} → {
-              displayObservation(run.frames[tick].metrics[metric.id])}</p>
-          </EvidenceCard>)}
+            <p>事件前后 · {metric.label} · {displayObservation(values?.before)} → {displayObservation(values?.after)}</p>
+          </EvidenceCard>;
+        })}
       </>}
     </main>
   </>;

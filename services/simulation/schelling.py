@@ -75,7 +75,13 @@ def arranged_board(root, seed, layout):
     return {**root, "grid": grid}
 
 
-def simulate(case, scenario_id, seed, action):
+def simulate(case, scenario_id, seed, action, *, relocation=None):
+    """Replay one optional student relocation after a completed, nonfinal round."""
+    if relocation is not None:
+        round_after, destination = relocation
+        if type(round_after) is not int or not 1 <= round_after < ROUNDS or type(destination) is not int:
+            raise ValueError("Invalid inter-round relocation")
+    checkpoint_event = None
     intervention = next(s["parameters"] for s in case["scenarios"] if s["id"] == scenario_id)
     threshold = intervention["threshold"]
     root = initial_board(seed)
@@ -103,7 +109,7 @@ def simulate(case, scenario_id, seed, action):
         snapshots.append({"tick": seq, "metrics": score(grid, size, threshold, moves), "entities": entities,
                           "grid": {"size": size, "cells": grid.copy(), "marked": list(marked)}})
 
-    def relocate(resident, dest, source, round_no):
+    def relocate(resident, dest, source, round_no, **provenance):
         nonlocal moves
         old = cells[resident]
         before = counts(grid, size, old, resident)
@@ -121,7 +127,7 @@ def simulate(case, scenario_id, seed, action):
              f"{resident} 搬迁。同组邻居由 {before[0]}/{before[1]} 变为 {after[0]}/{after[1]}，"
              f"原址与新址共有 {len(affected)} 名其他居民的邻居集合受到影响。",
              [resident, *sorted(affected)], [old, dest], actor_id=resident, source=source, round=round_no,
-             origin=old, destination=dest, before=list(before), after=list(after), changed_neighbors=changes)
+             origin=old, destination=dest, before=list(before), after=list(after), changed_neighbors=changes, **provenance)
 
     target = initial["student_target"]
     marked = [cells["A001"]] + ([target] if target is not None else [])
@@ -154,10 +160,18 @@ def simulate(case, scenario_id, seed, action):
         if moves == moved_before:
             terminal = "blocked"
             break
+        if relocation is not None and round_no == round_after:
+            if destination not in vacancies or not satisfied(counts(grid, size, destination, "A001", cells["A001"]), threshold):
+                raise ValueError("Ineligible destination at checkpoint")
+            checkpoint_event = len(events) - 1
+            relocate("A001", destination, "student", round_no, checkpoint_event=checkpoint_event)
 
+    if relocation is not None and checkpoint_event is None:
+        raise ValueError("Run ended before the requested checkpoint")
     message = {"all_satisfied": "所有居民达到各自阈值。", "blocked": "无可行搬迁，仍有未达阈值的居民。",
                "round_limit": "达到轮数上限，地图尚未稳定。"}[terminal]
     emit("market_close", message, terminal=terminal)
-    return {"engine_version": "schelling/2" if layout else "schelling/1", "initial": initial, "root_hash": digest(root),
+    return {"engine_version": "schelling/fork-v1" if relocation is not None else "schelling/2" if layout else "schelling/1",
+            "initial": initial, "root_hash": digest(root),
             "initial_hash": digest(initial), "intervention": intervention, "events": events,
             "snapshots": snapshots, "metrics": snapshots[-1]["metrics"]}

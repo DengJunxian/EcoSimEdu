@@ -1,8 +1,8 @@
 import { lazy, Suspense, useEffect, useLayoutEffect, useMemo, useReducer, useRef, useState, type ReactNode } from "react";
 import { ComparisonView, PredictionCard } from "./Counterfactual";
 import { ExperimentArchive } from "./ExperimentWorkbench.tsx";
-import { chartMetric, displayNumber, displayObservation, frameLabel, matchesMetric, nextStageReady, relatedActors, startLesson, transition, type Command, type Frame, type Lesson, type Run, type Session } from "./lesson.ts";
-import { courseRef, courseLink, progressSnapshot, resumeProgress, saveProgress, stageNames, type CourseRef } from "./learning-store.ts";
+import { chartMetric, displayNumber, displayObservation, frameLabel, matchesMetric, nextStageReady, legalChoice, relatedActors, startLesson, transition, type Command, type Frame, type Lesson, type Run, type Session } from "./lesson.ts";
+import { courseRef, courseLink, notesLink, progressSnapshot, resumeLessonFlow, resumeProgress, saveProgress, stageNames, type CourseRef } from "./learning-store.ts";
 import { SavedSource } from "./StudentNotes";
 import { Investigation } from "./Investigation";
 import { StudentHeader } from "./StudentHeader.tsx";
@@ -14,10 +14,19 @@ import { microscopeRole } from "./microscope.ts";
 import { TraceMicroscope } from "./TraceMicroscope.tsx";
 import { ForecastReview } from "./ForecastReview.tsx";
 import { hasSavedExplanation, LearningJourney, LearningObjectives } from "./ProgressiveLearning.tsx";
+import { flowChapter, flowQuery, flowSteps, hasLessonFlow, initialFlow, type LessonFlow } from "./learning/lesson-flow.ts";
+import { FlowLevelPicker, FlowPreparation, FlowRecap, FlowStepper } from "./learning/LessonFlowPanels.tsx";
+import { ConceptScaffolds } from "./learning/ConceptScaffolds.tsx";
+import guides from "../../cases/classroom-guides-v3.json" with { type: "json" };
+import { localStudyAI } from "./deployment.ts";
+import { storyFocus } from "./learning/tutor/schelling-evidence.ts";
+import { courseEventEntry, courseEventFocus, supportsCourseEvent } from "./learning/tutor/course-event-evidence.ts";
+import type { CasePackage } from "./domain-contracts.ts";
 import "./workbench.css";
 
 const MetricChart = lazy(() => import("./MetricChart"));
 const TeacherWork = lazy(() => import("./TeacherWork").then(module => ({ default: module.TeacherWork })));
+const StudyTutor = lazy(() => import("./learning/tutor/StudyTutor.tsx").then(module => ({ default: module.StudyTutor })));
 
 const prompts = [
   "",
@@ -27,14 +36,65 @@ const prompts = [
 ];
 const nextLabels = ["观察个体决策", "观察群体变化", "试一项政策"];
 
-function RoleDecisions({ lesson, session, send }: { lesson: Lesson; session: Session; send: (value: Command) => void }) {
+function ComparisonEventTutor({ baseline, policy, asOf, publishedSeed, course }: {
+  baseline: Run; policy: Run; asOf: number; publishedSeed: number; course: CasePackage;
+}) {
+  const [selected, select] = useState("");
+  const evidence = useRef<HTMLDetailsElement>(null);
+  const groups = [
+    { label: "政策组", run: policy, end: policy.frames.length - 1 },
+    { label: "基线组", run: baseline, end: asOf },
+  ].flatMap(({ label, run, end }) => {
+    if (run.seed !== publishedSeed || !("records" in run)) return [];
+    const events = run.frames.slice(1, end + 1).flatMap(({ tick }) => supportsCourseEvent(run, tick)
+      ? [{ seq: tick, run, id: `${run.id}/${tick}`, entry: courseEventEntry(run, tick) }] : []);
+    return events.length ? [{ label, events }] : [];
+  });
+  const group = groups.find(({ events }) => events.some(event => event.id === selected));
+  const event = group?.events.find(event => event.id === selected);
+
+  if (!groups.length) return null;
+  return <section className="edu-panel" aria-label="对照事件核对">
+    <label className="actor-picker">核对对照事件
+      <select value={event?.id ?? ""} onChange={change => select(change.target.value)}>
+        <option value="">选择事件</option>
+        {groups.map(({ label, events }) => <optgroup label={label} key={label}>
+          {events.map(({ id, seq, entry }) => <option key={id} value={id}>事件 {seq} · {entry.label}</option>)}
+        </optgroup>)}
+      </select>
+    </label>
+    {event && group && <div key={event.id}>
+      <details className="trace-details" ref={evidence}>
+        <summary>{group.label}原事件 {event.seq} · {event.entry.label}</summary>
+        <dl className="fact-list">
+          {event.entry.facts.map(({ label, value }) => <div key={label}>
+            <dt>{label}</dt><dd>{value}</dd>
+          </div>)}
+          {event.entry.readings.map(({ label, before, after }) => <div key={label}>
+            <dt>{label}</dt><dd>{before} → {after}</dd>
+          </div>)}
+        </dl>
+      </details>
+      <Suspense fallback={null}><StudyTutor kind="event" focus={() => courseEventFocus(event.run, event.seq, course)}
+        sources={<button type="button" className="text-button" onClick={() => {
+          if (!evidence.current) return;
+          evidence.current.open = true;
+          evidence.current.querySelector("summary")?.focus();
+        }}>查看原事件 {event.seq}</button>}/></Suspense>
+    </div>}
+  </section>;
+}
+
+function RoleDecisions({ lesson, session, send, showContext = true, focusPrompt }: {
+  lesson: Lesson; session: Session; send: (value: Command) => void; showContext?: boolean; focusPrompt?: boolean;
+}) {
   const current = lesson.decisions[session.choices.length];
   const prompt = useRef<HTMLLegendElement>(null);
   useEffect(() => {
-    if (session.choices.length && current) prompt.current?.focus();
-  }, [current, session.choices.length]);
+    if (current && (focusPrompt || session.choices.length)) prompt.current?.focus();
+  }, [current, session.choices.length, focusPrompt]);
   return <>
-    <p>{lesson.role.perspective}</p>
+    {showContext && <p>{lesson.role.perspective}</p>}
     <dl className="fact-list role-facts" aria-label="你掌握的信息">
       {lesson.role.facts.map(fact => <div key={fact.label}><dt>{fact.label}</dt><dd>{fact.value}</dd></div>)}
     </dl>
@@ -133,7 +193,7 @@ function BridgeEvidence({ lesson, session, data, locate, selectActor }: {
       (observedSignals.length > 0 || evaluatedSignals.length > 0) && <p>{lesson.originalId ?
         "本步有个体使用了已记录的信号。选择个体可回查该时点。" : lesson.tickUnit === "event" ? "当前报价引用了已成交的价格。" :
         `本轮 ${observedSignals.length} 次个体决策引用了上轮公示。`}选择个体可回查该时点。</p>}
-    {frame.tick > 0 && <details className="trace-details">
+    {frame.tick > 0 && <details className="trace-details" id="current-event-evidence">
       <summary>查看{lesson.tickUnit === "event" ? "当前事件的" : "本轮 "} {deltas.length} 位贡献个体及事件</summary>
       {contributors.length ? <ul className="trace-list">{contributors
         .map(event => {
@@ -203,6 +263,7 @@ function IntervalLookup({ data, locate }: { data: NonNullable<Session["run"]>["f
 
 type StudioProps = {
   lesson: Lesson;
+  openingHelp?: ReactNode;
   review?: (session: Session, send: (command: Command) => void, nextAction?: ReactNode, openActor?: (id: string) => void) => ReactNode;
   reviewByTimeline?: boolean;
   observationFrame?: (run: Run, frame: Frame) => Frame;
@@ -212,6 +273,7 @@ type StudioProps = {
   actorDetail?: (session: Session, select: (id: string) => void,
     locate: (tick: number, metric: string, actorId?: string, eventId?: string) => void) => ReactNode;
   afterInvestigation?: (session: Session) => ReactNode;
+  forkLab?: (session: Session, send: (command: Command) => void) => ReactNode;
 };
 
 export function Studio(props: StudioProps) {
@@ -226,10 +288,11 @@ export function Studio(props: StudioProps) {
   if (course && source && (side === "baseline" || side === "comparison")) {
     return <SavedSource lesson={props.lesson} id={source} side={side} {...course}/>;
   }
-  return <LessonStudio {...props} course={course} fresh={query.get("fresh") === "1"}/>;
+  const guided = !!course && hasLessonFlow(course.caseId) && query.get("flow") === flowQuery.flow;
+  return <LessonStudio {...props} course={course} fresh={query.get("fresh") === "1"} guided={guided}/>;
 }
 
-function LessonStudio({ lesson, review, reviewByTimeline, observationFrame, world, actorDetail, afterInvestigation, course, fresh }: StudioProps & { course?: CourseRef; fresh: boolean }) {
+function LessonStudio({ lesson, openingHelp, review, reviewByTimeline, observationFrame, world, actorDetail, afterInvestigation, forkLab, course, fresh, guided }: StudioProps & { course?: CourseRef; fresh: boolean; guided: boolean }) {
   const [{ initial, restoreFailed, opened }] = useState(() => {
     const initial = startLesson(lesson);
     if (!course) return { initial, restoreFailed: false, opened: null };
@@ -240,25 +303,32 @@ function LessonStudio({ lesson, review, reviewByTimeline, observationFrame, worl
     } catch { return { initial, restoreFailed: true, opened: null }; }
   });
   const [session, send] = useReducer((state: Session, command: Command) => transition(lesson, state, command), initial);
+  const [flow, setFlow] = useState(() => guided ? (!fresh && !restoreFailed && resumeLessonFlow(opened)) || initialFlow : undefined);
+  const [recap, setRecap] = useState<LessonFlow["chapter"]>();
+  const focusOpeningAction = useRef(false);
   const lastSaved = useRef(session);
+  const lastFlow = useRef(flow);
   const savedSnapshot = useRef(opened);
+  const route = guided ? flowQuery : undefined;
   const [saveConflict, setSaveConflict] = useState(false);
   const [saveFailed, setSaveFailed] = useState(false);
   const [, noteSaved] = useReducer((revision: number) => revision + 1, 0);
   useLayoutEffect(() => {
-    if (session === lastSaved.current || !course || !session.choices.length || restoreFailed) return;
+    if (!course || restoreFailed || (!flow && !session.choices.length) ||
+      (session === lastSaved.current && flow === lastFlow.current)) return;
     try {
-      const checkpoint = saveProgress(localStorage, course, session, savedSnapshot.current);
+      const checkpoint = saveProgress(localStorage, course, session, savedSnapshot.current, flow ?? (fresh ? null : undefined));
       if (checkpoint === undefined) {
         setSaveConflict(true);
         return;
       }
       savedSnapshot.current = checkpoint;
-      if (fresh) history.replaceState(history.state, "", courseLink(course));
+      if (fresh) history.replaceState(history.state, "", courseLink(course, route));
       lastSaved.current = session;
+      lastFlow.current = flow;
       setSaveFailed(false);
     } catch { setSaveFailed(true); }
-  }, [course?.caseId, course?.market, fresh, restoreFailed, session]);
+  }, [course?.caseId, course?.market, fresh, restoreFailed, session, flow, route]);
 
   const pauseReview = useRef<HTMLElement>(null);
   const heading = useRef<HTMLHeadingElement>(null);
@@ -271,19 +341,32 @@ function LessonStudio({ lesson, review, reviewByTimeline, observationFrame, worl
   const [traceOpen, setTraceOpen] = useState(!!session.traceFocus || session.perspective === "role");
   const traceHeading = useRef<HTMLHeadingElement>(null);
   const focusTrace = useRef(false);
-  const previousStage = useRef(session.stage);
+  const previousStep = useRef<number | undefined>(undefined);
   const { stage, run } = session;
   const asOf = session.revealed;
   const visibleFrames = useMemo(() => {
     const frames = run?.frames.slice(0, asOf + 1) ?? [];
     return run && observationFrame ? frames.map(frame => observationFrame(run, frame)) : frames;
   }, [run, asOf, observationFrame]);
-  const explained = stage === 4 && hasSavedExplanation(session);
+  const activeChapter = flow && flowChapter(flow, session);
+  const explanationFork = activeChapter !== undefined && activeChapter >= 6 &&
+    session.fork?.run.id === flow?.comparisonId ? session.fork : undefined;
+  const explanationRun = explanationFork?.run ?? session.comparison?.run;
+  const explained = stage === 4 && hasSavedExplanation(session, explanationRun);
+  const chapter = activeChapter === 7 && !explained ? 6 : activeChapter;
+  const visibleStep = recap ?? chapter ?? stage;
+  function advanceChapter(next: LessonFlow["chapter"], comparisonId = explanationRun?.id) {
+    setFlow(current => current && { ...current, chapter: next, comparisonId });
+  }
+  function navigate(step: LessonFlow["chapter"]) {
+    send({ type: "pause" });
+    setRecap(step === chapter ? undefined : step);
+  }
   const roleView = stage === 3 && session.perspective === "role";
   const canTrace = !!course && !!microscopeRole(lesson) && stage === 3;
   const frame = visibleFrames[session.cursor];
   const actor = frame?.actors.find(entry => entry.id === session.selected);
-  const event = frame?.events[0];
+  const event = frame?.events.find(item => item.id === session.traceFocus?.eventId) ?? frame?.events[0];
   const actorsInEvent = frame?.actors.filter(item => event?.participants?.includes(item.id) ||
     item.id === event?.actorId || item.id === event?.counterpartyId) ?? [];
   const metric = chartMetric(lesson);
@@ -316,11 +399,13 @@ function LessonStudio({ lesson, review, reviewByTimeline, observationFrame, worl
   }, [traceOpen, session.cursor, session.traceFocus, activeMetric.id]);
 
   useEffect(() => {
-    if (previousStage.current === stage) return;
-    previousStage.current = stage;
+    if (previousStep.current === visibleStep) return;
+    const wasOpen = previousStep.current !== undefined;
+    previousStep.current = visibleStep;
+    if (!wasOpen) return;
     heading.current?.focus();
     heading.current?.scrollIntoView({ block: "nearest" });
-  }, [stage]);
+  }, [visibleStep]);
   const ready = nextStageReady(lesson, session);
   useEffect(() => {
     if (stage === 1 && ready) stageAction.current?.focus();
@@ -356,10 +441,44 @@ function LessonStudio({ lesson, review, reviewByTimeline, observationFrame, worl
     }
   }
   const replaying = !!run && !!frame && (stage === 2 || stage === 3);
+  const guide = guided && course ? guides[course.caseId as keyof typeof guides] : undefined;
   const micro = replaying && <MicroBoard lesson={lesson} frame={frame} prior={run.frames[session.cursor - 1]}
     selected={actor?.id} metricId={session.focusedMetric} select={selectActor}/>;
-  const title = stage === 1 ? lesson.title : stageNames[stage - 1];
-  const nextStage = () => send({ type: "next-stage" });
+  const title = chapter === undefined ? (stage === 1 ? lesson.title : stageNames[stage - 1]) :
+    (chapter === 1 && recap === undefined ? lesson.title : flowSteps[recap ?? chapter]);
+  const nextStage = () => {
+    if (flow && stage === 2 && ready) {
+      setFlow({ ...flow, observation: { tick: session.cursor, actor: session.selected } });
+    }
+    send({ type: "next-stage" });
+  };
+  const prediction = lesson.decisions[1];
+  const predictFirst = flow && chapter === 2 && !session.choices.length &&
+    course?.caseId !== "double_auction" && prediction && "options" in prediction;
+  const draftPrediction = flow?.prediction?.option;
+  const needsPrediction = predictFirst && (!draftPrediction || !legalChoice(prediction, draftPrediction));
+  function openingChoice(command: Command) {
+    if (!flow || command.type !== "choose") return send(command);
+    const at = Date.now();
+    if (predictFirst && draftPrediction && !needsPrediction && legalChoice(lesson.decisions[0], command.option)) {
+      focusOpeningAction.current = false;
+      setFlow({ ...flow, actionAt: at });
+      send(command);
+      send({ type: "choose", option: draftPrediction });
+      return;
+    }
+    if (decision && legalChoice(decision, command.option)) {
+      setFlow(session.choices.length === 0 ? { ...flow, actionAt: at } :
+        { ...flow, prediction: { option: command.option, at } });
+    }
+    send(command);
+  }
+  const showStory = stage === 1 && (chapter === undefined || chapter === 1 || chapter === 2);
+  const editingExperiment = stage === 4 && (chapter === undefined || chapter === 5);
+  const decision = lesson.decisions[session.choices.length];
+  const levelHint = chapter === 3 && flow?.level === "新手" ? "选好一个主体后，先看它现在的状态，再按一次「单步前进」。" :
+    chapter === 4 && flow?.level === "进阶" ? "从指标定位原事件，核对事件前后两帧，再判断变化怎样传到其他主体。" :
+    chapter === 5 && flow?.level === "进阶" ? "先核对两组共同条件。可用配对种子时，再检查单组差异是否在其他开局重现。" : undefined;
   const ordinaryAdvance = stage < 4 && !(reviewByTimeline && stage === 3 && !roleView);
   const nextButton = ordinaryAdvance && <button className="primary stage-action" ref={stageAction}
     disabled={!ready} onClick={nextStage}>{nextLabels[stage - 1]}</button>;
@@ -368,24 +487,58 @@ function LessonStudio({ lesson, review, reviewByTimeline, observationFrame, worl
     <StudentHeader caseId={course?.caseId}/>
     <main className="shell lesson-shell studio" id="main" tabIndex={-1}>
       <Breadcrumb links={[{ href: "./#paths", label: "课程地图" }]} current={lesson.casePackage?.title ?? lesson.populationTitle}/>
-      <ProgressStepper steps={stageNames} current={stage}/>
-      {course && <LearningObjectives lesson={lesson} session={session} explained={explained}/>}
+      {chapter === undefined ? <ProgressStepper steps={stageNames} current={stage}/> :
+        <FlowStepper chapter={chapter} recap={recap} navigate={navigate}/>}
+      {course && <LearningObjectives lesson={lesson} session={session} explained={explained} compact={guided}/>}
       {restoreFailed && <StatusNotice tone="error">这份进度无法恢复。本页的操作会保留原记录。
-        {course && <a href={courseLink(course, { fresh: "1" })}>开始并保存新练习</a>}
+        {course && <a href={courseLink(course, { ...route, fresh: "1" })}>开始并保存新练习</a>}
       </StatusNotice>}
       {saveConflict && <StatusNotice tone="warning">另一标签已经更新进度。本页可继续操作。续学检查点保留另一标签保存的版本。
         <button type="button" onClick={() => location.reload()}>载入最新进度</button>
       </StatusNotice>}
       {saveFailed && <StatusNotice tone="warning">当前浏览器无法保存进度。可以继续学习，完成后导出结果。</StatusNotice>}
-      <div className="studio-opening" data-replay={replaying}>
+      {recap !== undefined && flow && chapter !== undefined ? <div className="studio-opening" data-replay="true">
+        <ActionPanel label="回看已完成阶段">
+          <PageTitle headingRef={heading}>{title}</PageTitle>
+          <FlowRecap step={recap} flow={flow} lesson={lesson} session={session} observationFrame={observationFrame}
+            experiment={recap === 5 && <>
+              <ComparisonView lesson={lesson} session={session} course={course}/>
+              {session.fork && forkLab?.(session, send)}
+            </>}
+            explanation={<a href={notesLink()}>回看实验笔记</a>}/>
+          <button className="primary stage-action" type="button" onClick={() => navigate(chapter)}>返回当前学习阶段</button>
+        </ActionPanel>
+      </div> : <>
+      <div className="studio-opening" data-replay={replaying || guided && (chapter === 0 || stage === 4 && !editingExperiment)}>
         <ActionPanel label="当前学习任务">
-          <PageTitle headingRef={heading} description={stage === 1 ? undefined :
-            stage === 3 ? lesson.bridge?.prompt ?? prompts[2] : prompts[stage - 1]}>{title}</PageTitle>
-          {stage === 1 && <RoleDecisions lesson={lesson} session={session} send={send}/>}
-          {stage === 1 && nextButton}
-          {stage === 1 && <p className="source-note">{lesson.casePackage && <strong>{lesson.casePackage.identityLabel} · </strong>}
+          <PageTitle headingRef={heading} description={stage === 1 ? (chapter === 1 ? lesson.role.perspective : undefined) :
+            chapter === 6 ? "用两条原始事件写下你的解释，再独立做一道新题。" :
+            chapter === 7 ? "把这次学到的机制用到新情境，并查看复习安排。" :
+            stage === 3 ? guide?.observation ?? lesson.bridge?.prompt ?? prompts[2] : prompts[stage - 1]}>{title}</PageTitle>
+          {levelHint && <p>{levelHint}</p>}
+          {flow && course && chapter === 0 && <>
+            <FlowLevelPicker level={flow.level} change={level => setFlow({ ...flow, level })}/>
+            <FlowPreparation caseId={course.caseId} level={flow.level}/>
+            <ConceptScaffolds key={course.caseId} caseId={course.caseId}/>
+            <button className="primary stage-action" onClick={() => advanceChapter(1)}>进入故事</button>
+          </>}
+          {chapter === 1 && <button className="primary stage-action" onClick={() => advanceChapter(2)}>开始预测与决策</button>}
+          {chapter === 2 && needsPrediction && "options" in prediction && <fieldset className="decision-card">
+            <legend>{prediction.prompt}</legend>
+            <div className="decision-actions">{prediction.options.map(option => <button key={option.id} onClick={() => {
+              focusOpeningAction.current = true;
+              setFlow(current => current && { ...current, prediction: { option: option.id, at: Date.now() } });
+            }}>{option.label}</button>)}</div>
+          </fieldset>}
+          {chapter === 2 && predictFirst && !needsPrediction && <p role="status">已记录预测 · {
+            "options" in prediction && prediction.options.find(option => option.id === draftPrediction)?.label}</p>}
+          {stage === 1 && (chapter === undefined || chapter === 2 && !needsPrediction) &&
+            <RoleDecisions lesson={lesson} session={session} send={openingChoice} showContext={!guided}
+              focusPrompt={focusOpeningAction.current}/>}
+          {stage === 1 && (chapter === undefined || chapter === 2) && nextButton}
+          {showStory && <p className="source-note">{lesson.casePackage && <strong>{lesson.casePackage.identityLabel} · </strong>}
             {lesson.source.note}</p>}
-          {stage === 1 && lesson.source.references && <details className="trace-details">
+          {showStory && lesson.source.references && <details className="trace-details" id="opening-case-materials">
             <summary>{lesson.source.kind === "historical_event" ? "查看历史来源" : "查看案例资料与模型假设"}</summary>
             {lesson.casePackage && <>
               <p>{lesson.casePackage.syntheticPopulation.description}</p>
@@ -399,10 +552,31 @@ function LessonStudio({ lesson, review, reviewByTimeline, observationFrame, worl
               <a href={source.url} target="_blank" rel="noreferrer">{source.title}</a>
             </li>)}</ul>
           </details>}
-          {stage === 4 && <PredictionCard lesson={lesson} session={session} send={send}/>}
+          {showStory && openingHelp}
+          {chapter === 1 && localStudyAI && guide && lesson.casePackage &&
+            <Suspense fallback={null}><StudyTutor kind="briefing" focus={() => storyFocus(lesson.casePackage!)}
+              sources={<a href="#opening-case-materials" onClick={event => {
+                const materials = document.querySelector<HTMLDetailsElement>("#opening-case-materials");
+                if (!materials) return;
+                event.preventDefault();
+                materials.open = true;
+                materials.querySelector("summary")?.focus();
+              }}>查看课程来源</a>}/></Suspense>}
+          {editingExperiment && <PredictionCard lesson={lesson} session={session} send={send}/>}
+          {chapter === 6 && session.fork && <button type="button" onClick={() => advanceChapter(5)}>更换解释所用的对照</button>}
         </ActionPanel>
-        {stage === 1 && <RoleView role={lesson.role}/>}
-        {stage === 4 && <ComparisonView lesson={lesson} session={session} course={course}/>}
+        {showStory && <RoleView role={lesson.role}/>}
+        {editingExperiment && <div className="comparison-workbench">
+          <ComparisonView lesson={lesson} session={session} course={course}/>
+          {chapter === 5 && localStudyAI && guide && lesson.casePackage && run && session.comparison &&
+            <ComparisonEventTutor key={session.comparison.run.id} baseline={run} policy={session.comparison.run}
+              asOf={asOf} publishedSeed={lesson.seed} course={lesson.casePackage}/>}
+          {chapter === 5 && localStudyAI && course && session.comparison &&
+            <div className="decision-actions">
+              <a href={`/compare?${new URLSearchParams({ case: course.caseId })}`}>自选参数实验</a>
+              <a href="/experiments/multi-role">多角色模型实验</a>
+            </div>}
+        </div>}
       </div>
 
       {replaying && <div className="studio-replay">
@@ -475,6 +649,7 @@ function LessonStudio({ lesson, review, reviewByTimeline, observationFrame, worl
                 if (table) { table.open = true; table.querySelector("summary")?.focus({ preventScroll: true }); }
               }}>按表格查原事件</a>
             </EvidenceCard> : undefined}/>}
+        {guided && stage === 3 && !roleView && forkLab?.(session, send)}
         {canTrace && <details className="edu-panel microscope-wrap" id="microscope" open={traceOpen}
           onToggle={event => setTraceOpen(event.currentTarget.open)}>
           <summary>涌现显微镜</summary>
@@ -487,25 +662,42 @@ function LessonStudio({ lesson, review, reviewByTimeline, observationFrame, worl
             className="replay-review edu-panel" aria-label="当前成交证据与下一步">
             {turnNotice}
             {review?.(session, send, <button className="primary stage-action" ref={stageAction} disabled={!ready && pauseTick === undefined}
-              onClick={() => send({ type: ready ? "next-stage" : "step" })}>
+              onClick={() => ready ? nextStage() : send({ type: "step" })}>
               {!ready && pauseTick !== undefined ? "下一步 · 查看后续报价" : "试一项政策"}
             </button>)}
           </section> : review?.(session, send, undefined, selectActor)}
           {stage === 3 && <ForecastReview lesson={lesson} session={session} locate={locateMetric}/>}
           {stage === 3 && <BridgeEvidence lesson={lesson} session={session} data={visibleFrames} locate={locateMetric} selectActor={selectActor}/>}
+          {stage === 3 && localStudyAI && guide && lesson.casePackage && !session.playing &&
+            frame.tick <= asOf && supportsCourseEvent(run, frame.tick) &&
+            <Suspense fallback={null}><StudyTutor key={`${run.id}/${frame.tick}`} kind="event"
+              focus={() => courseEventFocus(run, frame.tick, lesson.casePackage!)}
+              sources={<button type="button" className="text-button" onClick={() => {
+                const evidence = document.querySelector<HTMLDetailsElement>("#current-event-evidence");
+                if (!evidence) return;
+                evidence.open = true;
+                evidence.querySelector("summary")?.focus();
+              }}>查看原事件 {frame.tick}</button>}/></Suspense>}
         </div>}
       </div>}
-      {stage === 4 && (session.comparison || afterInvestigation) && <div className="studio-results">
-        {session.comparison && <>
-          {review?.(session, send)}
-          {course && <Investigation key={session.comparison.run.id} course={course} lesson={lesson} session={session}
-            onSaved={noteSaved}/>}
-        </>}
-        {afterInvestigation?.(session)}
-        {course && explained && <LearningJourney caseId={course.caseId}/>}
+      {chapter === 5 && session.fork && forkLab?.(session, send)}
+      {stage === 4 && (explanationRun || session.fork || afterInvestigation) && <div className="studio-results">
+        {session.comparison && editingExperiment && review?.(session, send)}
+        {course && explanationRun && (chapter === undefined || chapter === 6) &&
+          <Investigation key={explanationRun.id} course={course} lesson={lesson} session={session}
+            fork={explanationFork} onSaved={noteSaved}/>}
+        {chapter === 5 && session.fork && <button className="primary stage-action" type="button"
+          onClick={() => advanceChapter(6, session.fork!.run.id)}>用中途分支写解释</button>}
+        {chapter === undefined && afterInvestigation?.(session)}
+        {chapter === 5 && session.comparison && <button className="primary stage-action"
+          onClick={() => advanceChapter(6)}>进入独立解释</button>}
+        {course && explained && (chapter === undefined || chapter === 6 || chapter === 7) &&
+          <LearningJourney key={chapter} caseId={course.caseId} fixedPhase={chapter === 7 ? "notebook" : chapter === 6 ? "explain" : undefined}
+            next={chapter === 6 && <button className="primary" onClick={() => advanceChapter(7)}>进入迁移与复习</button>}/>}
       </div>}
-      {course && stage === 1 && <p><a href={courseLink(course, { experiment: "1" })}>恢复本课实验卡</a></p>}
-      {course && session.choices.length > 0 && <a className="restart-link" href={courseLink(course, { fresh: "1" })}>从头再练</a>}
+      </>}
+      {course && stage === 1 && !guided && <p><a href={courseLink(course, { experiment: "1" })}>恢复本课实验卡</a></p>}
+      {course && (session.choices.length > 0 || flow && chapter !== 0) && <a className="restart-link" href={courseLink(course, { ...route, fresh: "1" })}>从头再练</a>}
     </main>
   </>;
 }

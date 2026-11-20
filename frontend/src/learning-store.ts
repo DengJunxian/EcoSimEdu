@@ -2,8 +2,9 @@ import { browserResultDigest, withLegacyDemandDeltas } from "./browser-result.ts
 import { browserEvents } from "./run-evidence.ts";
 import { browserEngineVersion, type EvidencePointer } from "./domain-contracts.ts";
 import { courseById } from "./curriculum.ts";
-import { legalChoice, legalPolicy, nextStageReady, startLesson, type Lesson, type Session, type Trend } from "./lesson.ts";
+import { legalChoice, legalPolicy, nextStageReady, startLesson, validHypothesis, type ForkRecipe, type Lesson, type Session, type Trend } from "./lesson.ts";
 import { microscopeRole } from "./microscope.ts";
+import { flowChapter, hasLessonFlow, validLessonFlow, type LessonFlow } from "./learning/lesson-flow.ts";
 
 const progressPrefix = "ecosimedu:progressive:progress:v1:";
 const explanationPrefix = "ecosimedu:progressive:explanation:v1:";
@@ -43,11 +44,21 @@ export function validChoices(lesson: Lesson, value: unknown, complete = true): v
     value.every((choice, i) => typeof choice === "string" && legalChoice(lesson.decisions[i], choice));
 }
 
-type SavedProgress = Omit<Session, "run" | "comparison" | "playing" | "comparisonFailed"> & {
+export function validForkRecipe(caseId: string, value: unknown): value is ForkRecipe {
+  if (!value || typeof value !== "object") return false;
+  const fork = value as ForkRecipe;
+  return index(fork.checkpoint) && (caseId === "schelling_segregation" && fork.action === undefined && index(fork.destination) ||
+    fork.destination === undefined && (caseId === "svb_run" && fork.action === "defer-protective" ||
+      caseId === "double_auction" && fork.action === "cancel-open-order"));
+}
+
+type SavedProgress = Omit<Session, "run" | "comparison" | "fork" | "playing" | "comparisonFailed"> & {
   course: CourseRef;
   updatedAt: number;
   runId?: string;
   comparisonId?: string;
+  fork?: Omit<NonNullable<Session["fork"]>, "run"> & { runId: string };
+  flow?: LessonFlow;
 };
 
 export const stageNames = ["真实场景代入", "微观机制透视", "宏微观双屏联动", "反事实与制度实验"];
@@ -56,7 +67,10 @@ function validProgress(record: SavedProgress | undefined): record is SavedProgre
   return !!record && typeof record.course?.caseId === "string" && index(record.updatedAt) &&
     index(record.stage) && record.stage >= 1 && record.stage <= 4 &&
     (record.multiSeed === undefined || record.multiSeed === true) && index(record.cursor) && index(record.revealed) && record.cursor <= record.revealed &&
-    Array.isArray(record.choices) && record.choices.length > 0;
+    (record.fork === undefined || validForkRecipe(record.course.caseId, record.fork) && record.stage >= 3 &&
+      record.fork.checkpoint <= record.revealed && trend(record.fork.prediction) && typeof record.fork.runId === "string") &&
+    (record.flow === undefined || hasLessonFlow(record.course.caseId) && validLessonFlow(record.flow)) &&
+    Array.isArray(record.choices) && (record.choices.length > 0 || !!record.flow && record.stage === 1);
 }
 
 export function latestProgress(storage: Storage, courseExists: (caseId: string) => boolean) {
@@ -66,13 +80,32 @@ export function latestProgress(storage: Storage, courseExists: (caseId: string) 
     .sort((a, b) => b!.updatedAt - a!.updatedAt)[0];
 }
 
-export function saveProgress(storage: Storage, course: CourseRef, session: Session, expected?: string | null) {
-  if (!session.choices.length) return;
+export function resumeLessonFlow(snapshot: string | null): LessonFlow | undefined {
+  try {
+    const record = JSON.parse(snapshot ?? "null");
+    if (validProgress(record)) return record.flow;
+  } catch { return undefined; }
+}
+
+export function saveProgress(storage: Storage, course: CourseRef, session: Session, expected?: string | null, flow?: LessonFlow | null) {
+  if (!session.choices.length && !flow) return;
   const key = progressPrefix + courseKey(course);
   if (expected !== undefined && storage.getItem(key) !== expected) return;
 
-  const { run, comparison, playing: _playing, comparisonFailed: _comparisonFailed, ...state } = session;
-  const record: SavedProgress = { ...state, course, updatedAt: Date.now(), runId: run?.id, comparisonId: comparison?.run.id };
+  const { run, comparison, fork, playing: _playing, comparisonFailed: _comparisonFailed, ...state } = session;
+  const savedFlow = hasLessonFlow(course.caseId) && (flow === undefined ? resumeLessonFlow(storage.getItem(key)) : flow);
+  const flowRecord = savedFlow && {
+    ...savedFlow,
+    chapter: flowChapter(savedFlow, session),
+    comparisonId: savedFlow.comparisonId && savedFlow.comparisonId === fork?.run.id ? fork.run.id : comparison?.run.id,
+    prediction: session.choices[1] && session.choices[1] !== savedFlow.prediction?.option ? undefined : savedFlow.prediction,
+  };
+  const record: SavedProgress = { ...state, course, updatedAt: Date.now(), runId: run?.id, comparisonId: comparison?.run.id,
+    ...(flowRecord && { flow: flowRecord }) };
+  if (fork) {
+    const { run: branch, ...decision } = fork;
+    record.fork = { ...decision, runId: branch.id };
+  }
   const value = JSON.stringify(record);
   storage.setItem(key, value);
   return value;
@@ -102,10 +135,20 @@ export function resumeProgress(storage: Storage, course: CourseRef, lesson: Less
       microscopeRole(lesson) ? { perspective: record.perspective } : {};
     const replay: Session = { ...initial, stage: record.stage, run, choices: record.choices, selected, focusedMetric, traceFocus, ...perspective,
       cursor: record.cursor, revealed: record.revealed };
+    if (record.fork && lesson.fork) {
+      const { runId, checkpoint, prediction, action, destination } = record.fork;
+      const decision = { checkpoint, prediction, ...(action ? { action } : { destination: destination! }) };
+      try {
+        const branch = lesson.fork.run(run, checkpoint, decision);
+        if (branch.id === runId) replay.fork = { ...decision, run: branch };
+      } catch { /* A branch that no longer validates leaves the verified parent available. */ }
+    }
     if (record.stage !== 4) return replay;
     if (!nextStageReady(lesson, { ...replay, stage: 3 }) || !legalPolicy(lesson, record.policy)) return undefined;
     const prediction = record.policy !== initial.policy && trend(record.prediction) ? record.prediction : undefined;
+    const draft = validHypothesis(record.hypothesis) ? record.hypothesis : undefined;
     const plan = { ...replay, policy: record.policy, prediction,
+      hypothesis: record.comparisonId ? draft?.trim() || undefined : draft,
       ...(record.multiSeed && lesson.prepareSeed ? { multiSeed: true as const } : {}) };
     if (!record.comparisonId) return plan;
     if (!prediction) return undefined;
@@ -125,6 +168,7 @@ export type Explanation = {
   comparison: string;
   hypothesis: string;
   claim?: string;
+  alternative?: string;
 };
 
 export type SavedExplanation = Explanation & {
@@ -134,6 +178,7 @@ export type SavedExplanation = Explanation & {
   baselineId: string;
   comparisonId: string;
   policy?: number;
+  fork?: ForkRecipe;
   course?: CourseRef;
   evidence?: { baseline: EvidencePointer; comparison: EvidencePointer };
   outcomeId?: string;
@@ -149,6 +194,10 @@ function parseNote(value: SavedExplanation | undefined, id: string): StudentNote
     !trend(value.prediction) || !index(value.baselineEvent) || !index(value.comparisonEvent) ||
     !Array.isArray(value.choices) || !value.choices.every(choice => typeof choice === "string") ||
     (value.claim !== undefined && (typeof value.claim !== "string" || value.claim.length > 1000)) ||
+    (value.alternative !== undefined && (typeof value.alternative !== "string" || value.alternative.length > 1000)) ||
+    (value.fork !== undefined && (!value.course || !validForkRecipe(value.course.caseId, value.fork) ||
+      value.comparisonEvent <= value.fork.checkpoint || !value.evidence?.baseline || !value.evidence.comparison ||
+      !value.alternative?.trim())) ||
     (value.outcomeId !== undefined && (typeof value.outcomeId !== "string" || !/^[a-z_]+\.[1-3]$/.test(value.outcomeId))) ||
     ![value.rule, value.calculation, value.comparison, value.hypothesis].every(text => typeof text === "string")) return undefined;
   if (value.course && typeof value.course.caseId === "string") return { ...value, id, course: value.course };
@@ -186,11 +235,17 @@ export function sourceLink(note: StudentNote, side: "baseline" | "comparison") {
 
 export async function sourceRun(lesson: Lesson, note: StudentNote, side: "baseline" | "comparison") {
   if (!validChoices(lesson, note.choices)) return undefined;
-  const policy = side === "baseline" ? lesson.policy.baseline : note.policy ?? lesson.policy.max;
-  if (!legalPolicy(lesson, policy) || side === "comparison" && policy === lesson.policy.baseline) return undefined;
+  const basePolicy = lesson.policy.baseline;
+  const policy = side === "baseline" || note.fork ? basePolicy : note.policy ?? lesson.policy.max;
+  if (!legalPolicy(lesson, policy) || side === "comparison" && policy === basePolicy && !note.fork) return undefined;
+  if (note.fork && (!validForkRecipe(note.course.caseId, note.fork) || !lesson.fork ||
+    note.comparisonEvent <= note.fork.checkpoint || (note.policy !== undefined && note.policy !== basePolicy) ||
+    !note.evidence?.baseline || !note.evidence.comparison)) return undefined;
   try {
     const course = lesson.casePackage;
-    const run = lesson.run({ seed: lesson.seed, choices: note.choices, policy });
+    const started = lesson.run({ seed: lesson.seed, choices: note.choices, policy });
+    if (note.fork && started.id !== note.baselineId) return undefined;
+    const run = side === "comparison" && note.fork ? lesson.fork!.run(started, note.fork.checkpoint, note.fork) : started;
     const tick = side === "baseline" ? note.baselineEvent : note.comparisonEvent;
     if (!course || run.id !== (side === "baseline" ? note.baselineId : note.comparisonId) || !run.frames[tick]) return;
     const digest = await browserResultDigest(run);
@@ -205,7 +260,7 @@ export async function sourceRun(lesson: Lesson, note: StudentNote, side: "baseli
       if (stored.resultDigest?.value !== digest.value &&
           (previous === run || stored.resultDigest?.value !== (await browserResultDigest(previous)).value)) return;
       const event = events.find(entry => entry.frameTick === tick && entry.eventId === stored.eventId);
-      return event ? { run, tick, event, digest, verification: "saved" as const } : undefined;
+      return event ? { run, tick, event, digest, fork: note.fork, verification: "saved" as const } : undefined;
     }
 
     const { default: legacy } = await import("./data/legacy-fingerprints.json", { with: { type: "json" } });
@@ -214,7 +269,7 @@ export async function sourceRun(lesson: Lesson, note: StudentNote, side: "baseli
     // A legacy SVB note linked to a round, with no selection of a transaction inside that round.
     const event = course.caseId === "svb_run" ? undefined : events.find(entry => entry.sequence === tick);
     if (course.caseId !== "svb_run" && !event) return;
-    return { run, tick, event, digest, verification: "legacy" as const };
+    return { run, tick, event, digest, fork: undefined, verification: "legacy" as const };
   } catch {
     return undefined;
   }

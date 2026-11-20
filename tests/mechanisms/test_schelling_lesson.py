@@ -17,10 +17,18 @@ def independent_counts(grid, size, index):
     return sum(resident[0] == grid[index][0] for resident in adjacent), len(adjacent)
 
 
-@pytest.mark.parametrize("scenario, threshold", [("baseline", 30), ("zero", 0), ("higher", 50)])
-def test_relocation_replays_and_recomputes(scenario, threshold):
-    result = schelling.simulate(CASE, scenario, 1971, "move")
-    assert digest(result) == digest(schelling.simulate(CASE, scenario, 1971, "move"))
+@pytest.mark.parametrize("scenario, threshold, relocation", [
+    ("baseline", 30, None), ("zero", 0, None), ("higher", 50, None), ("baseline", 30, (1, 19)),
+])
+def test_relocation_replays_and_recomputes(scenario, threshold, relocation):
+    result = schelling.simulate(CASE, scenario, 1971, "move", relocation=relocation)
+    assert digest(result) == digest(schelling.simulate(CASE, scenario, 1971, "move", relocation=relocation))
+    if relocation is not None:
+        parent = schelling.simulate(CASE, scenario, 1971, "move")
+        move = next(event for event in result["events"] if "checkpoint_event" in event)
+        assert move["checkpoint_event"] == 73 and move["seq"] == 74
+        assert result["events"][:74] == parent["events"][:74]
+        assert result["snapshots"][:74] == parent["snapshots"][:74]
     before = result["initial"]["grid"]
     initial_counts = Counter(before)
     assert initial_counts[None] == 60
@@ -53,6 +61,7 @@ def test_relocation_replays_and_recomputes(scenario, threshold):
                 assert change["after"] == independent_counts(after, 20, actor_index)
             if event["event_type"] == "move":
                 assert 100 * origin_counts[0] < threshold * origin_counts[1]
+            if event["event_type"] == "move" or "checkpoint_event" in event:
                 assert 100 * dest_counts[0] >= threshold * dest_counts[1]
             moves += 1
         else:

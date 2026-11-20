@@ -2,6 +2,7 @@ import type { ReactNode } from "react";
 import { auctionLesson, type AuctionFrame, type AuctionRun } from "./auction.ts";
 import { displayObservation, type Command, type Session } from "./lesson.ts";
 import { TransferAfterEvidence } from "./FlagshipTransfer.tsx";
+import { AuctionFork } from "./AuctionFork.tsx";
 import { Studio } from "./Studio";
 
 function exportRun(session: Session) {
@@ -180,5 +181,6 @@ const lesson = auctionLesson(boundary);
 export default function AuctionClassroom() {
   return <Studio lesson={lesson} reviewByTimeline
     review={(session, send, nextAction) => <AuctionEvidence session={session} send={send} nextAction={nextAction}/>}
+    forkLab={(session, send) => <AuctionFork lesson={lesson} session={session} send={send}/>}
     afterInvestigation={session => <TransferAfterEvidence caseId="double_auction" session={session}/>}/>;
 }

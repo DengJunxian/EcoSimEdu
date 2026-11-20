@@ -532,6 +532,203 @@
         "explanation": "搬迁即时改变空间邻接，序贯行动是否更新信念还取决于可见性和行为策略。",
         "misconception_code": "empty_as_neighbor"
       }
+    },
+    {
+      "id": "review-1-reinforce",
+      "version": 1,
+      "variant_id": "review-1-reinforce",
+      "family_id": "schelling_segregation.1",
+      "outcome_ids": [
+        "schelling_segregation.1"
+      ],
+      "kind": "numeric",
+      "prompt": "中心住户 A 的八个邻格中，有 3 个 A、1 个 B 和 4 个空位。填已占邻格数及同类比例。",
+      "context": {
+        "kind": "authored_model_exercise"
+      },
+      "assessment_role": "review",
+      "response_schema": {
+        "fields": [
+          {
+            "id": "occupied",
+            "label": "已占邻格",
+            "unit": "格"
+          },
+          {
+            "id": "ratio",
+            "label": "同类比例",
+            "unit": "%"
+          }
+        ]
+      },
+      "evaluator": {
+        "id": "numeric_v1",
+        "version": 1,
+        "answers": [
+          4,
+          75
+        ]
+      },
+      "feedback": {
+        "hint": "先把空位排除，再数两类住户一共占了几格。",
+        "explanation": "已占邻格为 3＋1＝4 格。同类比例为 3÷4＝75%。",
+        "misconception_code": "empty_as_neighbor"
+      }
+    },
+    {
+      "id": "micro-denominators-step",
+      "version": 1,
+      "variant_id": "micro-denominators-step",
+      "family_id": "micro-denominators",
+      "outcome_ids": [
+        "schelling_segregation.1"
+      ],
+      "kind": "numeric",
+      "prompt": "另一位居民周围有 2 个同组住户、3 个不同组住户和 3 个空格。已占邻格有几格？",
+      "context": {
+        "kind": "authored_model_exercise"
+      },
+      "assessment_role": "practice",
+      "response_schema": {
+        "fields": [
+          {
+            "id": "occupied",
+            "label": "已占邻格",
+            "unit": "格"
+          }
+        ]
+      },
+      "evaluator": {
+        "id": "numeric_v1",
+        "version": 1,
+        "answers": [
+          5
+        ]
+      },
+      "feedback": {
+        "hint": "只把两类住户占用的格子相加。",
+        "explanation": "2＋3＝5 格有人居住。",
+        "misconception_code": "empty_as_neighbor"
+      }
+    },
+    {
+      "id": "micro-denominators-check",
+      "version": 1,
+      "variant_id": "micro-denominators-check",
+      "family_id": "micro-denominators",
+      "outcome_ids": [
+        "schelling_segregation.1"
+      ],
+      "kind": "numeric",
+      "prompt": "图书馆抽查 8 个书架。3 个合格、2 个不合格，另 3 个尚未检查。填写已检查数和已检查书架的合格率。",
+      "context": {
+        "kind": "authored_model_exercise"
+      },
+      "assessment_role": "practice",
+      "response_schema": {
+        "fields": [
+          {
+            "id": "inspected",
+            "label": "已检查数",
+            "unit": "个"
+          },
+          {
+            "id": "percent",
+            "label": "合格率",
+            "unit": "%"
+          }
+        ]
+      },
+      "evaluator": {
+        "id": "numeric_v1",
+        "version": 1,
+        "answers": [
+          5,
+          60
+        ]
+      },
+      "feedback": {
+        "hint": "合格率的分母是已有检查结论的书架数。",
+        "explanation": "已检查 3＋2＝5 个。合格率为 3÷5＝60%。",
+        "misconception_code": "empty_as_neighbor"
+      }
+    },
+    {
+      "id": "micro-paired-randomness-step",
+      "version": 1,
+      "variant_id": "micro-paired-randomness-step",
+      "family_id": "micro-paired-randomness",
+      "outcome_ids": [
+        "schelling_segregation.3"
+      ],
+      "kind": "numeric",
+      "prompt": "在另一组同一开局的对照中，基准同组邻接率为 50%，改阈值后为 58%。后一组比前一组高几个百分点？",
+      "context": {
+        "kind": "authored_model_exercise"
+      },
+      "assessment_role": "practice",
+      "response_schema": {
+        "fields": [
+          {
+            "id": "difference",
+            "label": "配对差值",
+            "unit": "百分点"
+          }
+        ]
+      },
+      "evaluator": {
+        "id": "numeric_v1",
+        "version": 1,
+        "answers": [
+          8
+        ]
+      },
+      "feedback": {
+        "hint": "用后一组的百分数减前一组的百分数。",
+        "explanation": "58%−50%＝8 个百分点。",
+        "misconception_code": "model_is_observation"
+      }
+    },
+    {
+      "id": "micro-paired-randomness-check",
+      "version": 1,
+      "variant_id": "micro-paired-randomness-check",
+      "family_id": "micro-paired-randomness",
+      "outcome_ids": [
+        "schelling_segregation.3"
+      ],
+      "kind": "single_choice",
+      "prompt": "想用模拟评估屋顶花园增加浇水次数对幼苗存活的影响。哪种安排可以观察处理差值是否在不同开局重现？",
+      "context": {
+        "kind": "authored_model_exercise"
+      },
+      "assessment_role": "practice",
+      "response_schema": {
+        "options": [
+          {
+            "id": "paired",
+            "label": "每个种子内固定幼苗、天气和观测时点，仅改变浇水次数，再比较多对差值。"
+          },
+          {
+            "id": "confounded",
+            "label": "让多浇水组同时换成更耐旱的幼苗，比较两组存活率。"
+          },
+          {
+            "id": "pick-best",
+            "label": "每组更换天气和浇水次数，只保留提升最大的一次。"
+          }
+        ]
+      },
+      "evaluator": {
+        "id": "choice_v1",
+        "version": 1,
+        "answer": "paired"
+      },
+      "feedback": {
+        "hint": "检查每一对运行是否只改变一项，并保留多组开局的结果。",
+        "explanation": "每对只改变浇水次数，固定同一开局和观测时点。比较多对差值才能检查结果是否随开局变化。",
+        "misconception_code": "model_is_observation"
+      }
     }
   ],
   "activities": [
@@ -719,6 +916,94 @@
       ],
       "completion_rule": "submit_or_skip",
       "next_activity_id": null
+    },
+    {
+      "id": "review-1-reinforce",
+      "phase": "notebook",
+      "kind": "review",
+      "outcome_ids": [
+        "schelling_segregation.1"
+      ],
+      "content_ref": "review-1-reinforce",
+      "assessment_item_ids": [
+        "review-1-reinforce"
+      ],
+      "completion_rule": "submit_or_skip",
+      "next_activity_id": null
+    },
+    {
+      "id": "micro-denominators-step",
+      "phase": "intro",
+      "kind": "scaffold",
+      "outcome_ids": [
+        "schelling_segregation.1"
+      ],
+      "content_ref": "micro-denominators-step",
+      "assessment_item_ids": [
+        "micro-denominators-step"
+      ],
+      "completion_rule": "submit_or_skip",
+      "next_activity_id": null
+    },
+    {
+      "id": "micro-denominators-check",
+      "phase": "intro",
+      "kind": "scaffold",
+      "outcome_ids": [
+        "schelling_segregation.1"
+      ],
+      "content_ref": "micro-denominators-check",
+      "assessment_item_ids": [
+        "micro-denominators-check"
+      ],
+      "completion_rule": "submit_or_skip",
+      "next_activity_id": null
+    },
+    {
+      "id": "micro-paired-randomness-step",
+      "phase": "intro",
+      "kind": "scaffold",
+      "outcome_ids": [
+        "schelling_segregation.3"
+      ],
+      "content_ref": "micro-paired-randomness-step",
+      "assessment_item_ids": [
+        "micro-paired-randomness-step"
+      ],
+      "completion_rule": "submit_or_skip",
+      "next_activity_id": null
+    },
+    {
+      "id": "micro-paired-randomness-check",
+      "phase": "intro",
+      "kind": "scaffold",
+      "outcome_ids": [
+        "schelling_segregation.3"
+      ],
+      "content_ref": "micro-paired-randomness-check",
+      "assessment_item_ids": [
+        "micro-paired-randomness-check"
+      ],
+      "completion_rule": "submit_or_skip",
+      "next_activity_id": null
+    }
+  ],
+  "scaffolds": [
+    {
+      "id": "denominators",
+      "title": "百分比与分母",
+      "example": "同一批数据可以回答不同问题。问「已检查的格子有多少达到标准」时，先确定哪些格子已接受检查。",
+      "worked_example": "一位居民周围有 8 格，其中 6 格有人居住。3 名邻居与他同组，所以同组邻居比例为 3÷6＝50%。除以 8 求得的是八个格子中同组住户所占比例。",
+      "step_activity_id": "micro-denominators-step",
+      "check_activity_id": "micro-denominators-check"
+    },
+    {
+      "id": "paired-randomness",
+      "title": "单变量对照与随机性",
+      "example": "两次实验同时换了地图和搬迁规则，观察到的差异可能来自任一项。先在每一对运行中固定开局，只改想研究的规则。",
+      "worked_example": "用种子甲生成同一开局，两组只改阈值，期末同组邻接率从 40% 变为 47%，差 7 个百分点。用种子乙再配对，期末从 55% 变为 59%，差 4 个百分点。样本覆盖这两个开局。",
+      "step_activity_id": "micro-paired-randomness-step",
+      "check_activity_id": "micro-paired-randomness-check"
     }
   ],
   "required_comparisons": [

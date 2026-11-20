@@ -1,24 +1,20 @@
+import { SchellingFork } from "./SchellingFork.tsx";
 import { Studio } from "./Studio";
 import { TransferAfterEvidence } from "./FlagshipTransfer.tsx";
 import { schellingLesson as lesson } from "./models/schelling-lesson.ts";
 import { coordinates, residentOptions } from "./models/schelling.ts";
 import type { ModelRun } from "./models/record.ts";
-import { displayObservation, type Session } from "./lesson.ts";
+import { displayObservation, type Session, type Command } from "./lesson.ts";
+import { localStudyAI } from "./deployment.ts";
+import { StudyTutor } from "./learning/tutor/StudyTutor.tsx";
+import { comparisonFocus, relocationAnchor, relocationAt, storyFocus } from "./learning/tutor/schelling-evidence.ts";
 
-type Relocation = { actor_id: string; origin: number; destination: number; source: "student" | "rule";
-  before: readonly number[]; after: readonly number[];
-  changed_neighbors: readonly { actor: string; before: readonly number[]; after: readonly number[] }[] };
-
-const movesAt = (run: ModelRun, tick: number) => {
-  const event = run.records[tick];
-  return event.event_type === "student_move" || event.event_type === "move" ? event.data as Relocation : undefined;
-};
 const countLabel = (counts: readonly number[]) => counts[1] ? counts.join(" / ") : "0 / 0（无已占邻格，按规则达标）";
 
 function ResidentDecision({ session }: { session: Session }) {
   const run = session.run as ModelRun;
   const id = session.selected!;
-  const move = movesAt(run, session.cursor);
+  const move = relocationAt(run, session.cursor);
   const moved = move?.actor_id === id;
   const board = run.frames[moved ? session.cursor - 1 : session.cursor].board!;
   const threshold = (run.intervention as { threshold: number }).threshold;
@@ -40,18 +36,21 @@ function ResidentDecision({ session }: { session: Session }) {
   </section>;
 }
 
-function SchellingReview({ session }: { session: Session }) {
+function SchellingReview({ session, send }: { session: Session; send: (command: Command) => void }) {
   if (!session.run) return null;
   const run = session.run as ModelRun;
+  const course = lesson.casePackage;
   if (session.stage === 4 && session.comparison) {
     const treatment = session.comparison.run as ModelRun;
     const final = run.frames.at(-1)!.metrics;
     const treated = treatment.frames.at(-1)!.metrics;
     const threshold = (treatment.intervention as { threshold: number }).threshold;
-    const end = treatment.records.at(-1)!.data as { terminal: string };
+    const baselineClose = run.records.at(-1)!;
+    const treatmentClose = treatment.records.at(-1)!;
+    const end = treatmentClose.data as { terminal: string };
     const opening = run.frames[0].actors;
     const groupA = opening.filter(actor => actor.state === "A").length;
-    return <section className="edu-panel flagship-evidence" aria-label="阈值配对与停止条件">
+    return <><section className="edu-panel flagship-evidence" aria-label="阈值配对与停止条件">
       <h2>把阈值和空间格局分开看</h2>
       <p>同种子 {run.seed}，两组从同一地图出发，保留 {run.frames[0].actors.length} 位居民和你的 A001 决定。
         最低阈值 30% → {threshold}%。满足条件的空位和后续行动依次由当时的地图决定。</p>
@@ -63,6 +62,14 @@ function SchellingReview({ session }: { session: Session }) {
           <td>{displayObservation(treated[metric.id])}</td>
         </tr>)}</tbody>
       </table>
+      <dl className="fact-list">
+        <div id="schelling-baseline-close" tabIndex={-1}>
+          <dt>基线收尾 · 事件 {baselineClose.seq}</dt><dd>{baselineClose.summary}</dd>
+        </div>
+        <div id="schelling-comparison-close" tabIndex={-1}>
+          <dt>干预收尾 · 事件 {treatmentClose.seq}</dt><dd>{treatmentClose.summary}</dd>
+        </div>
+      </dl>
       {end.terminal === "blocked" && <p>最后一轮没有可行搬迁，仍有 {treated.remaining} 户未达阈值。
         停止源于找不到合格空格，未达阈值的住户仍留在原地。</p>}
       {end.terminal === "round_limit" && <p>运行到了轮数上限，最后仍有 {treated.remaining} 户未达阈值。表里是截至该轮的观测。</p>}
@@ -72,15 +79,24 @@ function SchellingReview({ session }: { session: Session }) {
         <p>两组达标比例同为 {final.satisfied}%，但同组邻接比例不同。达标按住户计，空间分化按邻接对计。</p>}
       <p>每次搬迁改写两处邻域，改变下一批住户的决策条件。A 组 {groupA} 户、B 组 {opening.length - groupA} 户。
         搬迁改变位置，两组人口比例始终保持开局水平。</p>
-    </section>;
+    </section>
+    {localStudyAI && course && session.comparison.prediction && <StudyTutor key={treatment.id} kind="pair"
+      focus={() => comparisonFocus(run, treatment, course)} sources={<>
+        <a href="#schelling-baseline-close">核对基线收尾 · 事件 {baselineClose.seq}</a>
+        <a href="#schelling-comparison-close">核对干预收尾 · 事件 {treatmentClose.seq}</a>
+      </>}/>}
+    </>;
   }
   if (session.stage !== 2 && session.stage !== 3) return null;
-  const move = movesAt(run, session.cursor);
+  const move = relocationAt(run, session.cursor);
   const prior = run.frames[session.cursor - 1];
   const frame = run.frames[session.cursor];
   const summary = run.records[session.cursor];
+  const stage = session.stage;
+  const tutorVisible = localStudyAI && move && !session.playing &&
+    session.perspective !== "role" && session.cursor <= session.revealed && !!prior;
   return <>
-    {move && prior && <section className="edu-panel flagship-evidence" aria-label="这次搬迁和全局变化">
+    {move && prior && <section className="edu-panel flagship-evidence" id="schelling-move-evidence" tabIndex={-1} aria-label="这次搬迁和全局变化">
       <h2>{move.actor_id} 的搬迁如何改变邻里</h2>
       <p>事件 {frame.tick}，从{coordinates(move.origin)}迁入{coordinates(move.destination)}。
         迁居前后自身同组 / 已占邻格 {countLabel(move.before)} → {countLabel(move.after)}。</p>
@@ -99,6 +115,15 @@ function SchellingReview({ session }: { session: Session }) {
         </table>
       </details>
     </section>}
+    {course && tutorVisible && <StudyTutor key={`${run.id}:${stage}:${session.cursor}`} kind="relocation"
+      focus={async () => ({ ...await relocationAnchor(run, session.cursor, course), stage, perspective: "system" })}
+      sources={<>
+        <button type="button" className="text-button" onClick={() => {
+          send({ type: "back" });
+          requestAnimationFrame(() => document.querySelector<HTMLElement>(".studio-runbar p[tabindex]")?.focus());
+        }}>核对搬迁前 · 事件 {session.cursor - 1}</button>
+        <a href="#schelling-move-evidence">核对本次搬迁 · 事件 {session.cursor}</a>
+      </>}/>}
     {!move && (summary.event_type === "round_end" || summary.event_type === "market_close") &&
       <p>事件 {frame.tick} · {summary.summary}</p>}
     <details className="trace-details"><summary>回看你的决定与预测</summary>
@@ -110,7 +135,13 @@ function SchellingReview({ session }: { session: Session }) {
 }
 
 export default function SchellingClassroom() {
-  return <Studio lesson={lesson} review={session => <SchellingReview session={session}/>}
+  const course = lesson.casePackage;
+  return <Studio lesson={lesson} openingHelp={localStudyAI && course && <StudyTutor kind="story"
+    focus={() => storyFocus(course)} sources={<a href="#opening-case-materials" onClick={() => {
+      const materials = document.querySelector<HTMLDetailsElement>("#opening-case-materials");
+      if (materials) materials.open = true;
+    }}>核对案例资料与模型假设</a>}/>} review={(session, send) => <SchellingReview session={session} send={send}/>}
     actorDetail={session => <ResidentDecision session={session}/>}
+    forkLab={(session, send) => <SchellingFork session={session} send={send}/>}
     afterInvestigation={session => <TransferAfterEvidence caseId="schelling_segregation" session={session} policy={50}/>}/>;
 }

@@ -4,19 +4,28 @@ import type { EventEnvelope } from "./domain-contracts.ts";
 import { sourceLink, type StudentNote } from "./learning-store.ts";
 import "./teaching.css";
 import { readTeaching, reflectionOptions, saveTeaching, type TeachingRecord } from "./teaching-records.ts";
-import { pagesDemo } from "./deployment.ts";
+import { localStudyAI, pagesDemo } from "./deployment.ts";
+import { ExplanationReview, supportsExplanationReview } from "./learning/tutor/ExplanationReview.tsx";
 
 function reflection<K extends TeachingRecord["kind"]>(note: StudentNote, kind: K) {
   try { return readTeaching(localStorage, note.course.caseId, note.id, kind); }
   catch { return undefined; }
 }
 
-export function StudyReflection({ note, event }: { note: StudentNote; event?: EventEnvelope }) {
+const sameEvent = (left?: { runId: string; eventId: string }, right?: { runId: string; eventId: string }) =>
+  !!left && !!right && left.eventId === right.eventId && left.runId === right.runId;
+
+export function StudyReflection({ note, event, comparisonEvent }: {
+  note: StudentNote; event?: EventEnvelope; comparisonEvent?: EventEnvelope;
+}) {
   const [self, setSelf] = useState(() => reflection(note, "self_assessment")?.answer ?? "");
   const [coach, setCoach] = useState(() => reflection(note, "coach_advice"));
   const [message, setMessage] = useState("");
   const evidence = note.evidence?.baseline;
-  const verified = coach?.eventId === evidence?.eventId && coach?.runId === evidence?.runId;
+  const alternate = note.evidence?.comparison;
+  const canReview = localStudyAI && supportsExplanationReview(note.course.caseId) && evidence && alternate;
+  const verified = sameEvent(coach, evidence) && (!note.fork || sameEvent(coach?.comparison, alternate));
+  const canCoach = sameEvent(event, evidence) && (!note.fork || sameEvent(comparisonEvent, alternate));
   const context = () => ({ caseId: note.course.caseId, reference: note.id, savedAt: new Date().toISOString() });
 
   function saveSelf(value: string) {
@@ -30,10 +39,15 @@ export function StudyReflection({ note, event }: { note: StudentNote; event?: Ev
   }
 
   function askCoach() {
-    if (!event || !evidence || event.runId !== evidence.runId || event.eventId !== evidence.eventId) return;
+    if (!canCoach || !event || !evidence) return;
     const summary = (event.summary ?? event.kind).slice(0, 180);
+    const comparison = note.fork && comparisonEvent && alternate ?
+      { runId: alternate.runId, eventId: alternate.eventId } : undefined;
     const record = { ...context(), kind: "coach_advice" as const, eventId: evidence.eventId, runId: evidence.runId,
-      advice: `从原事件 ${event.eventId}「${summary}」出发。指出这条记录支持论断的哪一部分，再说说改变哪个条件会使推论失效。` };
+      ...(comparison && { comparison }),
+      advice: comparison && comparisonEvent ?
+        `比较基线事件 ${event.eventId}「${summary}」和分支事件 ${comparison.eventId}「${(comparisonEvent.summary ?? comparisonEvent.kind).slice(0, 180)}」。先写出它们各自支持的那部分主张，再核对时点、口径和另一种解释。` :
+        `从原事件 ${event.eventId}「${summary}」出发。指出这条记录支持论断的哪一部分，再说说改变哪个条件会使推论失效。` };
     try {
       saveTeaching(localStorage, record);
       setCoach(record);
@@ -49,9 +63,11 @@ export function StudyReflection({ note, event }: { note: StudentNote; event?: Ev
         {Object.entries(reflectionOptions).map(([value, label]) => <option value={value} key={value}>{label}</option>)}
       </select>
     </label>
-    {event && <button type="button" onClick={askCoach}>用原事件生成离线建议</button>}
-    {verified && coach && <p>{coach.advice} <a href={sourceLink(note, "baseline")}>核对建议的原事件</a></p>}
-    {event && !pagesDemo && <details><summary>可选在线导师</summary>
+    {canCoach && <button type="button" onClick={askCoach}>{note.fork ? "用两条原证据生成自查" : "用原事件生成离线建议"}</button>}
+    {verified && coach && <p>{coach.advice} <a href={sourceLink(note, "baseline")}>核对建议的原事件</a>
+      {coach.comparison && <> <a href={sourceLink(note, "comparison")}>核对建议的分支事件</a></>}</p>}
+    {canReview && <ExplanationReview note={note}/>}
+    {!canReview && event && !note.fork && !pagesDemo && <details><summary>可选在线导师</summary>
       <p>原实验室的在线导师可在启用后，从服务器已核对的运行证据中选择追问。课堂作答由原评估器核对。</p>
       <a href={originalLessonHref(note.course.caseId)}>打开原实验室的学习助手</a>
     </details>}

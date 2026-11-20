@@ -605,6 +605,204 @@
         "explanation": "初始净资产 = 10 + 32 + 50 − 72 − 10 = 10。今天可用现金只有 10，若全额用于兑付，则支付 10、待付 8；支付使现金与存款同减，净资产仍为 10。借款增加现金也增加负债。换一家银行时，需要另行核对能否在到期前融资或变现。",
         "misconception_code": "liquidity_is_equity"
       }
+    },
+    {
+      "id": "review-1-reinforce",
+      "version": 1,
+      "variant_id": "review-1-reinforce",
+      "family_id": "svb_run.1",
+      "outcome_ids": [
+        "svb_run.1"
+      ],
+      "kind": "numeric",
+      "prompt": "银行现金 14、存款 50、权益 11。本轮新增申请 18，实际支付 9，原无待付，且无借款或资产重估。填实付后现金、待付和权益。",
+      "context": {
+        "kind": "authored_model_exercise"
+      },
+      "assessment_role": "review",
+      "response_schema": {
+        "fields": [
+          {
+            "id": "cash",
+            "label": "实付后现金",
+            "unit": "资金单位"
+          },
+          {
+            "id": "queued",
+            "label": "实付后待付",
+            "unit": "资金单位"
+          },
+          {
+            "id": "equity",
+            "label": "实付后权益",
+            "unit": "资金单位"
+          }
+        ]
+      },
+      "evaluator": {
+        "id": "numeric_v1",
+        "version": 1,
+        "answers": [
+          5,
+          9,
+          11
+        ]
+      },
+      "feedback": {
+        "hint": "分别记账。申请进入待付，只有实付才让现金和存款负债同时减少。",
+        "explanation": "现金为 14−9＝5，待付为 18−9＝9。现金和存款负债各减少 9，权益仍为 11。",
+        "misconception_code": "request_is_payment"
+      }
+    },
+    {
+      "id": "micro-stock-flow-step",
+      "version": 1,
+      "variant_id": "micro-stock-flow-step",
+      "family_id": "micro-stock-flow",
+      "outcome_ids": [
+        "svb_run.1"
+      ],
+      "kind": "numeric",
+      "prompt": "账本现在有现金 18，随后实际付款 5，期间没有其他收付。付款后现金是多少？",
+      "context": {
+        "kind": "authored_model_exercise"
+      },
+      "assessment_role": "practice",
+      "response_schema": {
+        "fields": [
+          {
+            "id": "cash",
+            "label": "付款后现金",
+            "unit": "资金单位"
+          }
+        ]
+      },
+      "evaluator": {
+        "id": "numeric_v1",
+        "version": 1,
+        "answers": [
+          13
+        ]
+      },
+      "feedback": {
+        "hint": "实际付款会减少现金存量。",
+        "explanation": "现金由 18 减少 5，余额为 13。",
+        "misconception_code": "request_is_payment"
+      }
+    },
+    {
+      "id": "micro-stock-flow-check",
+      "version": 1,
+      "variant_id": "micro-stock-flow-check",
+      "family_id": "micro-stock-flow",
+      "outcome_ids": [
+        "svb_run.1"
+      ],
+      "kind": "numeric",
+      "prompt": "合作社期初现金 40 且无待付款。本期实际收到 9、实际支付 12。另外收到并登记一笔尚未支付的报销申请 7。填写期末现金和待付款。",
+      "context": {
+        "kind": "authored_model_exercise"
+      },
+      "assessment_role": "practice",
+      "response_schema": {
+        "fields": [
+          {
+            "id": "cash",
+            "label": "期末现金",
+            "unit": "资金单位"
+          },
+          {
+            "id": "pending",
+            "label": "期末待付款",
+            "unit": "资金单位"
+          }
+        ]
+      },
+      "evaluator": {
+        "id": "numeric_v1",
+        "version": 1,
+        "answers": [
+          37,
+          7
+        ]
+      },
+      "feedback": {
+        "hint": "把实际收付记入现金余额，把尚未支付的申请单列。",
+        "explanation": "现金为 40＋9−12＝37，登记的 7 尚未支付，所以期末待付款为 7。",
+        "misconception_code": "request_is_payment"
+      }
+    },
+    {
+      "id": "micro-conditional-information-step",
+      "version": 1,
+      "variant_id": "micro-conditional-information-step",
+      "family_id": "micro-conditional-information",
+      "outcome_ids": [
+        "svb_run.2"
+      ],
+      "kind": "numeric",
+      "prompt": "在 30 次模拟里，有 10 次出现一条邻居申请消息，其中 4 次随后追加提款。给定出现该消息，追加提款的样本频率是多少？",
+      "context": {
+        "kind": "authored_model_exercise"
+      },
+      "assessment_role": "practice",
+      "response_schema": {
+        "fields": [
+          {
+            "id": "frequency",
+            "label": "样本频率",
+            "unit": "%"
+          }
+        ]
+      },
+      "evaluator": {
+        "id": "numeric_v1",
+        "version": 1,
+        "answers": [
+          40
+        ]
+      },
+      "feedback": {
+        "hint": "条件是看到了消息，分母取出现消息的记录数。",
+        "explanation": "在出现消息的 10 次中有 4 次追加提款，比例为 40%。",
+        "misconception_code": "actions_are_independent_signals"
+      }
+    },
+    {
+      "id": "micro-conditional-information-check",
+      "version": 1,
+      "variant_id": "micro-conditional-information-check",
+      "family_id": "micro-conditional-information",
+      "outcome_ids": [
+        "svb_run.2"
+      ],
+      "kind": "numeric",
+      "prompt": "支援窗口有 30 人带齐材料、20 人未带齐。两组分别有 12 人和 4 人当天获批。在当天获批的人中，带齐材料的比例是多少？",
+      "context": {
+        "kind": "authored_model_exercise"
+      },
+      "assessment_role": "practice",
+      "response_schema": {
+        "fields": [
+          {
+            "id": "ratio",
+            "label": "带齐材料的比例",
+            "unit": "%"
+          }
+        ]
+      },
+      "evaluator": {
+        "id": "numeric_v1",
+        "version": 1,
+        "answers": [
+          75
+        ]
+      },
+      "feedback": {
+        "hint": "先数当天获批的总人数，再数其中带齐材料的有几人。",
+        "explanation": "当天获批共 12＋4＝16 人，带齐材料的有 12 人，比例为 12÷16＝75%。",
+        "misconception_code": "actions_are_independent_signals"
+      }
     }
   ],
   "activities": [
@@ -806,6 +1004,94 @@
       ],
       "completion_rule": "submit_or_skip",
       "next_activity_id": null
+    },
+    {
+      "id": "review-1-reinforce",
+      "phase": "notebook",
+      "kind": "review",
+      "outcome_ids": [
+        "svb_run.1"
+      ],
+      "content_ref": "review-1-reinforce",
+      "assessment_item_ids": [
+        "review-1-reinforce"
+      ],
+      "completion_rule": "submit_or_skip",
+      "next_activity_id": null
+    },
+    {
+      "id": "micro-stock-flow-step",
+      "phase": "intro",
+      "kind": "scaffold",
+      "outcome_ids": [
+        "svb_run.1"
+      ],
+      "content_ref": "micro-stock-flow-step",
+      "assessment_item_ids": [
+        "micro-stock-flow-step"
+      ],
+      "completion_rule": "submit_or_skip",
+      "next_activity_id": null
+    },
+    {
+      "id": "micro-stock-flow-check",
+      "phase": "intro",
+      "kind": "scaffold",
+      "outcome_ids": [
+        "svb_run.1"
+      ],
+      "content_ref": "micro-stock-flow-check",
+      "assessment_item_ids": [
+        "micro-stock-flow-check"
+      ],
+      "completion_rule": "submit_or_skip",
+      "next_activity_id": null
+    },
+    {
+      "id": "micro-conditional-information-step",
+      "phase": "intro",
+      "kind": "scaffold",
+      "outcome_ids": [
+        "svb_run.2"
+      ],
+      "content_ref": "micro-conditional-information-step",
+      "assessment_item_ids": [
+        "micro-conditional-information-step"
+      ],
+      "completion_rule": "submit_or_skip",
+      "next_activity_id": null
+    },
+    {
+      "id": "micro-conditional-information-check",
+      "phase": "intro",
+      "kind": "scaffold",
+      "outcome_ids": [
+        "svb_run.2"
+      ],
+      "content_ref": "micro-conditional-information-check",
+      "assessment_item_ids": [
+        "micro-conditional-information-check"
+      ],
+      "completion_rule": "submit_or_skip",
+      "next_activity_id": null
+    }
+  ],
+  "scaffolds": [
+    {
+      "id": "stock-flow",
+      "title": "存量与流量",
+      "example": "水桶里现有多少水，是某个时点的存量。一个下午倒入或倒出多少水，是这段时间的流量。",
+      "worked_example": "一个账本期初有现金 26，期间实际收款 9、实际付款 12。期末现金为 26＋9−12＝23。尚待批准的申请另行记录，获批并实际付款时才计入现金流出。",
+      "step_activity_id": "micro-stock-flow-step",
+      "check_activity_id": "micro-stock-flow-check"
+    },
+    {
+      "id": "conditional-information",
+      "title": "概率与条件信息",
+      "example": "已经观测到一种信号时，想知道随后发生某事的频率，就在出现该信号的记录里计算比例。",
+      "worked_example": "100 次模拟中有 60 次亮起预警灯，这 60 次里有 36 次随后断货。给定亮灯，断货的样本频率为 36÷60＝60%。同时亮灯且断货的记录占全部模拟的 36%。",
+      "step_activity_id": "micro-conditional-information-step",
+      "check_activity_id": "micro-conditional-information-check"
     }
   ],
   "required_comparisons": [

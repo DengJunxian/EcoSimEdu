@@ -6,17 +6,20 @@ import { classrooms, hasClassroom } from "./classroom-routes.ts";
 import { courseById } from "./curriculum.ts";
 import { studentBrand } from "../../content/student-navigation.ts";
 import { PageTitle, StatusNotice } from "../../content/student-ui.tsx";
+import { localStudyAI } from "./deployment.ts";
+import StudyAI from "./app/onboarding/StudyAI.tsx";
 import { StudentHeader } from "./StudentHeader.tsx";
 import "./styles.css";
 
 const query = new URLSearchParams(location.search);
 const id = query.get("lesson");
 const Classroom = hasClassroom(id) ? lazy(classrooms[id]) : null;
+const isAI = localStudyAI && query.get("view") === "ai";
 const isNotes = query.get("view") === "notes";
 const isReview = query.get("view") === "review";
 const ProgressiveReview = lazy(() => import("./ProgressiveLearning.tsx").then(module => ({ default: module.ProgressiveReviewPage })));
 const course = id && Object.hasOwn(courseById, id) ? courseById[id] : undefined;
-document.title = `${studentBrand} · ${isNotes ? "实验笔记" : isReview ? "复习" : course?.title ?? "渐进课堂"}`;
+document.title = `${studentBrand} · ${isAI ? "AI 导师连接" : isNotes ? "实验笔记" : isReview ? "复习" : course?.title ?? "渐进课堂"}`;
 
 function ClassroomStatus({ children }: { children: ReactNode }) {
   return <><StudentHeader caseId={course?.id}/>
@@ -41,6 +44,7 @@ class ClassroomBoundary extends Component<{ children: ReactNode }, { failed: boo
 }
 
 createRoot(document.getElementById("root")!).render(
+  isAI ? <StudyAI/> :
   isNotes ? <StudentNotes id={query.get("note")}/> :
   isReview ? <ClassroomBoundary><Suspense fallback={<ClassroomStatus><StatusNotice>正在打开复习…</StatusNotice></ClassroomStatus>}>
     <ProgressiveReview/>

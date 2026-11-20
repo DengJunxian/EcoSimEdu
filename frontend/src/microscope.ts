@@ -1,8 +1,8 @@
 import { visibleTick, type evidenceKinds, type ObservationPerspective } from "../../content/microscope.ts";
-import type { AuctionRun } from "./auction.ts";
+import type { AuctionFrame, AuctionRun } from "./auction.ts";
 import type { CasePackage, EventEnvelope } from "./domain-contracts.ts";
 import type { Frame, Lesson, Run } from "./lesson.ts";
-import { bankEventValues, browserEvents } from "./run-evidence.ts";
+import { bankEventDeltas, bankEventValues, browserEvents } from "./run-evidence.ts";
 import type { SvbRun } from "./svb.ts";
 
 const roles = new Map([["double_auction", "B01"], ["svb_run", "D01"], ["schelling_segregation", "A001"]]);
@@ -12,6 +12,14 @@ export type TracePoint = { tick: number; eventId?: string };
 export type TraceFocus = TracePoint & { relation?: string; anchor?: TracePoint };
 type EvidenceKind = keyof typeof evidenceKinds;
 export type TraceLink = { id: string; kind: EvidenceKind; text: string; point: TracePoint; actorId?: string };
+
+type TraceSource = { point: TracePoint; text: string; actorId?: string };
+type LocalAggregation = {
+  label: string;
+  rows: { label: string; before: number | null; after: number | null }[];
+  explanation: string;
+  sources?: TraceSource[];
+};
 
 type Move = {
   actor_id: string;
@@ -56,6 +64,77 @@ function edges(frame: Frame) {
   return result;
 }
 
+function neighborhoodAggregation(move: Move, prior: Frame, frame: Frame): LocalAggregation | undefined {
+  const previous = edges(prior), current = edges(frame);
+  if (!previous || !current) return;
+  const affected = [move, ...move.changed_neighbors];
+  const doubledChange = [0, 1].map(i => affected.reduce((sum, row) => sum + row.after[i] - row.before[i], 0));
+  if (doubledChange[0] !== 2 * (current.same - previous.same) ||
+      doubledChange[1] !== 2 * (current.all - previous.all)) return;
+  return {
+    label: "两处邻域和全图",
+    rows: [
+      { label: "搬迁者同组邻接对", before: move.before[0], after: move.after[0] },
+      { label: "搬迁者已占邻接对", before: move.before[1], after: move.after[1] },
+      { label: "全图同组邻接对", before: previous.same, after: current.same },
+      { label: "全图已占邻接对", before: previous.all, after: current.all },
+    ],
+    explanation: `搬迁者与 ${move.changed_neighbors.length} 户邻居的计数变化合计 ${signed(doubledChange[0])} 条同组邻接、${signed(doubledChange[1])} 条已占邻接。每对在两端各计一次，除以 2 后与全图重新计数的结果一致。`,
+  };
+}
+
+function queueAggregation(frame: Frame, prior: Frame | undefined, event?: EventEnvelope): LocalAggregation | undefined {
+  const rows = [
+    ["requested", "累计申请"], ["paid", "累计实付"], ["queued", "待付金额"], ["cash", "银行现金"],
+  ].flatMap(([key, label]) => {
+    const values = event ? bankEventValues(frame, prior, event.eventId, key) :
+      { before: prior?.metrics[key], after: frame.metrics[key] };
+    return typeof values?.before === "number" && typeof values.after === "number"
+      ? [{ label, before: values.before, after: values.after }] : [];
+  });
+  if (rows.length !== 4 || rows[0].before - rows[1].before !== rows[2].before ||
+      rows[0].after - rows[1].after !== rows[2].after) return;
+  return {
+    label: event ? "这笔事件前后的队列与现金" : "本轮队列与现金",
+    rows,
+    explanation: `待付 = 累计申请 − 累计实付。当前核算 ${rows[0].after} − ${rows[1].after} = ${rows[2].after}。银行现金单列，单位均为资金单位。`,
+  };
+}
+
+function bookAggregation(frame: AuctionFrame, prior: AuctionFrame | undefined,
+  orderEvents: Map<string, EventEnvelope>): LocalAggregation {
+  const orders = frame.book;
+  const { best_bid: bid, best_ask: ask, volume } = frame.metrics;
+  const trade = frame.record.event_type === "trade";
+  const bestOrders = [
+    orders.find(order => order.side === "buy" && order.price === bid),
+    orders.find(order => order.side === "sell" && order.price === ask),
+  ];
+  const sources = bestOrders.flatMap((order, index) => {
+    const event = order && orderEvents.get(order.order_id);
+    return order && event && event.frameTick! <= frame.tick ? [{
+      point: pointOf(event), actorId: order.actor_id,
+      text: `${index === 0 ? "最高买价" : "最低卖价"} · ${order.order_id} · ${order.price} 代币`,
+    }] : [];
+  });
+  return {
+    label: "在簿订单",
+    rows: [
+      { label: "在簿买单（张）", before: prior?.book.filter(order => order.side === "buy").length ?? null,
+        after: orders.filter(order => order.side === "buy").length },
+      { label: "在簿卖单（张）", before: prior?.book.filter(order => order.side === "sell").length ?? null,
+        after: orders.filter(order => order.side === "sell").length },
+      { label: "最高买价（代币）", before: prior?.metrics.best_bid ?? null, after: bid },
+      { label: "最低卖价（代币）", before: prior?.metrics.best_ask ?? null, after: ask },
+    ],
+    explanation: trade
+      ? `成交事件记录 ${frame.record.quantity} 件，累计成交 ${prior?.metrics.volume} → ${volume} 件。表中是成交后仍在簿的限价。`
+      : `此事件没有成交。${typeof bid === "number" && typeof ask === "number" && bid < ask ?
+        `最高买价低于最低卖价 ${ask - bid} 代币。` : ""}`,
+    sources,
+  };
+}
+
 function visibleEnd<T extends { frameTick: number | null }>(rows: readonly T[], asOf: number) {
   let lower = 0, upper = rows.length;
   while (lower < upper) {
@@ -73,6 +152,7 @@ function buildIndex(run: Run, course: CasePackage) {
   const events = new Map(rows.map(event => [event.eventId, event]));
   const byTick = new Map<number, EventEnvelope[]>();
   const byActor = new Map<string, EventEnvelope[]>();
+  const orderEvents = new Map<string, EventEnvelope>();
   const links = new Map<string, TraceLink[]>();
   const feedback = new Map<string, EventEnvelope[]>();
   const pending: { event: EventEnvelope; actorId: string; remaining: number }[] = [];
@@ -100,6 +180,8 @@ function buildIndex(run: Run, course: CasePackage) {
     for (const actor of event.actorIds) append(byActor, actor, event);
     const detail = run.frames[tick].events.find(item => item.id === event.eventId);
 
+    const orderId = auction?.frames[tick].record.order_id;
+    if (orderId && event.kind === "order_submitted") orderEvents.set(orderId, event);
     if (auction && event.kind === "trade") {
       const record = auction.frames[tick].record;
       for (const ref of event.sourceEvents) {
@@ -165,7 +247,7 @@ function buildIndex(run: Run, course: CasePackage) {
       }
     }
   }
-  return { auction, bank, events, byTick, byActor, links, feedback, roundFeedback };
+  return { auction, bank, events, byTick, byActor, links, feedback, roundFeedback, orderEvents };
 }
 
 const cached = new WeakMap<Run, ReturnType<typeof buildIndex>>();
@@ -234,12 +316,39 @@ export function microscope(run: Run, lesson: Lesson, focus: TracePoint, asOf: nu
     Math.abs(current.same * 100 / current.all - after) <= .005001
     ? `同组／已占无向邻接对 ${previous.same}/${previous.all} → ${current.same}/${current.all}，各乘 100%。`
     : undefined;
+  let aggregation: LocalAggregation | undefined;
+  let contributions: TraceSource[] = [];
+  if (!role) {
+    if (move && prior) aggregation = neighborhoodAggregation(move, prior, frame);
+    if (index.bank) {
+      aggregation = queueAggregation(frame, prior, event);
+      const start = prior?.metrics[metricId], end = frame.metrics[metricId];
+      if (typeof start === "number" && typeof end === "number") {
+        const postings = frame.events.map(item => ({ item, delta: bankEventDeltas(frame, prior, item)[metricId] ?? 0 }));
+        if (start + postings.reduce((sum, entry) => sum + entry.delta, 0) === end) {
+          contributions = postings.flatMap(({ item, delta }) => delta ? [{
+            point: { tick, eventId: item.id }, actorId: item.actorId,
+            text: `${item.text}（${signed(delta)} ${deltaUnit}）`,
+          }] : []);
+        }
+      }
+    }
+    if (index.auction) {
+      aggregation = bookAggregation(index.auction.frames[tick], index.auction.frames[tick - 1], index.orderEvents);
+    }
+    const bookChange = index.auction && (metricId === "best_bid" || metricId === "best_ask") && before !== after;
+    if (!index.bank && event && (difference || bookChange || index.auction && metricId === "price" && event.kind === "trade")) {
+      contributions = [{ point: pointOf(event), text: event.summary ?? event.kind, actorId: event.actorIds[0] }];
+    }
+  }
+
   const visibleEvent = (row: EventEnvelope) => ({ point: pointOf(row), kind: row.kind, text: row.summary ?? row.kind });
   return {
     runId: run.id, asOf, perspective, point: event ? pointOf(event) : { tick },
     eventType: event?.kind, action: event?.summary, clock: course.clock.label,
     economicTime: event ? event.economicTime?.value : index.bank ? tick : undefined,
     actor, actorBefore, actorEvents: actorEvents.map(visibleEvent), visibleRows: visibleRows.map(visibleEvent),
+    aggregation, contributions,
     links: [...references.filter(link => link.kind !== "relation"), ...feedback, ...references.filter(link => link.kind === "relation")],
     metric: role ? undefined : { label: metric.label, unit: metric.unit, before, after, difference, equation, identity },
   };

@@ -7,12 +7,16 @@ export const reflectionOptions = {
   can_apply: "我可以试着解释另一个情境",
 };
 
+type EventRef = { eventId: string; runId: string };
+const validRef = (ref: EventRef) => typeof ref?.runId === "string" && !!ref.runId && ref.runId.length <= 250 &&
+  typeof ref.eventId === "string" && !!ref.eventId && ref.eventId.length <= 80;
+
 type NoteKey = { caseId: string; reference: string; savedAt: string };
 export type TeachingRecord = NoteKey & (
   | { kind: "forecast_exposure"; level: 1 | 2 | 3; original: string }
   | { kind: "self_assessment"; answer: keyof typeof reflectionOptions }
   | { kind: "mechanism_evidence"; eventTick: number; choiceTick: number }
-  | { kind: "coach_advice"; advice: string; eventId: string; runId: string }
+  | ({ kind: "coach_advice"; advice: string; comparison?: EventRef } & EventRef)
 );
 
 const key = (record: Pick<TeachingRecord, "caseId" | "reference" | "kind">) =>
@@ -31,8 +35,7 @@ function valid(record: unknown): record is TeachingRecord {
   if (value.kind === "forecast_exposure") return [1, 2, 3].includes(value.level) &&
     typeof value.original === "string" && value.original.length <= 200;
   return value.kind === "coach_advice" && typeof value.advice === "string" && value.advice.length <= 1000 &&
-    typeof value.runId === "string" && !!value.runId && value.runId.length <= 250 &&
-    typeof value.eventId === "string" && !!value.eventId && value.eventId.length <= 80;
+    validRef(value) && (value.comparison === undefined || validRef(value.comparison));
 }
 
 export function readTeaching<K extends TeachingRecord["kind"]>(storage: Storage, caseId: string, reference: string, kind: K) {
