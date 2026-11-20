@@ -1,0 +1,1 @@
+var e={action:`直接行动`,accounting:`指标核算`,signal:`接收到的信号`,rule:`规则触发`,feedback:`后续反馈`,relation:`邻域变化`},t=`当前模型未提供这类证据。`;function n(e,t){return Number.isSafeInteger(e)&&e>=0&&e<=t}export{t as n,n as r,e as t};

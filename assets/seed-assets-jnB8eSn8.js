@@ -1,0 +1,1 @@
+import{t as e}from"./preload-helper-CnA50jbf.js";function t(e){return[e+1,e+2]}function n(e,n){let r=t(e).indexOf(n);if(r<0)throw Error(`缺少这个种子的课件输入。`);return r}async function r(t,r,i){let{default:a}=await e(async()=>{let{default:e}=await import(`./paired-inputs-CHFM-0e2.js`);return{default:e}},[],import.meta.url);return a[t][n(r,i)]}export{r as n,n as r,t};
